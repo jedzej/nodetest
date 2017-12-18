@@ -7,7 +7,6 @@ describe('Array', function() {
       assert.equal([1,2,3].indexOf(4), -1);
 
       assert.equal(1,1,"lol");
-      console.log("RZeczy")
     });
   });
 
@@ -15,7 +14,6 @@ describe('Array', function() {
     const wss = new WebSocket.Server({ port: 8080 });
       wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
-          console.log('received: %s', message);
           ws.close();
           wss.close();
           
@@ -30,7 +28,6 @@ describe('Array', function() {
       });
 
       wsc.on('error', function(err){
-        console.log('error ' + err);
         done();
       })
 
