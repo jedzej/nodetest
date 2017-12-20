@@ -1,6 +1,4 @@
-var express = require('express');
 var EventEmitter = require('events')
-var router = express.Router();
 
 var chats = {};
 
@@ -12,10 +10,15 @@ class Chat extends EventEmitter {
     this.members = [];
   }
 
+  _emitAndLog(){
+    console.info("Chat: " + Array.from(arguments));
+    this.emit.apply(this, arguments);
+  }
+
   message(accountId, message) {
     if (this.hasMember(accountId) == false)
       throw new Error(accountId + " is not a member!");
-    this.emit('message', accountId, message);
+    this._emitAndLog('message', accountId, message);
   }
 
   hasMember(accountId) {
@@ -26,22 +29,21 @@ class Chat extends EventEmitter {
     if (this.hasMember(accountId))
       throw new Error(accountId + " is already a member!");
     this.members.push(accountId);
-    this.emit('join', accountId);
+    this._emitAndLog('join', accountId);
   }
 
   leave(accountId) {
     if (this.hasMember(accountId) == false)
       throw new Error(accountId + " is not a member!");
-    this.members.push(accountId);
     this.members = this.members.filter((e) => e != accountId);
-    this.emit('leave', accountId);
+    this._emitAndLog('leave', accountId);
   }
 
   destroy() {
     if (this.hasMember(accountId) == false)
       throw new Error("Already destroyed!");
     delete chats[this.id];
-    this.emit('destroy', accountId);
+    this._emitAndLog('destroy', accountId);
   }
 }
 
@@ -53,6 +55,7 @@ function create(id) {
   if (get(id) != undefined)
     throw new Error("Already exists")
   chats[id] = new Chat(id);
+  chats[id]._emitAndLog('create');
   return chats[id];
 }
 

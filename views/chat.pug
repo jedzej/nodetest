@@ -7,6 +7,13 @@ block content
     function $(id){
       return document.getElementById(id);
     }
+
+    function textareaAddLine(id, message){
+      var textarea = $(id);
+      textarea.value += message;
+      textarea.scrollTop = textarea.scrollHeight;
+    }
+
     var ws = new WebSocket("ws://localhost:8080");
     ws.onmessage = function(evt){
       var msg = JSON.parse(evt.data);
@@ -21,15 +28,22 @@ block content
           }));
           break;
         case 'chat/join/response':
-          $("chatwindow").value += "Joined\n"
+          textareaAddLine('chatwindow', "Joined\n");
           break;
         case 'chat/join/error':
-          $("chatwindow").value += "Joining error:" + msg.error + "\n"
+          textareaAddLine('chatwindow', "Joining error:" + msg.error + "\n");
           break;
         case 'chat/message/notify':
-          $("chatwindow").value += msg.accountId + ": " + msg.message + "\n"
+          textareaAddLine('chatwindow', msg.accountId + ": " + msg.message + "\n");
+          break;
+        case 'chat/join/notify':
+          textareaAddLine('chatwindow', msg.accountId + " joined\n");
+          break;
+        case 'chat/leave/notify':
+          textareaAddLine('chatwindow', msg.accountId + " left\n");
+          break;
         default:
-          console.log("Unrecognized: " + evt);
+          console.log("Unrecognized: " + JSON.stringify(evt));
       }
     };
 
@@ -51,8 +65,8 @@ block content
   h1= title
   p CZAT #{accountId}
   div
-    textarea(id="chatwindow", style="width:400px;height:200px;")
-  div
-    input(type="text", id="editline", style="width:300px;")
-    button(onclick="submit()", style="width:100px;").
-      SUBMIT
+    form(action="javascript:submit();")
+      textarea(readonly, id="chatwindow", style="width:400px;height:200px;")
+      div
+        input(type="text", id="editline", style="width:300px;")
+        input(type="submit", value="SUBMIT", style="width:100px;")

@@ -5,6 +5,13 @@ const crypto = require('crypto');
 var server = undefined;
 var heartBeatInterval = undefined;
 
+function createError(message, errno, code) {
+  var error = new Error(message);
+  error.errno = errno;
+  error.code = code;
+  return error;
+}
+
 const coreSignallingMap = {
   'hello/request': function (event) {
     this.send({
@@ -23,11 +30,19 @@ class SockSessionClient extends EventEmitter {
     ws.on('pong', this.pongResponse);
 
     ws.on('message', function incoming(message) {
+      var msg = null;
       try {
-        var msg = JSON.parse(message)
+        msg = JSON.parse(message)
+      } catch (e) {
+        e.errno = "ENOTPARSED";
+        e.code = "ENOTPARSED";
+        this.sclient.emit('error', e);
+        return;
+      }
+      try {
         this.sclient.emit(msg.event, msg);
       } catch (e) {
-        console.error(e.stack)
+        this.sclient.emit('error', e);
       }
     });
 
@@ -35,8 +50,8 @@ class SockSessionClient extends EventEmitter {
       ws.sclient.emit('close', code, reason);
     });
 
-    ws.on('error',function(err){
-      console.log(err);
+    ws.on('error', function (err) {
+      ws.sclient.emit('error', err);
     })
 
     this.registerMap(coreSignallingMap);
@@ -53,8 +68,10 @@ class SockSessionClient extends EventEmitter {
       this.ws.ping('', false, true);
       this.ws.isAlive = false;
     }
-    else
+    else {
+      this.emit('timeout');
       ws.terminate();
+    }
   }
 
   pongResponse() {
@@ -64,7 +81,7 @@ class SockSessionClient extends EventEmitter {
   send(message) {
     try {
       return this.ws.send(JSON.stringify(message));
-    } catch(e){
+    } catch (e) {
       return undefined;
     }
   }
@@ -80,8 +97,8 @@ class SockSessionServer extends EventEmitter {
         var sclient = new SockSessionClient(ws);
         _this.emit('attach', sclient);
       });
-      server.on('error', function error(err){
-        console.log(err.stack);
+      server.on('error', function error(err) {
+        _this.emit('error', err);
       });
     }
     if (heartBeatInterval == undefined) {
