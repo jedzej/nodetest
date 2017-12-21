@@ -24,19 +24,22 @@ describe('Auth', function () {
       auth.register('Kasia', 'lol', function (err, user) {
         assert.equal(err.code, 'EUSEREXISTS');
       });
-      // login by credentials (should create token)
+      // login by credentials
       auth.byCredentials('Kasia', 'kasia123', function (err, userByCredentials) {
         assert.equal(err, null);
         assert.equal(userByCredentials.name, 'Kasia');
-        assert.ok(userByCredentials.token);
-        // login by token
-        auth.byToken(userByCredentials.token, function (err, userByToken) {
-          assert.equal(err, null);
-          assert.equal(userByToken, userByCredentials);
-          // logout
-          userByCredentials.logOut(function () {
-            assert.ok(!user.token);
-            done();
+        assert.ok(userByCredentials.token === undefined);
+        // create token
+        userByCredentials.logIn(null, function () {
+          // login by token
+          auth.byToken(userByCredentials.token, function (err, userByToken) {
+            assert.equal(err, null);
+            assert.equal(userByToken, userByCredentials);
+            // logout
+            userByCredentials.logOut(function () {
+              assert.ok(!user.token);
+              done();
+            });
           });
         });
       });
@@ -49,7 +52,7 @@ describe('Auth', function () {
 
 
     sss.on('attach', function attach(sclient) {
-      sclient.registerMap(authSapi);
+      sclient.registerSapi(authSapi);
 
       ws.on('open', function open() {
         var sclient = new socksession.client(ws)
@@ -79,17 +82,18 @@ describe('Auth', function () {
           (cause) => {
             assert.equal(cause.error.code, 'EUSEREXISTS');
             assert.equal(cause.event, 'auth/register/error');
-            
+
             var login = sclient.sendAndWait({
               event: 'auth/login/request',
               name: 'Username',
               password: 'pass'
             }, 'auth/login/response', 'auth/login/error', 2000);
-            
+
             login.then(
               (response) => {
                 assert.equal(response.event, 'auth/login/response');
                 assert.equal(response.name, 'Username');
+                assert.ok(response.token);
                 sss.stop();
                 done();
               }

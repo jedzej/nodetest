@@ -1,5 +1,6 @@
 const auth = require('../services/auth');
 
+
 function loginResponse(user) {
   return {
     event: "auth/login/response",
@@ -19,6 +20,8 @@ function errorResponse(event, err) {
 }
 
 module.exports = {
+  '__initialize__' : function(){
+  },
 
   'auth/register/request': function (event) {
     var ss = this;
@@ -33,24 +36,20 @@ module.exports = {
 
   'auth/login/request': function (event) {
     var ss = this;
+    const getUserCallback = function(err, user){
+      if (err) {
+        ss.send(errorResponse("auth/login/error", err));
+      } else {
+        user.logIn(ss, function(){
+          ss.currentUser = user;
+          ss.send(loginResponse(user));
+        })
+      }
+    }
     if (event.token) {
-      auth.byToken(event.token, function (err, user) {
-        if (err) {
-          ss.send(errorResponse("auth/login/error", err));
-        } else {
-          ss.currentUser = user;
-          ss.send(loginResponse(user));
-        }
-      });
+      auth.byToken(event.token, getUserCallback);
     } else {
-      auth.byCredentials(event.name, event.password, function (err, user) {
-        if (err) {
-          ss.send(errorResponse("auth/login/error", err));
-        } else {
-          ss.currentUser = user;
-          ss.send(loginResponse(user));
-        }
-      })
+      auth.byCredentials(event.name, event.password, getUserCallback);
     }
   },
 

@@ -11,7 +11,6 @@ class Chat extends EventEmitter {
   }
 
   _emitAndLog(){
-    console.info("Chat: " + Array.from(arguments));
     this.emit.apply(this, arguments);
   }
 

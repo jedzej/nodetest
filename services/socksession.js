@@ -28,7 +28,7 @@ class SockSessionClient extends EventEmitter {
 
     ws.on('pong', this.pongResponse);
 
-    ws.on('message', function incoming(message) {
+    ws.on('message', function (message) {
       var msg = null;
       try {
         msg = JSON.parse(message)
@@ -53,7 +53,7 @@ class SockSessionClient extends EventEmitter {
       ws.sclient.emit('error', err);
     })
 
-    this.registerMap(coreSignallingMap);
+    this.registerSapi(coreSignallingMap);
   }
 
   sendAndWait(message, resolveEvent, rejectEvent, timeout) {
@@ -85,10 +85,13 @@ class SockSessionClient extends EventEmitter {
     return promise;
   }
 
-  registerMap(map) {
+  registerSapi(map) {
     for (var k of Object.keys(map)) {
-      this.on(k, map[k]);
+      if(!k.startsWith('__'))
+        this.on(k, map[k]);
     }
+    if(map['__initialize__'])
+      map['__initialize__'].apply(this);
   }
 
   heartBeat() {

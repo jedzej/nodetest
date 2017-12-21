@@ -3,6 +3,8 @@ var crypto = require('crypto');
 
 var users = [];
 
+var sessionClientMap = {};
+
 function getUserByToken(token, callback) {
   var user = users.find((u) => u.token == token);
   if (user) {
@@ -39,18 +41,7 @@ function getByCredentials(username, password, callback) {
   var user = users.find((u) => u.name == username);
   if (user) {
     if (user.password == password) {
-      if (user.token === undefined) {
-        genUniqueToken(function (err, token) {
-          if (err) {
-            callback(err);
-          } else {
-            user.token = token;
-            callback(null, user);
-          }
-        });
-      } else {
-        callback(null, user);
-      }
+      callback(null, user);
     } else {
       var err = new Error('Invalid password');
       err.code = 'EINVALIDPASS';
@@ -69,19 +60,47 @@ function getByToken(token, callback) {
 
 class User {
 
-  constructor(name, password){
+  constructor(name, password) {
     this.name = name;
     this.password = password;
   }
 
-  logOut(callback){
+  logIn(sessionClient, callback) {
+    if (this.token === undefined) {
+      var _this = this;
+      genUniqueToken(function (err, token) {
+        if (err) {
+          callback(err);
+        } else {
+          _this.token = token;
+          sessionClientMap[_this.token] = sessionClient;
+          callback(null);
+        }
+      });
+    } else {
+      sessionClientMap[this.token] = sessionClient;
+      callback(null);
+    }
+  }
+
+  isOnline() {
+    return this.token != undefined;
+  }
+
+  getSessionClient() {
+    if (this.isOnline())
+      return sessionClientMap[this.token];
+  }
+
+  logOut(callback) {
+    delete sessionClientMap[this.token];
     delete this.token;
     callback(null);
   }
 }
 
-function register(name, password, callback){
-  if(users.find((u) => u.name == name)){
+function register(name, password, callback) {
+  if (users.find((u) => u.name == name)) {
     var err = new Error('User already exists!');
     err.code = "EUSEREXISTS";
     callback(err);
@@ -95,5 +114,5 @@ function register(name, password, callback){
 module.exports = {
   'byToken': getByToken,
   'byCredentials': getByCredentials,
-  'register' : register
+  'register': register
 };
