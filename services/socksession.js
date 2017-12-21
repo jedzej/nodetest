@@ -2,7 +2,6 @@ const EventEmitter = require('events').EventEmitter;
 const WebSocket = require('ws');
 const crypto = require('crypto');
 
-var server = undefined;
 var heartBeatInterval = undefined;
 
 function createError(message, errno, code) {
@@ -57,6 +56,35 @@ class SockSessionClient extends EventEmitter {
     this.registerMap(coreSignallingMap);
   }
 
+  sendAndWait(message, resolveEvent, rejectEvent, timeout) {
+    var _this = this;
+    var promise = new Promise(function (resolve, reject) {
+      var timeoutId;
+      const clearListeners = () => {
+        _this.removeListener(resolveEvent, resolveCallback);
+        _this.removeListener(rejectEvent, rejectCallback);
+        clearTimeout(timeoutId);
+      }
+
+      const resolveCallback = (value) => {
+        clearListeners();
+        resolve(value);
+      }
+      const rejectCallback = (cause) => {
+        clearListeners();
+        reject(cause);
+      }
+
+      timeoutId = setTimeout(function(){
+        rejectCallback('ETIMEOUT');
+      }, timeout);
+      _this.once(resolveEvent, resolveCallback);
+      _this.once(rejectEvent, rejectCallback);
+    });
+    this.send(message)
+    return promise;
+  }
+
   registerMap(map) {
     for (var k of Object.keys(map)) {
       this.on(k, map[k]);
@@ -90,20 +118,20 @@ class SockSessionClient extends EventEmitter {
 class SockSessionServer extends EventEmitter {
 
   start(port, heartBeatTimeout) {
-    if (server == undefined) {
+    if (this.server == undefined) {
       var _this = this;
-      server = new WebSocket.Server({ port: port });
-      server.on('connection', function connection(ws) {
+      this.server = new WebSocket.Server({ port: port });
+      this.server.on('connection', function connection(ws) {
         var sclient = new SockSessionClient(ws);
         _this.emit('attach', sclient);
       });
-      server.on('error', function error(err) {
+      this.server.on('error', function error(err) {
         _this.emit('error', err);
       });
     }
     if (heartBeatInterval == undefined) {
       heartBeatInterval = setInterval(function ping() {
-        for (var ws of server.clients) {
+        for (var ws of _this.server.clients) {
           ws.sclient.heartBeat();
         }
       }, heartBeatTimeout);
@@ -113,8 +141,11 @@ class SockSessionServer extends EventEmitter {
   stop(callback) {
     if (heartBeatInterval != undefined)
       clearInterval(heartBeatInterval);
-    server.close(callback);
+    this.server.close(callback);
   }
 }
 
-module.exports = new SockSessionServer();
+module.exports = {
+  server: SockSessionServer,
+  client: SockSessionClient
+}

@@ -61,7 +61,7 @@ module.exports = {
   },
 
   'timeout' : function() {
-
+    console.log("timeout!");
   },
 
   'error': function (err) {

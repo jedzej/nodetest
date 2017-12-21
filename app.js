@@ -11,6 +11,7 @@ var chat = require('./routes/chat');
 var socksession = require('./services/socksession');
 var chatsrv = require('./services/chat');
 var chatSapi = require('./sapi/chat-sapi');
+var authSapi = require('./sapi/auth-sapi');
 
 var app = express();
 
@@ -48,10 +49,11 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-socksession.start(8080, 2000);
-
-socksession.on('attach', function (sessionClient) {
+var sss = new socksession.server();
+sss.start(8080, 2000);
+sss.on('attach', function (sessionClient) {
   sessionClient.registerMap(chatSapi);
+  sessionClient.registerMap(authSapi);
 });
 
 module.exports = app;
