@@ -30,7 +30,7 @@ describe('Auth', function () {
         assert.equal(userByCredentials.name, 'Kasia');
         assert.ok(userByCredentials.token === undefined);
         // create token
-        userByCredentials.logIn(null, function () {
+        userByCredentials.logIn(function () {
           // login by token
           auth.byToken(userByCredentials.token, function (err, userByToken) {
             assert.equal(err, null);
@@ -80,6 +80,7 @@ describe('Auth', function () {
         register_double.then(
           null,
           (cause) => {
+            assert.notEqual(cause, 'ETIMEOUT');
             assert.equal(cause.error.code, 'EUSEREXISTS');
             assert.equal(cause.event, 'auth/register/error');
 
@@ -87,15 +88,19 @@ describe('Auth', function () {
               event: 'auth/login/request',
               name: 'Username',
               password: 'pass'
-            }, 'auth/login/response', 'auth/login/error', 2000);
+            }, 'auth/login/response', 'auth/login/error', 10000);
 
             login.then(
               (response) => {
                 assert.equal(response.event, 'auth/login/response');
                 assert.equal(response.name, 'Username');
                 assert.ok(response.token);
-                sss.stop();
-                done();
+                sss.stop(()=>{
+                  done();
+                });
+              },
+              (cause)=>{
+                console.log(cause);
               }
             )
           });

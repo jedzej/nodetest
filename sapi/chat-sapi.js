@@ -1,5 +1,6 @@
 var chat = require('../services/chat');
 
+
 module.exports = {
 
   'chat/create/request': function (event) {

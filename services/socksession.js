@@ -4,6 +4,8 @@ const crypto = require('crypto');
 
 var heartBeatInterval = undefined;
 
+var servers = [];
+
 function createError(message, errno, code) {
   var error = new Error(message);
   error.errno = errno;
@@ -20,18 +22,22 @@ const coreSignallingMap = {
 };
 
 class SockSessionClient extends EventEmitter {
-  constructor(ws) {
+  constructor(ws, server) {
     super();
     this.ws = ws;
     this.ws.sclient = this;
     this.ws.isAlive = true;
+    this.tags = {};
+    this.server = server;
+    this.userId = undefined;
 
     ws.on('pong', this.pongResponse);
 
     ws.on('message', function (message) {
+      console.log("in: " +message);
       var msg = null;
       try {
-        msg = JSON.parse(message)
+        msg = JSON.parse(message);
       } catch (e) {
         e.errno = "ENOTPARSED";
         e.code = "ENOTPARSED";
@@ -39,10 +45,15 @@ class SockSessionClient extends EventEmitter {
         return;
       }
       try {
+        console.log(msg.event);
         this.sclient.emit(msg.event, msg);
       } catch (e) {
         this.sclient.emit('error', e);
       }
+    });
+
+    ws.on('open', function () {
+      ws.sclient.emit('open');
     });
 
     ws.on('close', function (code, reason) {
@@ -75,7 +86,7 @@ class SockSessionClient extends EventEmitter {
         reject(cause);
       }
 
-      timeoutId = setTimeout(function(){
+      timeoutId = setTimeout(function () {
         rejectCallback('ETIMEOUT');
       }, timeout);
       _this.once(resolveEvent, resolveCallback);
@@ -87,10 +98,10 @@ class SockSessionClient extends EventEmitter {
 
   registerSapi(map) {
     for (var k of Object.keys(map)) {
-      if(!k.startsWith('__'))
+      if (!k.startsWith('__'))
         this.on(k, map[k]);
     }
-    if(map['__initialize__'])
+    if (map['__initialize__'])
       map['__initialize__'].apply(this);
   }
 
@@ -111,10 +122,33 @@ class SockSessionClient extends EventEmitter {
 
   send(message) {
     try {
+      console.log("out: " +JSON.stringify(message));
       return this.ws.send(JSON.stringify(message));
     } catch (e) {
       return undefined;
     }
+  }
+
+  getTag(tagname) {
+    return this.tags[tagname];
+  }
+
+  addTag(tagname,tagvalue) {
+    if (this.tags[tagname] == undefined) {
+      this.tags[tagname] = tagvalue;
+    }
+  }
+
+  setCurrentUser(userId){
+    this.addTag('currentUser', userId);
+  }
+
+  getCurrentUser(){
+    return this.getTag('currentUser');
+  }
+
+  removeTag(tagname) {
+    delete this.tags[tagname];
   }
 }
 
@@ -124,14 +158,15 @@ class SockSessionServer extends EventEmitter {
     if (this.server == undefined) {
       var _this = this;
       this.server = new WebSocket.Server({ port: port });
-      this.server.on('connection', function connection(ws) {
-        var sclient = new SockSessionClient(ws);
+      this.server.on('connection', function connection(ws, req) {
+        var sclient = new SockSessionClient(ws, _this);
         _this.emit('attach', sclient);
       });
       this.server.on('error', function error(err) {
         _this.emit('error', err);
       });
     }
+    servers.push(this);
     if (heartBeatInterval == undefined) {
       heartBeatInterval = setInterval(function ping() {
         for (var ws of _this.server.clients) {
@@ -141,14 +176,38 @@ class SockSessionServer extends EventEmitter {
     }
   }
 
+  forClientsByTag(tagname, tagvalue, callback) {
+    for (var ws of this.server.clients) {
+      if (ws.sclient.getTag(tagname) == tagvalue) {
+        callback(ws.sclient);
+      }
+    }
+  }
+
   stop(callback) {
+    var _this = this;
     if (heartBeatInterval != undefined)
       clearInterval(heartBeatInterval);
-    this.server.close(callback);
+    this.server.close(function(){
+      servers = servers.filter((element) => element != this);
+      callback();
+    });
   }
 }
 
+function getClientByTag(tagname, tagvalue){
+  for(var server of servers){
+    for (var ws of server.clients) {
+      if (ws.sclient.getTag(tagname) == tagvalue) {
+        return ws.sclient;
+      }
+    }
+  }
+}
+
+
 module.exports = {
   server: SockSessionServer,
-  client: SockSessionClient
+  client: SockSessionClient,
+  getClientByTag : getClientByTag
 }

@@ -20,30 +20,30 @@ function errorResponse(event, err) {
 }
 
 module.exports = {
-  '__initialize__' : function(){
+  '__initialize__': function () {
   },
 
   'auth/register/request': function (event) {
-    var ss = this;
+    var sClient = this;
     auth.register(event.name, event.password, function (err, user) {
       if (err) {
-        ss.send(errorResponse("auth/register/error", err));
+        sClient.send(errorResponse("auth/register/error", err));
       } else {
-        ss.send({ event: 'auth/register/response' });
+        sClient.send({ event: 'auth/register/response' });
       }
     })
   },
 
   'auth/login/request': function (event) {
-    var ss = this;
-    const getUserCallback = function(err, user){
+    var sClient = this;
+    const getUserCallback = function (err, user) {
       if (err) {
-        ss.send(errorResponse("auth/login/error", err));
+        sClient.send(errorResponse("auth/login/error", err));
       } else {
-        user.logIn(ss, function(){
-          ss.currentUser = user;
-          ss.send(loginResponse(user));
-        })
+        user.logIn(function () {
+          sClient.setCurrentUser(user.name);
+          sClient.send(loginResponse(user));
+        });
       }
     }
     if (event.token) {
@@ -54,28 +54,9 @@ module.exports = {
   },
 
   'auth/logout/request': function (event) {
-    var ss = this;
+    var sClient = this;
     if (!this.currentUser) {
 
-    }
-    if (event.token) {
-      auth.byToken(event.token, function (err, user) {
-        if (err) {
-          ss.send(errorResponse("auth/login/token/error", err));
-        } else {
-          ss.currentUser = user;
-          ss.send(loginResponse('token', user));
-        }
-      });
-    } else {
-      auth.byCredentials(event.name, event.password, function (err, user) {
-        if (err) {
-          ss.send(errorResponse("auth/login/token/error", err));
-        } else {
-          ss.currentUser = user;
-          ss.send(loginResponse('token', user));
-        }
-      })
     }
   },
 
@@ -90,6 +71,6 @@ module.exports = {
 
   'close': function (code, reason) {
 
-    console.log(code,reason);
+    console.log(code, reason);
   }
 };
