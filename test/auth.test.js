@@ -51,60 +51,44 @@ describe('Auth', function () {
     sss.start(8080, 5000);
 
 
-    sss.on('attach', function attach(sclient) {
-      sclient.registerSapi(authSapi);
+    sss.on('attach', function attach(sClient) {
+      sClient.registerSapi(authSapi.server);
 
       ws.on('open', function open() {
-        var sclient = new socksession.client(ws)
+        var sClient = new socksession.client(ws)
 
         // try to register
-        var register_valid = sclient.sendAndWait({
-          event: 'auth/register/request',
-          name: 'Username',
-          password: 'pass'
-        }, 'auth/register/response', 'auth/register/error', 2000);
+        var register_valid = authSapi.client.register(sClient, 'Username', 'pass');
 
         // on success  try to register again and expect failure
         var register_double = register_valid.then(
           (response) => {
             assert.equal(response.event, 'auth/register/response');
-            return sclient.sendAndWait({
-              event: 'auth/register/request',
-              name: 'Username',
-              password: 'pass'
-            }, 'auth/register/response', 'auth/register/error', 2000)
-          },
-          null);
+            return authSapi.client.register(sClient, 'Username', 'pass');
+          });
 
         // handler failure
-        register_double.then(
-          null,
+        register_double.catch(
           (cause) => {
             assert.notEqual(cause, 'ETIMEOUT');
             assert.equal(cause.error.code, 'EUSEREXISTS');
             assert.equal(cause.event, 'auth/register/error');
 
-            var login = sclient.sendAndWait({
-              event: 'auth/login/request',
-              name: 'Username',
-              password: 'pass'
-            }, 'auth/login/response', 'auth/login/error', 10000);
-
-            login.then(
+            // login
+            authSapi.client.login(sClient, 'Username', 'pass').then(
               (response) => {
                 assert.equal(response.event, 'auth/login/response');
                 assert.equal(response.name, 'Username');
                 assert.ok(response.token);
-                sss.stop(()=>{
+                sss.stop(() => {
                   done();
                 });
               },
-              (cause)=>{
+              (cause) => {
                 console.log(cause);
               }
             )
           });
-
       });
     });
     ws = new WebSocket('ws://localhost:8080');

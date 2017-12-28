@@ -2,9 +2,9 @@ var EventEmitter = require('events')
 const auth = require('./auth')
 const tools = require('./tools')
 
-var lobbies = {};
+var lobbies = new Map();
 
-function lobbyErr(code, message){
+function lobbyErr(code, message) {
   var err = new Error(message);
   err.code = code;
   return err;
@@ -27,7 +27,7 @@ class Lobby extends EventEmitter {
   }
 
   join(userId, callback) {
-    if (this.hasMember(userId)){
+    if (this.hasMember(userId)) {
       callback(lobbyErr("ELOBBYSTATE", userId + " is already a member!"));
     } else {
       this.members.push(userId);
@@ -37,7 +37,7 @@ class Lobby extends EventEmitter {
   }
 
   leave(userId, callback) {
-    if (this.hasMember(userId) == false){
+    if (this.hasMember(userId) == false) {
       callback(lobbyErr("ELOBBYSTATE", userId + " is not a member!"));
     } else {
       this.members = this.members.filter((e) => e != userId);
@@ -47,16 +47,16 @@ class Lobby extends EventEmitter {
   }
 
   destroy(callback) {
-    if (lobbies[this.id] != undefined)
+    if (lobbies.has(this.id) == false)
       throw lobbyErr("ELOBBYSTATE", "Already destroyed!");
-    delete lobbies[this.id];
+    lobbies.delete(this.id);
     delete this.id
     this._emitAndLog('destroy');
   }
 
-  forMembers(callback){
-    for(var userId of this.members){
-      auth.byUserId(userId, function(err, user){
+  forMembers(callback) {
+    for (var userId of this.members) {
+      auth.byUserId(userId, function (err, user) {
         callback(user);
       })
     }
@@ -64,33 +64,40 @@ class Lobby extends EventEmitter {
 }
 
 function get(id) {
-  return lobbies[id];
+  return lobbies.get(id);
 }
 
-function getLobbyFor(userId){
-  for(var lobbyId of lobbies.keys()){
-    if(lobbies[lobbyId].hasMember(userId)){
-      return lobbyId;
+function getLobbyFor(userId) {
+  for (var [id, lobbyInstance] of lobbies) {
+    if (lobbyInstance.hasMember(userId)) {
+      return lobbyInstance;
     }
   }
   return undefined;
 }
 
 function create(leaderId, callback) {
-  tools.genUniqueToken(function (err, token) {
-    if (err) {
-      err.code = "ETOKENERROR";
-      callback(err);
-    } else {
-      const id = "lobby_" + token;
-      lobbies[id] = new Lobby(leaderId, id);
-      callback(null, lobbies[id]);
-    }
-  });
+  if (getLobbyFor(leaderId)) {
+    var err = new Error('Already in a lobby!');
+    err.code = "ELOBBYSTATE";
+    callback(err);
+  } else {
+    tools.genUniqueToken(function (err, token) {
+      if (err) {
+        err.code = "ETOKENERROR";
+        callback(err);
+      } else {
+        const id = "lobby_" + token;
+        lobbies.set(id, new Lobby(leaderId, id));
+        callback(null, lobbies.get(id));
+      }
+    });
+  }
 }
 
 
 module.exports = {
   'get': get,
-  'create': create
+  'create': create,
+  'getLobbyFor': getLobbyFor
 };

@@ -13,7 +13,7 @@ module.exports.genUniqueToken = function (callback) {
 }
 
 module.exports.loggedInOrDie = function(sClient, event){
-  var userId = sClient.getTag('userId');
+  var userId = sClient.getCurrentUser();
   if(userId == undefined){
     sClient.send({
       event: event,

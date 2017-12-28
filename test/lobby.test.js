@@ -22,45 +22,37 @@ describe('Lobby', function () {
 
 
     sss.on('attach', function attach(sclient) {
-      sclient.registerSapi(authSapi);
-      sclient.registerSapi(lobbySapi);
+      sclient.registerSapi(authSapi.server);
+      sclient.registerSapi(lobbySapi.server);
 
       ws.on('open', function open() {
         var sc = new socksession.client(ws)
 
+        sc.registerSapi(lobbySapi.client);
+
         // try to register
-        var register_valid = sc.sendAndWait({
-          event: 'auth/register/request',
-          name: 'LobbyUser',
-          password: 'pass'
-        }, 'auth/register/response', 'auth/register/error', 2000);
+        var register_valid = authSapi.client.register(sc, 'LobbyUser', 'pass');
 
         // on success  try to login
         var login_valid = register_valid.then(
           (response) => {
-            return sc.sendAndWait({
-              event: 'auth/login/request',
-              name: 'LobbyUser',
-              password: 'pass'
-            }, 'auth/login/response', 'auth/login/error', 2000);
+            return authSapi.client.login(sc, 'LobbyUser', 'pass');
           });
 
         // try to create lobby
         var lobby_create_valid = login_valid.then(
           (event) => {
-            return sc.sendAndWait({
-              event: 'lobby/create/request'
-            }, 'lobby/create/response', 'lobby/create/error', 2000);
+            return lobbySapi.client.create(sc);
           });
 
         // try to create lobby
         lobby_create_valid.then(
           (event) => {
+            console.log("Lobby created");
             done();
-          },
-          (cause) => {
-            assert.fail();
-            console.log(cause);
+          })
+          .catch((cause) => {
+            done(cause);
           });
       });
     });

@@ -1,12 +1,9 @@
+const tools = require('../services/tools');
 const auth = require('../services/auth');
 
 
 function loginResponse(user) {
-  return {
-    event: "auth/login/response",
-    name: user.name,
-    token: user.token
-  }
+  return 
 }
 
 function errorResponse(event, err) {
@@ -19,9 +16,24 @@ function errorResponse(event, err) {
   };
 }
 
-module.exports = {
-  '__initialize__': function () {
+module.exports.client = {
+
+  register: function (name, password) {
+    return this.request('auth/register', {
+      name: name,
+      password: password
+    });
   },
+
+  login: function (name, password) {
+    return this.request('auth/login', {
+      name: name,
+      password: password
+    });
+  }
+}
+
+module.exports.server = {
 
   'auth/register/request': function (event) {
     var sClient = this;
@@ -31,7 +43,7 @@ module.exports = {
       } else {
         sClient.send({ event: 'auth/register/response' });
       }
-    })
+    });
   },
 
   'auth/login/request': function (event) {
@@ -42,7 +54,16 @@ module.exports = {
       } else {
         user.logIn(function () {
           sClient.setCurrentUser(user.name);
-          sClient.send(loginResponse(user));
+          sClient.send({
+            event: "auth/login/response",
+            name: user.name,
+            token: user.token
+          });
+          sClient.send({
+            event: "auth/update",
+            name: user.name,
+            token: user.token
+          });
         });
       }
     }
@@ -55,8 +76,10 @@ module.exports = {
 
   'auth/logout/request': function (event) {
     var sClient = this;
-    if (!this.currentUser) {
-
+    var userId = tools.loggedInOrDie(sClient, 'auth/logout/error');
+    if (userId) {
+      sClient.delCurrentUser();
+      sClient.send({ event: 'auth/logout/response' });
     }
   },
 
@@ -66,11 +89,9 @@ module.exports = {
 
   'error': function (err) {
     console.log(err);
-
   },
 
   'close': function (code, reason) {
-
     console.log(code, reason);
   }
 };

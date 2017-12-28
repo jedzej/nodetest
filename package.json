@@ -3,8 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "express": "node ./bin/www",
+    "start": "set NODE_PATH=src&&react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
   },
+  "proxy": "http://localhost:3003",
   "dependencies": {
     "body-parser": "~1.18.2",
     "cookie-parser": "~1.4.3",
@@ -13,7 +18,17 @@
     "mocha": "^4.0.1",
     "morgan": "~1.9.0",
     "pug": "2.0.0-beta11",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "^1.0.17",
     "serve-favicon": "~2.4.5",
     "ws": "^3.3.3"
+  },
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-uglify": "^3.0.0"
   }
 }
