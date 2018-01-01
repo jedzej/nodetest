@@ -1,20 +1,28 @@
 import React, { Component } from 'react';
-import coreSapi from 'api/sapi/core'
+import { connect } from "react-redux";
 
 class HelloButton extends Component {
-
-  handleSubmit(event) {
-    coreSapi.hello().then((response)=>{
-      alert(response.event);
-    })
-    event.preventDefault();
-  }
-
   render() {
     return (
-      <button onClick={this.handleSubmit}>HELLO</button>
+      <button onClick={this.props.sayHello}>HELLO</button>
     );
   }
 }
 
-export default HelloButton;
+const mapStateToProps = (state) => {
+  return {
+    hello: state.hello,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    sayHello: () => {
+      dispatch({
+        type: "HELLO"
+      });
+    }
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(HelloButton);

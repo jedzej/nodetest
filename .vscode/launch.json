@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/bin/www"
+            "name": "Launch Server",
+            "program": "${workspaceFolder}/server/app.js"
         },
         {
             "type": "node",
@@ -21,7 +21,8 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "${workspaceFolder}/test"
+                "${workspaceFolder}/test",
+                "${workspaceFolder}/server"
             ],
             "internalConsoleOptions": "openOnSessionStart"
         },

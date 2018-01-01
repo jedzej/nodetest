@@ -8,11 +8,6 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var chat = require('./routes/chat');
-var socksession = require('./services/socksession');
-var chatsrv = require('./services/chat');
-var chatSapi = require('./sapi/chat-sapi');
-var authSapi = require('./sapi/auth-sapi');
-var lobbySapi = require('./sapi/lobby-sapi');
 
 var app = express();
 
@@ -50,11 +45,5 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-var sss = new socksession.server();
-sss.start(3004, 2000);
-sss.on('attach', function (sessionClient) {
-  sessionClient.registerSapi(authSapi.server);
-  sessionClient.registerSapi(lobbySapi.server);
-});
 
 module.exports = app;

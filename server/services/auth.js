@@ -18,6 +18,7 @@ function getUserByToken(token, callback) {
 function getByName(username, callback) {
   var user = users.find((u) => u.name == username);
   if (user) {
+    console.log(user, users)
     callback(null, user);
   } else {
     var err = new Error('User does not exist');
