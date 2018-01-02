@@ -1,11 +1,11 @@
-var userService = require('./service');
+var auth = require('./service');
 var SapiError = require('../../sapi').SapiError;
-var dbconfig = require('../dbconfig');
+var dbconfig = require('../../dbconfig');
 
 const handlers = {
 
-  'USER_REGISTER': (action, ws, db) => {
-    userService.register(db, action.payload.name, action.payload.password)
+  'LOBBY_CREATE': (action, ws, db) => {
+    lobby.register(db, action.payload.name, action.payload.password)
       .then((user) => {
         ws.sendAction({
           type: "USER_REGISTER_FULFILLED"
@@ -21,15 +21,16 @@ const handlers = {
 
   'USER_LOGIN': (action, ws, db) => {
     var loginPromise;
-    if (action.payload.token)
-      loginPromise = userService.loginByToken(db, action.payload.token);
-    else
-      loginPromise = userService.login(db, action.payload.name, action.payload.password);
+    if (action.payload.token) {
+      loginPromise = auth.loginByToken(db, action.payload.token);
+    } else {
+      loginPromise = auth.login(db, action.payload.name, action.payload.password);
+    }
 
     loginPromise
       .then(token => {
         ws.store.currentUser = token;
-        return userService.getBy(db, {token:token})
+        return auth.getBy(db, {token:token})
       })
       .then(user => {
         ws.sendAction({
@@ -53,7 +54,9 @@ const handlers = {
   },
 
   'USER_LOGOUT': (action, ws, db) => {
-    userService.logout(db, ws.store.currentUser)
+    var loginPromise;
+    console.log(ws.store.currentUser)
+    auth.logout(db, ws.store.currentUser)
       .then(user => {
         delete ws.store.currentUser;
         ws.sendAction({

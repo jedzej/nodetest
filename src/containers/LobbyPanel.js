@@ -34,7 +34,7 @@ class LobbyPanel extends Component {
   }
 
   render() {
-    if (this.props.user.token === undefined) {
+    if (this.props.user.loggedIn === false) {
       return this.renderNotLoggedIn();
     }
     else if (this.props.lobby === undefined) {

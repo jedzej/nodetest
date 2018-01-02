@@ -4,7 +4,8 @@ const DEFAULT_STATE = {
   name: undefined,
   token: undefined,
   registrationPending: false,
-  loginPending: false
+  loginPending: false,
+  loggedIn : false
 };
 
 

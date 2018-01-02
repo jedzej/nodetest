@@ -46,7 +46,7 @@ function sendAction(action) {
   }
 }
 
-function onConnection(handlers) {
+function onConnection(handlers, db) {
   return (ws, req) => {
     console.log("WS connection");
     ws.isAlive = true;
@@ -70,7 +70,7 @@ function onConnection(handlers) {
           console.error("No action type: ", action);
         } else if (handlers[action.type] !== undefined) {
           console.log("Calling handler for action: " + action.type);
-          handlers[action.type](action, ws)
+          handlers[action.type](action, ws, db)
         } else {
           console.log("No handler for action: " + action.type);
         }
@@ -94,10 +94,10 @@ function onConnection(handlers) {
 }
 
 
-const start = (port, handlers) => {
+const start = (port, handlers, db) => {
   if (server === null) {
     server = new WebSocket.Server({ port });
-    server.on('connection', onConnection(handlers));
+    server.on('connection', onConnection(handlers, db));
 
     // heart beat
     if (server.heartBeatInterval == undefined) {

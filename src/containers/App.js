@@ -4,6 +4,7 @@ import LoginForm from 'components/LoginForm'
 import RegisterForm from 'components/RegisterForm'
 import HelloButton from 'components/HelloButton'
 import LobbyPanel from 'containers/LobbyPanel'
+import LogoutButton from 'components/LogoutButton'
 
 
 class App extends Component {
@@ -14,6 +15,7 @@ class App extends Component {
         <RegisterForm/>
         <LoginForm />
         <HelloButton />
+        <LogoutButton/>
       </div>
     );
   }
