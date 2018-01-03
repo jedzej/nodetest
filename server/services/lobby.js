@@ -76,24 +76,6 @@ function getLobbyFor(userId) {
   return undefined;
 }
 
-function create(leaderId, callback) {
-  if (getLobbyFor(leaderId)) {
-    var err = new Error('Already in a lobby!');
-    err.code = "ELOBBYSTATE";
-    callback(err);
-  } else {
-    tools.genUniqueToken(function (err, token) {
-      if (err) {
-        err.code = "ETOKENERROR";
-        callback(err);
-      } else {
-        const id = "lobby_" + token;
-        lobbies.set(id, new Lobby(leaderId, id));
-        callback(null, lobbies.get(id));
-      }
-    });
-  }
-}
 
 
 module.exports = {

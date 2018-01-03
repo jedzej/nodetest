@@ -11,19 +11,38 @@ module.exports.genUniqueToken = function () {
         resolve(token);
       }
     });
-  })
+  });
 }
 
-module.exports.loggedInOrDie = function (sClient, event) {
-  var userId = sClient.getCurrentUser();
-  if (userId == undefined) {
-    sClient.send({
-      event: event,
-      error: {
-        message: "Not logged in!",
-        code: "ENOTLOGGEDIN"
+
+module.exports.waitForAction = (ws, expected) => {
+  return new Promise((resolve, reject) => {
+    const trigger = () => {
+      const action = JSON.parse(ws.buffer.pop());
+      if (expected) {
+        if (action.type == expected) {
+          resolve(action);
+        } else {
+          reject(action);
+        }
+      } else {
+        resolve(action);
       }
-    });
-  }
-  return userId;
+    };
+    if (ws.buffer.length > 0) {
+      trigger();
+    } else {
+      ws.once('message', event => {
+        trigger();
+      })
+    }
+  });
+}
+
+
+module.exports.sendAction = (ws, action) => {
+  return new Promise((resolve, reject) => {
+    ws.send(JSON.stringify(action));
+    resolve();
+  })
 }

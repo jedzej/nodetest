@@ -1,21 +1,34 @@
-var auth = require('./service');
+var lobbyService = require('./service');
 var SapiError = require('../../sapi').SapiError;
-var dbconfig = require('../../dbconfig');
 
 const handlers = {
 
   'LOBBY_CREATE': (action, ws, db) => {
-    lobby.register(db, action.payload.name, action.payload.password)
-      .then((user) => {
-        ws.sendAction({
-          type: "USER_REGISTER_FULFILLED"
+    if (ws.store.currentUser)
+      lobbyService.create(db,ws.store.currentUser._id)
+        .then((lobby) => {
+          ws.sendAction({
+            type: "LOBBY_CREATE_FULFILLED"
+          });
+          ws.sendAction({
+            type: "LOBBY_UPDATE",
+            payload: {
+              token: lobby.token,
+              leaderId: lobby.leaderId,
+              members: lobby.members
+            }
+          });
+        })
+        .catch(err => {
+          ws.sendAction({
+            type: "USER_REGISTER_REJECTED",
+            payload: SapiError.from(err, err.code).toPayload()
+          });
         });
-      })
-      .catch(err => {
-        ws.sendAction({
-          type: "USER_REGISTER_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+    else
+      ws.sendAction({
+        type: "USER_REGISTER_REJECTED",
+        payload: SapiError.from(err, err.code).toPayload()
       });
   },
 
@@ -30,7 +43,7 @@ const handlers = {
     loginPromise
       .then(token => {
         ws.store.currentUser = token;
-        return auth.getBy(db, {token:token})
+        return auth.getBy(db, { token: token })
       })
       .then(user => {
         ws.sendAction({
@@ -65,7 +78,7 @@ const handlers = {
         ws.sendAction({
           type: "USER_UPDATE",
           payload: {
-            loggedIn : false,
+            loggedIn: false,
             name: null,
             token: null
           }

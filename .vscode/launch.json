@@ -18,8 +18,7 @@
             "args": [
                 "-u",
                 "tdd",
-                "--timeout",
-                "999999",
+                "--no-timeouts",
                 "--colors",
                 "${workspaceFolder}/test",
                 "${workspaceFolder}/server"

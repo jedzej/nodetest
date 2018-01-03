@@ -1,6 +1,5 @@
 var userService = require('./service');
 var SapiError = require('../../sapi').SapiError;
-var dbconfig = require('../dbconfig');
 
 const handlers = {
 
@@ -25,19 +24,16 @@ const handlers = {
       loginPromise = userService.loginByToken(db, action.payload.token);
     else
       loginPromise = userService.login(db, action.payload.name, action.payload.password);
-
     loginPromise
-      .then(token => {
-        ws.store.currentUser = token;
-        return userService.getBy(db, {token:token})
-      })
       .then(user => {
+        ws.store.currentUser = user;
         ws.sendAction({
           type: "USER_LOGIN_FULFILLED"
         });
         ws.sendAction({
           type: "USER_UPDATE",
           payload: {
+            id: user._id,
             loggedIn: true,
             name: user.name,
             token: user.token
@@ -46,14 +42,14 @@ const handlers = {
       })
       .catch(err => {
         ws.sendAction({
-          type: "USER_REGISTER_REJECTED",
+          type: "USER_LOGIN_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
       });
   },
 
   'USER_LOGOUT': (action, ws, db) => {
-    userService.logout(db, ws.store.currentUser)
+    userService.logout(db, ws.store.currentUser.token)
       .then(user => {
         delete ws.store.currentUser;
         ws.sendAction({

@@ -96,24 +96,28 @@ function onConnection(handlers, db) {
 
 const start = (port, handlers, db) => {
   if (server === null) {
-    server = new WebSocket.Server({ port });
-    server.on('connection', onConnection(handlers, db));
+    new Promise((resolve, reject) => {
+      server = new WebSocket.Server({ port });
+      server.on('connection', onConnection(handlers, db));
+      server.on('open', resolve);
+      server.on('error', reject);
 
-    // heart beat
-    if (server.heartBeatInterval == undefined) {
-      server.heartBeatInterval = setInterval(function ping() {
-        for (var ws of server.clients) {
-          if (ws.isAlive) {
-            ws.ping('', false, true);
-            ws.isAlive = false;
+      // heart beat
+      if (server.heartBeatInterval == undefined) {
+        server.heartBeatInterval = setInterval(function ping() {
+          for (var ws of server.clients) {
+            if (ws.isAlive) {
+              ws.ping('', false, true);
+              ws.isAlive = false;
+            }
+            else {
+              console.error('Dead connection terminating')
+              ws.terminate();
+            }
           }
-          else {
-            console.error('Dead connection terminating')
-            ws.terminate();
-          }
-        }
-      }, 5000);
-    }
+        }, 5000);
+      }
+    });
   }
 }
 
@@ -123,9 +127,30 @@ const stop = (cb) => {
   }
 }
 
+const withWS = (addr, promiseCreator) => {
+  return new Promise((resolve, reject) => {
+    var ws = new WebSocket(addr);
+    ws.buffer = [];
+    ws.once('open', (event) => {
+      promiseCreator(ws)
+        .then(resolve)
+        .catch(reject)
+        .then(() => {
+          ws.close();
+        })
+    });
+    ws.once('error', reject);
+    ws.on('message', (message) => {
+      ws.buffer.push(message);
+      console.log("WS:",message)
+    });
+  });
+}
+
 module.exports = {
   start,
   stop,
   combineHandlers,
-  SapiError
+  SapiError,
+  withWS
 }

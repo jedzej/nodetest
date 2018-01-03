@@ -21,6 +21,17 @@ const db = (client) => {
   return client.db(env.dbName);
 }
 
+
+const withDb = (promiseCreator) => {
+  return connect()
+    .then(client => {
+      return promiseCreator(db(client))
+        .then(() => {
+          return client.close()
+        });
+    });
+}
+
 const setEnv = (envParams) => {
   env = {
     ...env,
@@ -33,5 +44,6 @@ module.exports = {
   setEnv: setEnv,
   env: env,
   connect: connect,
-  db: db
+  db: db,
+  withDb: withDb
 }
