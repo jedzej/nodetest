@@ -39,6 +39,7 @@ const register = (db, name, password) => {
       })
       .catch(err => {
         console.log(err);
+        throw err;
       });
   }
 }

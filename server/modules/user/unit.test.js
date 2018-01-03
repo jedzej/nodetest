@@ -8,6 +8,11 @@ const sapi = require('../../sapi');
 
 const userHandlers = require('./handlers');
 
+const logThrough = msg => arg => {
+  console.log(msg);
+  return Promise.resolve(arg)
+}
+
 
 describe('User', function () {
 
@@ -29,16 +34,16 @@ describe('User', function () {
     return dbconfig.withDb((db) =>
       sapi.withWS("ws://localhost:3069", ws =>
         userService.dbReset(db)
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_FULFILLED"))
-          .then(() => sendAction(ws, {
+          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_REJECTED"))
+          .then(waitForAction(ws, "USER_REGISTER_REJECTED"))
       ));
   });
 
@@ -46,16 +51,16 @@ describe('User', function () {
     return dbconfig.withDb((db) =>
       sapi.withWS("ws://localhost:3069", ws =>
         userService.dbReset(db)
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_FULFILLED"))
-          .then(() => sendAction(ws, {
+          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_REJECTED"))
+          .then(waitForAction(ws, "USER_REGISTER_REJECTED"))
       ));
   });
 
@@ -64,24 +69,24 @@ describe('User', function () {
       sapi.withWS("ws://localhost:3069", ws =>
         userService.dbReset(db)
 
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_LOGIN",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_LOGIN_REJECTED"))
+          .then(waitForAction(ws, "USER_LOGIN_REJECTED"))
 
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_FULFILLED"))
+          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
 
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_LOGIN",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_LOGIN_FULFILLED"))
-          .then(() => waitForAction(ws, "USER_UPDATE"))
+          .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
+          .then(waitForAction(ws, "USER_UPDATE"))
 
           .then((action) => {
             console.log(action);

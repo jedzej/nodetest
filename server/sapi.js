@@ -75,7 +75,7 @@ function onConnection(handlers, db) {
           console.log("No handler for action: " + action.type);
         }
       } catch (e) {
-        console.error(SapiError.from(e, "EUNKNOWN"));
+        throw e;//SapiError.from(e, "EUNKNOWN");
       }
     });
 
@@ -147,10 +147,14 @@ const withWS = (addr, promiseCreator) => {
   });
 }
 
+const getClients = () => server.clients;
+
+
 module.exports = {
   start,
   stop,
   combineHandlers,
   SapiError,
-  withWS
+  withWS,
+  getClients
 }

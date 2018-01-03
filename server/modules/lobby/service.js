@@ -29,7 +29,7 @@ const create = (db, leaderId) => {
 
 
 const join = (db, userId, lobbyToken) => {
-  return getBy(db, { token: token })
+  return getBy(db, { token: lobbyToken })
     .then(lobby => {
       const updateQuery = [
         { token: lobby.token },

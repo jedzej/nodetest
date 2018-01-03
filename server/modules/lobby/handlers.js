@@ -1,12 +1,13 @@
 var lobbyService = require('./service');
 var SapiError = require('../../sapi').SapiError;
-
+const sapi = require('../../sapi');
 const handlers = {
 
   'LOBBY_CREATE': (action, ws, db) => {
-    if (ws.store.currentUser)
-      lobbyService.create(db,ws.store.currentUser._id)
+    if (ws.store.currentUser) {
+      lobbyService.create(db, ws.store.currentUser._id)
         .then((lobby) => {
+          ws.store.lobbyId = lobby._id;
           ws.sendAction({
             type: "LOBBY_CREATE_FULFILLED"
           });
@@ -25,11 +26,51 @@ const handlers = {
             payload: SapiError.from(err, err.code).toPayload()
           });
         });
-    else
+    } else {
       ws.sendAction({
         type: "USER_REGISTER_REJECTED",
         payload: SapiError.from(err, err.code).toPayload()
       });
+    }
+  },
+
+  'LOBBY_JOIN': (action, ws, db) => {
+    if (ws.store.currentUser) {
+      lobbyService.join(db, ws.store.currentUser._id, action.payload.token)
+        .then((lobby) => {
+          ws.store.lobbyId = lobby._id;
+          ws.sendAction({
+            type: "LOBBY_JOIN_FULFILLED"
+          });
+          sapi.getClients()
+            .forEach(memberWs => {
+              console.log("ITER")
+              if (memberWs.store.lobbyId.equals(lobby._id)){
+                console.log("SENDING UPDATE")
+                memberWs.sendAction({
+                  type: "LOBBY_UPDATE",
+                  payload: {
+                    token: lobby.token,
+                    leaderId: lobby.leaderId,
+                    members: lobby.members
+                  }
+                });
+              }
+            });
+
+        })
+        .catch(err => {
+          ws.sendAction({
+            type: "LOBBY_JOIN_REJECTED",
+            payload: SapiError.from(err, err.code).toPayload()
+          });
+        });
+    } else {
+      ws.sendAction({
+        type: "LOBBY_JOIN_REJECTED",
+        payload: new SapiError("Not logged in", "EAUTH").toPayload()
+      });
+    }
   },
 
   'USER_LOGIN': (action, ws, db) => {

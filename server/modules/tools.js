@@ -15,7 +15,7 @@ module.exports.genUniqueToken = function () {
 }
 
 
-module.exports.waitForAction = (ws, expected) => {
+module.exports.waitForAction = (ws, expected) => () => {
   return new Promise((resolve, reject) => {
     const trigger = () => {
       const action = JSON.parse(ws.buffer.pop());
@@ -40,8 +40,10 @@ module.exports.waitForAction = (ws, expected) => {
 }
 
 
-module.exports.sendAction = (ws, action) => {
+module.exports.sendAction = (ws, action) => () => {
   return new Promise((resolve, reject) => {
+    if(typeof action === 'function')
+      action = action();
     ws.send(JSON.stringify(action));
     resolve();
   })

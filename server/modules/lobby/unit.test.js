@@ -26,26 +26,26 @@ describe('Lobby', function () {
         userService.dbReset(db)
 
           /* USER REGISTER */
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_REGISTER",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_REGISTER_FULFILLED"))
+          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
 
           /* USER LOGIN */
-          .then(() => sendAction(ws, {
+          .then(sendAction(ws, {
             type: "USER_LOGIN",
             payload: { name: 'uname', password: 'upass' }
           }))
-          .then(() => waitForAction(ws, "USER_LOGIN_FULFILLED"))
-          .then(() => waitForAction(ws, "USER_UPDATE"))
+          .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
+          .then(waitForAction(ws, "USER_UPDATE"))
           .then(action => {
             const user = action.payload;
 
             /* LOBBY CREATE */
-            return sendAction(ws, { type: "LOBBY_CREATE" })
-              .then(() => waitForAction(ws, "LOBBY_CREATE_FULFILLED"))
-              .then(() => waitForAction(ws, "LOBBY_UPDATE"))
+            return sendAction(ws, { type: "LOBBY_CREATE" })()
+              .then(waitForAction(ws, "LOBBY_CREATE_FULFILLED"))
+              .then(waitForAction(ws, "LOBBY_UPDATE"))
               .then((action) => {
                 console.log(action)
                 const lobby = action.payload;
@@ -56,31 +56,63 @@ describe('Lobby', function () {
   });
 
   it('should join and leave', function () {
+    var context = {};
+
     return dbconfig.withDb((db) =>
       sapi.withWS("ws://localhost:3069", wsl =>
         sapi.withWS("ws://localhost:3069", wsj => {
           return userService.dbReset(db)
-            /* USERS REGISTER */
-            .then(() => sendAction(wsl, { type: "USER_REGISTER", payload: { name: 'uleader', password: 'upass' } }))
-            .then(() => waitForAction(wsl, "USER_REGISTER_FULFILLED"))
-            .then(() => sendAction(wsj, { type: "USER_REGISTER", payload: { name: 'ujoiner', password: 'upass' } }))
-            .then(() => waitForAction(wsj, "USER_REGISTER_FULFILLED"))
+            .then(() => lobbyService.dbReset(db))
 
-            /* USER LOGIN */
-            .then(() => sendAction(wsl, { type: "USER_LOGIN", payload: { name: 'uleader', password: 'upass' } }))
-            .then(() => waitForAction(wsl, "USER_LOGIN_FULFILLED"))
-            .then(() => sendAction(wsj, { type: "USER_LOGIN", payload: { name: 'ujoiner', password: 'upass' } }))
-            .then(() => waitForAction(wsj, "USER_LOGIN_FULFILLED"))
+            /* USERS REGISTER */
+            .then(sendAction(wsl, { type: "USER_REGISTER", payload: { name: 'uleader', password: 'upass' } }))
+            .then(waitForAction(wsl, "USER_REGISTER_FULFILLED"))
+            .then(sendAction(wsj, { type: "USER_REGISTER", payload: { name: 'ujoiner', password: 'upass' } }))
+            .then(waitForAction(wsj, "USER_REGISTER_FULFILLED"))
+
+            /* USERS LOGIN */
+            .then(sendAction(wsl, { type: "USER_LOGIN", payload: { name: 'uleader', password: 'upass' } }))
+            .then(waitForAction(wsl, "USER_LOGIN_FULFILLED"))
+            .then(sendAction(wsj, { type: "USER_LOGIN", payload: { name: 'ujoiner', password: 'upass' } }))
+            .then(waitForAction(wsj, "USER_LOGIN_FULFILLED"))
 
             .then(() => Promise.all([
-              waitForAction(wsl, "USER_UPDATE"),
-              waitForAction(wsj, "USER_UPDATE")
+              waitForAction(wsl, "USER_UPDATE")(),
+              waitForAction(wsj, "USER_UPDATE")()
             ]))
             .then(leader_joiner => {
-              console.log(leader_joiner);
-
+              [context.leader, context.joiner] = leader_joiner;
             })
 
+            /* LOBBY CREATE */
+            .then(sendAction(wsl, { type: "LOBBY_CREATE" }))
+            .then(waitForAction(wsl, "LOBBY_CREATE_FULFILLED"))
+            .then(waitForAction(wsl, "LOBBY_UPDATE"))
+            .then(action => {
+              context.lobbyLeader = action.payload;
+            })
+
+            /* LOBBY JOIN */
+            .then(sendAction(wsj, () => ({
+              type: "LOBBY_JOIN",
+              payload: {
+                token: context.lobbyLeader.token
+              }
+            })))
+            .then(waitForAction(wsj, "LOBBY_JOIN_FULFILLED"))
+            .then(waitForAction(wsj, "LOBBY_UPDATE"))
+            .then(action => {
+              context.lobbyJoiner = action.payload;
+              assert.equal(context.lobbyJoiner.token, context.lobbyLeader.token);
+              assert.equal(context.lobbyJoiner.leaderId, context.lobbyLeader.leaderId);
+            })
+            .then(waitForAction(wsl, "LOBBY_UPDATE"))
+            .then(action => {
+              context.lobbyLeader = action.payload;
+              assert.deepEqual(context.lobbyJoiner, context.lobbyLeader);
+            })
+
+            /* LOBBY LEAVE */
 
         })
       )
