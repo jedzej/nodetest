@@ -1,12 +1,13 @@
 var userService = require('./service');
 var SapiError = require('../../sapi').SapiError;
 var tools = require('../tools');
+const ObjectId = require("mongodb").ObjectId
 
 const handlers = {
 
   'USER_GET': (action, ws, db) => {
     return Promise.all(
-      action.payload.ids.map(id => userService.getBy(db, { _id: id }))
+      action.payload.ids.map(id => userService.getBy(db, { _id: new ObjectId(id) }))
     )
       .then(users => {
         ws.sendAction({

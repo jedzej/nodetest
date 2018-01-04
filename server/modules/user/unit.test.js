@@ -15,6 +15,17 @@ const logThrough = msg => arg => {
 }
 
 
+const PARTIALS = {
+  userCreate: (ws, name, password) =>
+    sendAction(ws, { type: "USER_REGISTER", payload: { name, password } })()
+      .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
+      .then(sendAction(ws, { type: "USER_LOGIN", payload: { name, password } }))
+      .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
+      .then(waitForAction(ws, "USER_UPDATE"))
+      .then((action) => Promise.resolve(action.payload))
+}
+
+
 describe('User', function () {
 
 
@@ -97,44 +108,32 @@ describe('User', function () {
 
 
   it('should get', function () {
+    this.timeout(5000);
     return dbconfig.withDb(db =>
-      sapi.withWS("ws://localhost:3069", ws1 => 
-        sapi.withWS("ws://localhost:3069", ws2 => 
+      sapi.withWS("ws://localhost:3069", ws1 =>
+        sapi.withWS("ws://localhost:3069", ws2 =>
           sapi.withWS("ws://localhost:3069", ws3 => {
             var usersData = [
-              { name: 'uname1', password: 'upass1' },
-              { name: 'uname2', password: 'upass2' },
-              { name: 'uname3', password: 'upass3' }
+              { ws: ws1, name: 'uname1', password: 'upass1' },
+              { ws: ws2, name: 'uname2', password: 'upass2' },
+              { ws: ws3, name: 'uname3', password: 'upass3' },
             ]
             var ids = [];
-            var ws = ws1;
             return userService.dbReset(db)
-              .then(sendAction(ws1, { type: "USER_REGISTER", payload: usersData[0] }))
-              .then(waitForAction(ws1, "USER_REGISTER_FULFILLED"))
-              .then(sendAction(ws1, { type: "USER_LOGIN", payload: usersData[0] }))
-              .then(waitForAction(ws1, "USER_LOGIN_FULFILLED"))
-              .then(waitForAction(ws1, "USER_UPDATE"))
-              .then((action) => { ids.push(action.payload.id); })
-              .then(sendAction(ws2, { type: "USER_REGISTER", payload: usersData[1] }))
-              .then(waitForAction(ws2, "USER_REGISTER_FULFILLED"))
-              .then(sendAction(ws2, { type: "USER_LOGIN", payload: usersData[1] }))
-              .then(waitForAction(ws2, "USER_LOGIN_FULFILLED"))
-              .then(waitForAction(ws2, "USER_UPDATE"))
-              .then((action) => { ids.push(action.payload.id); })
-              .then(sendAction(ws3, { type: "USER_REGISTER", payload: usersData[2] }))
-              .then(waitForAction(ws3, "USER_REGISTER_FULFILLED"))
-              .then(sendAction(ws3, { type: "USER_LOGIN", payload: usersData[2] }))
-              .then(waitForAction(ws3, "USER_LOGIN_FULFILLED"))
-              .then(waitForAction(ws3, "USER_UPDATE"))
-              .then((action) => { ids.push(action.payload.id); })
+              .then(() => PARTIALS.userCreate(usersData[0].ws, usersData[0].name, usersData[0].password))
+              .then(user => { ids.push(user.id); })
+              .then(() => PARTIALS.userCreate(usersData[1].ws, usersData[1].name, usersData[1].password))
+              .then(user => { ids.push(user.id); })
+              .then(() => PARTIALS.userCreate(usersData[2].ws, usersData[2].name, usersData[2].password))
+              .then(user => { ids.push(user.id); })
               .then(sendAction(ws3, {
-                type:"USER_GET",
-                payload: {ids: ids}
+                type: "USER_GET",
+                payload: { ids: ids }
               }))
               .then(waitForAction(ws3, "USER_GET_FULFILLED"))
               .then(action => {
                 console.log(action)
-              } )
+              })
           })
         )
       )
