@@ -1,5 +1,15 @@
 const WebSocket = require('ws');
 
+var debug = {
+  connection: require('debug')('sapi:connection'),
+  data: require('debug')('sapi:connection'),
+  handlers: require('debug')('sapi:connection'),
+  test: require('debug')('sapi:connection')
+}
+Object.values(debug).forEach((v) => {
+  v.log = console.log.bind(console);
+});
+
 
 var server = null;
 
@@ -37,18 +47,20 @@ function combineHandlers(...handlers) {
 
 function sendAction(action) {
   if (action.type === undefined) {
-    throw new WSError("No action type", "EINVACTION");
+    throw new SapiError("No action type", "EINVACTION");
   }
   try {
-    return this.send(JSON.stringify(action));
+    const message = JSON.stringify(action);
+    debug.data("=> %s%s", message.substring(0, 100), message.length > 100 ? "..." : "");
+    return this.send(message);
   } catch (e) {
-    throw WSError.from(e, "EPARSEERROR");
+    throw SapiError.from(e, "EPARSEERROR");
   }
 }
 
 function onConnection(handlers, db) {
   return (ws, req) => {
-    console.log("WS connection");
+    debug.connection("connection initiated");
     ws.isAlive = true;
     ws.store = {};
     ws.sendAction = sendAction.bind(ws);
@@ -58,37 +70,40 @@ function onConnection(handlers, db) {
     });
 
     ws.on('message', function (message) {
-      console.log("SAPI incoming message: " + message);
+      debug.data("<= %s%s", message.substring(0, 100), message.length > 100 ? "..." : "");
       var action = null;
       try {
         action = JSON.parse(message);
       } catch (e) {
-        console.error(SapiError.from(e, "EPARSEERROR"));
+        debug.data(SapiError.from(e, "EPARSEERROR"));
       }
       try {
         if (action.type === undefined) {
-          console.error("No action type: ", action);
+          debug.data("Malformed action! No action type!");
         } else if (handlers[action.type] !== undefined) {
-          console.log("Calling handler for action: " + action.type);
-          handlers[action.type](action, ws, db)
+          debug.handlers("Action handler for [%s] present ", action.type);
+          Promise.resolve(handlers[action.type](action, ws, db))
+            .catch(err => {
+              debug.handlers(err);
+            })
         } else {
-          console.log("No handler for action: " + action.type);
+          debug.handlers("No action handler for [%s]", action.type);
         }
       } catch (e) {
-        throw e;//SapiError.from(e, "EUNKNOWN");
+        throw e;
       }
     });
 
     ws.on('open', function () {
-      console.error('WS opened');
+      debug.connection("connection opened");
     });
 
     ws.on('close', function (code, reason) {
-      console.error('WS closed', code, reason);
+      debug.connection("connection closed, code: %s reason: %s", code, reason);
     });
 
     ws.on('error', function (err) {
-      console.error('WS error: ', err);
+      debug.connection("connection error: %s", err);
     })
   }
 }
@@ -111,7 +126,7 @@ const start = (port, handlers, db) => {
               ws.isAlive = false;
             }
             else {
-              console.error('Dead connection terminating')
+              debug.connection('Dead connection terminating');
               ws.terminate();
             }
           }
@@ -140,14 +155,61 @@ const withWS = (addr, promiseCreator) => {
         })
     });
     ws.once('error', reject);
-    ws.on('message', (message) => {
+    ws.on('message', message => {
       ws.buffer.push(message);
-      console.log("WS:",message)
     });
   });
 }
 
-const getClients = () => server.clients;
+const getClients = filter => {
+  var members = Array.from(server.clients);
+  if (filter)
+    members = members.filter(filter);
+  return members;
+}
+
+
+const test = {
+  waitForAction: (ws, expected) => () => {
+    return new Promise((resolve, reject) => {
+      debug.test("waiting for action %s", expected);
+      const trigger = () => {
+        const action = JSON.parse(ws.buffer.pop());
+        if (expected) {
+          if (action.type == expected) {
+            resolve(action);
+          } else {
+            debug.test("Unexpected action %s", action.type);
+            const err = new SapiError(
+              "Incorrect action: " + action.type + " instead of " + expected + ")",
+              "EUNEXPECTEDACTION");
+            reject(err);
+          }
+        } else {
+          resolve(action);
+        }
+      };
+      if (ws.buffer.length > 0) {
+        trigger();
+      } else {
+        ws.once('message', event => {
+          trigger();
+        });
+      }
+    });
+  },
+
+
+  sendAction: (ws, action) => () => {
+    return new Promise((resolve, reject) => {
+      if (typeof action === 'function')
+        action = action();
+      debug.test("Sending action %s", action.type);
+      ws.send(JSON.stringify(action));
+      resolve();
+    })
+  }
+}
 
 
 module.exports = {
@@ -156,5 +218,6 @@ module.exports = {
   combineHandlers,
   SapiError,
   withWS,
-  getClients
+  getClients,
+  test
 }

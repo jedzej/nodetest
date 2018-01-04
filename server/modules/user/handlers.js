@@ -1,11 +1,37 @@
 var userService = require('./service');
 var SapiError = require('../../sapi').SapiError;
+var tools = require('../tools');
 
 const handlers = {
 
+  'USER_GET': (action, ws, db) => {
+    return Promise.all(
+      action.payload.ids.map(id => userService.getBy(db, { _id: id }))
+    )
+      .then(users => {
+        ws.sendAction({
+          type: "USER_GET_FULFILLED",
+          payload: {
+            users: users.map(user => ({
+              id: user._id,
+              name: user.name
+            }))
+          }
+        });
+      })
+      .catch(err => {
+        ws.sendAction({
+          type: "USER_GET_REJECTED",
+          payload: SapiError.from(err, err.code).toPayload()
+        });
+        throw err;
+      })
+  },
+
   'USER_REGISTER': (action, ws, db) => {
-    userService.register(db, action.payload.name, action.payload.password)
-      .then((user) => {
+    return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Already logged in!"))()
+      .then(() => userService.register(db, action.payload.name, action.payload.password))
+      .then(user => {
         ws.sendAction({
           type: "USER_REGISTER_FULFILLED"
         });
@@ -15,17 +41,20 @@ const handlers = {
           type: "USER_REGISTER_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
-      });
+        throw err;
+      })
   },
 
   'USER_LOGIN': (action, ws, db) => {
-    var loginPromise;
-    if (action.payload.token)
-      loginPromise = userService.loginByToken(db, action.payload.token);
-    else
-      loginPromise = userService.login(db, action.payload.name, action.payload.password);
-    loginPromise
+    return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Already logged in!"))()
+      .then(() => {
+        if (action.payload.token)
+          return userService.loginByToken(db, action.payload.token);
+        else
+          return userService.login(db, action.payload.name, action.payload.password);
+      })
       .then(user => {
+        console.log("USER ", user)
         ws.store.currentUser = user;
         ws.sendAction({
           type: "USER_LOGIN_FULFILLED"
@@ -45,11 +74,13 @@ const handlers = {
           type: "USER_LOGIN_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
+        throw err;
       });
   },
 
   'USER_LOGOUT': (action, ws, db) => {
-    userService.logout(db, ws.store.currentUser.token)
+    return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Not logged in!"))()
+      .then(() => userService.logout(db, ws.store.currentUser.token))
       .then(user => {
         delete ws.store.currentUser;
         ws.sendAction({
@@ -58,7 +89,7 @@ const handlers = {
         ws.sendAction({
           type: "USER_UPDATE",
           payload: {
-            loggedIn : false,
+            loggedIn: false,
             name: null,
             token: null
           }
@@ -69,6 +100,7 @@ const handlers = {
           type: "USER_LOGOUT_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
+        throw err;
       });
   }
 }

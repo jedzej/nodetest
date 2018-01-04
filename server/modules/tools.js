@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-
+const SapiError = require('../sapi').SapiError;
 
 module.exports.genUniqueToken = function () {
   return new Promise((resolve, reject) => {
@@ -15,36 +15,17 @@ module.exports.genUniqueToken = function () {
 }
 
 
-module.exports.waitForAction = (ws, expected) => () => {
+module.exports.filterLobbyMembers = lobby => ws => ws.store.lobbyId ? ws.store.lobbyId.equals(lobby._id) : false
+
+
+module.exports.verify = (cond, err) => () => {
   return new Promise((resolve, reject) => {
-    const trigger = () => {
-      const action = JSON.parse(ws.buffer.pop());
-      if (expected) {
-        if (action.type == expected) {
-          resolve(action);
-        } else {
-          reject(action);
-        }
-      } else {
-        resolve(action);
-      }
-    };
-    if (ws.buffer.length > 0) {
-      trigger();
+    if (typeof cond == 'function')
+      cond = cond();
+    if (cond) {
+      resolve();
     } else {
-      ws.once('message', event => {
-        trigger();
-      })
+      reject(err);
     }
   });
-}
-
-
-module.exports.sendAction = (ws, action) => () => {
-  return new Promise((resolve, reject) => {
-    if(typeof action === 'function')
-      action = action();
-    ws.send(JSON.stringify(action));
-    resolve();
-  })
 }

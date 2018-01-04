@@ -28,7 +28,11 @@ const withDb = (promiseCreator) => {
       return promiseCreator(db(client))
         .then(() => {
           return client.close()
-        });
+        })
+        .catch((err) =>{
+          client.close();
+          throw err;
+        })
     });
 }
 

@@ -3,5 +3,8 @@
   "editor.detectIndentation": false,
   "editor.tabSize": 2,
   "git.autofetch": true,
-  "mocha.files.glob" : "server/**/*.test.js"
+  "mocha.files.glob": "server/**/*.test.js",
+  "mocha.env": {
+    "DEBUG": "*"
+  }
 }

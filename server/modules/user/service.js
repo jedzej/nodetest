@@ -4,10 +4,13 @@ const tools = require('../tools');
 const MongoClient = require('mongodb').MongoClient;
 const SapiError = require('../../sapi').SapiError;
 
+var debug = require('debug')('user:service');
+debug.log = console.log.bind(console);
+
 
 const dbReset = (db) => {
   return db.dropCollection('user')
-    .catch((err) => { console.log(err) })
+    .catch((err) => { debug(err) })
     .then(() => db.createCollection('user'))
     .then(() => db.collection('user').createIndex(
       { name: 1 },
@@ -30,11 +33,9 @@ const register = (db, name, password) => {
   if (name == null || password == null) {
     return Promise.reject(new SapiError("Validation failure", "EINVALIDVALUE"));
   } else {
-    console.log(user)
     return db.collection('user')
       .insertOne(user)
       .then(result => {
-        console.log(result.ops[0])
         return Promise.resolve(result.ops[0])
       })
       .catch(err => {

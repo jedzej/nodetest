@@ -15,12 +15,16 @@ function getBy(db, query) {
   return db.collection('lobby').findOne(query);
 }
 
+const getFor = (db, user) => {
+  return getBy(db, { members: user._id });
+}
 
-const create = (db, leaderId) => {
+
+const create = (db, user) => {
   return tools.genUniqueToken()
     .then(token => Promise.resolve({
-      leaderId: leaderId,
-      members: [leaderId],
+      leaderId: user._id,
+      members: [user._id],
       token: token
     }))
     .then(lobby => db.collection('lobby').insertOne(lobby))
@@ -28,14 +32,14 @@ const create = (db, leaderId) => {
 }
 
 
-const join = (db, userId, lobbyToken) => {
+const join = (db, user, lobbyToken) => {
   return getBy(db, { token: lobbyToken })
     .then(lobby => {
       const updateQuery = [
         { token: lobby.token },
         {
           $set: {
-            members: [...lobby.members, userId]
+            members: [...lobby.members, user._id]
           }
         },
         { upsert: true }
@@ -45,20 +49,19 @@ const join = (db, userId, lobbyToken) => {
     });
 }
 
-const leave = (db, userId) => {
-  return getBy(db, { members: userId })
+const leave = (db, user) => {
+  return getFor(db, user)
     .then(lobby => {
       var leaderId = lobby.leaderId;
-      var members = lobby.members.filter((mId) => mId != userId)
+      var members = lobby.members.filter((mId) => !mId.equals(user._id))
 
       if (members.length == 0) {
         return db.collection('lobby').deleteOne({ _id: lobby._id })
           .then((result) => {
-            console.log(result);
-            return Promise.resolve();
+            return Promise.resolve(null);
           });
       } else {
-        if (lobby.leaderId == userId) {
+        if (lobby.leaderId.equals(user._id)) {
           leaderId = members[0];
         }
         const updateQuery = [
@@ -71,7 +74,9 @@ const leave = (db, userId) => {
           },
           { upsert: true }
         ];
-        return db.collection('lobby').updateOne(...updateQuery);
+        return db.collection('lobby')
+          .updateOne(...updateQuery)
+          .then(() => getBy(db, { _id: lobby._id }));
       }
     });
 }
@@ -80,6 +85,7 @@ const leave = (db, userId) => {
 
 module.exports = {
   'getBy': getBy,
+  'getFor': getFor,
   'dbReset': dbReset,
   'create': create,
   'join': join,

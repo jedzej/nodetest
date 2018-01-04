@@ -6,8 +6,8 @@ const lobbyHandlers = require('./handlers');
 
 const dbconfig = require('../../dbconfig');
 const sapi = require('../../sapi');
-const sendAction = require('../tools').sendAction;
-const waitForAction = require('../tools').waitForAction;
+const sendAction = sapi.test.sendAction;
+const waitForAction = sapi.test.waitForAction;
 
 
 describe('Lobby', function () {
@@ -47,7 +47,6 @@ describe('Lobby', function () {
               .then(waitForAction(ws, "LOBBY_CREATE_FULFILLED"))
               .then(waitForAction(ws, "LOBBY_UPDATE"))
               .then((action) => {
-                console.log(action)
                 const lobby = action.payload;
                 assert.ok(lobby.leaderId == user.id);
               })
@@ -81,7 +80,7 @@ describe('Lobby', function () {
               waitForAction(wsj, "USER_UPDATE")()
             ]))
             .then(leader_joiner => {
-              [context.leader, context.joiner] = leader_joiner;
+              [context.leader, context.joiner] = leader_joiner.map((e) => e.payload);
             })
 
             /* LOBBY CREATE */
@@ -89,31 +88,68 @@ describe('Lobby', function () {
             .then(waitForAction(wsl, "LOBBY_CREATE_FULFILLED"))
             .then(waitForAction(wsl, "LOBBY_UPDATE"))
             .then(action => {
-              context.lobbyLeader = action.payload;
+              context.leaderLobby = action.payload;
+              assert.equal(context.leader.id, context.leaderLobby.leaderId);
             })
 
             /* LOBBY JOIN */
             .then(sendAction(wsj, () => ({
               type: "LOBBY_JOIN",
               payload: {
-                token: context.lobbyLeader.token
+                token: context.leaderLobby.token
               }
             })))
             .then(waitForAction(wsj, "LOBBY_JOIN_FULFILLED"))
             .then(waitForAction(wsj, "LOBBY_UPDATE"))
             .then(action => {
-              context.lobbyJoiner = action.payload;
-              assert.equal(context.lobbyJoiner.token, context.lobbyLeader.token);
-              assert.equal(context.lobbyJoiner.leaderId, context.lobbyLeader.leaderId);
+              context.joinerLobby = action.payload;
+              assert.equal(context.joinerLobby.token, context.leaderLobby.token);
+              assert.equal(context.joinerLobby.leaderId, context.leaderLobby.leaderId);
             })
             .then(waitForAction(wsl, "LOBBY_UPDATE"))
             .then(action => {
-              context.lobbyLeader = action.payload;
-              assert.deepEqual(context.lobbyJoiner, context.lobbyLeader);
+              context.leaderLobby = action.payload;
+              assert.deepEqual(context.joinerLobby, context.leaderLobby);
             })
 
-            /* LOBBY LEAVE */
+            /* DOUBLE CREATE */
+            .then(sendAction(wsl, { type: "LOBBY_CREATE" }))
+            .then(waitForAction(wsl, "LOBBY_CREATE_REJECTED"))
+            .then(sendAction(wsj, { type: "LOBBY_CREATE" }))
+            .then(waitForAction(wsj, "LOBBY_CREATE_REJECTED"))
 
+            /* LEADER LEAVES */
+            .then(sendAction(wsl, { type: "LOBBY_LEAVE" }))
+            .then(waitForAction(wsl, "LOBBY_LEAVE_FULFILLED"))
+            .then(waitForAction(wsl, "LOBBY_UPDATE"))
+            .then(action => {
+              context.leaderLobby = action.payload;
+              assert.equal(context.leaderLobby.token, null);
+              assert.equal(context.leaderLobby.leaderId, null);
+              assert.equal(context.leaderLobby.members, null);
+            })
+            .then(waitForAction(wsj, "LOBBY_UPDATE"))
+            .then(action => {
+              context.joinerLobby = action.payload;
+              assert.equal(context.joiner.id, context.joinerLobby.leaderId);
+              assert.equal(context.joinerLobby.members.length, 1);
+            })
+
+            /* JOINER LEAVES */
+            .then(sendAction(wsj, { type: "LOBBY_LEAVE" }))
+            .then(waitForAction(wsj, "LOBBY_LEAVE_FULFILLED"))
+            .then(waitForAction(wsj, "LOBBY_UPDATE"))
+            .then(action => {
+              context.joinerLobby = action.payload;
+              assert.equal(context.leaderLobby.token, null);
+              assert.equal(context.leaderLobby.leaderId, null);
+              assert.equal(context.leaderLobby.members, null);
+            })
+            .then(() => lobbyService.getBy(db, {}))
+            .then(lobby => {
+              assert.equal(lobby, null);
+            })
+            .catch(err => { throw err; })
         })
       )
     )
