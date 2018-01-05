@@ -1,13 +1,14 @@
-import { ofType } from 'redux-observable';
-import { USER_REGISTER, USER_LOGIN, USER_LOGOUT } from './types'
+import { ofType, combineEpics } from 'redux-observable';
+import { USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_LOGIN_FULFILLED, USER_LOGIN_REJECTED } from './types'
 import { webSocketWrite } from 'webSocketMiddleware'
+import { mapTo } from 'rxjs/operators';
 
 
-
-const userEpic = action$ =>
+const wsTransmitEpic = action$ =>
   action$.pipe(
     ofType(USER_REGISTER, USER_LOGIN, USER_LOGOUT),
     webSocketWrite
   );
 
-export default userEpic;
+
+export default wsTransmitEpic

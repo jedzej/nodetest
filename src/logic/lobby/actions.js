@@ -1,11 +1,11 @@
-import { LOBBY_CREATE, LOBBY_JOIN, LOBBY_LEAVE, LOBBY_LIST } from './types'
+import { LOBBY_CREATE, LOBBY_JOIN, LOBBY_LEAVE, LOBBY_LIST, LOBBY_UPDATE_REQUEST } from './types'
 
 export const create = () => ({
   type: LOBBY_CREATE
 });
 
 export const join = (token) => ({
-  type: LOBBY_CREATE,
+  type: LOBBY_JOIN,
   payload: { token }
 });
 
@@ -15,4 +15,8 @@ export const leave = () => ({
 
 export const list = () => ({
   type: LOBBY_LEAVE
+});
+
+export const update = () => ({
+  type: LOBBY_UPDATE_REQUEST
 });

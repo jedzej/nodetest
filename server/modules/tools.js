@@ -45,12 +45,13 @@ module.exports.genUniqueToken = function () {
 module.exports.filterLobbyMembers = lobby => ws => ws.store.lobbyId ? ws.store.lobbyId.equals(lobby._id) : false
 
 
-module.exports.verify = (cond, err) => () => {
+module.exports.verify = (cond, err) => (data) => {
   return new Promise((resolve, reject) => {
+    console.log("Verification: ", cond, err)
     if (typeof cond == 'function')
       cond = cond();
     if (cond) {
-      resolve();
+      resolve(data);
     } else {
       reject(err);
     }

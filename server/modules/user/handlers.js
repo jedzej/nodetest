@@ -78,7 +78,7 @@ const handlers = {
   },
 
   'USER_LOGOUT': (action, ws, db) => {
-    return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Not logged in!"))()
+    return tools.verify(ws.store.currentUser !== undefined, new SapiError("EAUTH", "Not logged in!"))()
       .then(() => userService.logout(db, ws.store.currentUser.token))
       .then(user => {
         delete ws.store.currentUser;

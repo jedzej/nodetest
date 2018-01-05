@@ -5,25 +5,29 @@ import promise from "redux-promise-middleware";
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 
 import { createWebSocketMiddleWare } from './webSocketMiddleware';
-import userEpics from './logic/user/epics';
+
 import helloEpics from './logic/hello/epics';
+import userEpics from './logic/user/epics';
+import lobbyEpics from './logic/lobby/epics';
 
-
-import userReducer from './logic/user/reducers';
 import helloReducer from './logic/hello/reducers';
+import userReducer from './logic/user/reducers';
+import lobbyReducer from './logic/lobby/reducers';
 
 
 const rootEpic = combineEpics(
   helloEpics,
-  userEpics
+  userEpics,
+  lobbyEpics
 );
 
 export default createStore(
   combineReducers({
     'hello': helloReducer,
-    'user': userReducer
+    'user': userReducer,
+    'lobby': lobbyReducer
   }),
-  {},
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
   applyMiddleware(
     logger,
     thunk,

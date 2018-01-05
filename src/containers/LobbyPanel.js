@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
+import { create, join, leave, list } from '../logic/lobby/actions'
 
 class LobbyPanel extends Component {
   constructor(props) {
@@ -26,9 +27,9 @@ class LobbyPanel extends Component {
   renderNoLobby() {
     return (
       <div>
-        Logged in as {this.props.user.name} <br/>
+        Logged in as {this.props.user.name} <br />
         No lobby<br />
-        <button onClick={this.handleCreate}>CREATE LOBBY</button>
+        <button onClick={this.props.create}>CREATE LOBBY</button>
       </div>
     );
   }
@@ -37,7 +38,7 @@ class LobbyPanel extends Component {
     if (this.props.user.loggedIn === false) {
       return this.renderNotLoggedIn();
     }
-    else if (this.props.lobby === undefined) {
+    else if (this.props.lobby.exists == false) {
       return this.renderNoLobby();
     }
     else {
@@ -50,7 +51,24 @@ class LobbyPanel extends Component {
 const mapStateToProps = (state) => {
   return {
     user: state.user,
+    lobby: state.lobby
   };
 };
 
-export default connect(mapStateToProps, null)(LobbyPanel);
+const mapDispatchToProps = (dispatch) => ({
+  create: () => {
+    dispatch(create());
+  },
+  leave: () => {
+    dispatch(leave());
+  },
+  join: (token) => {
+    dispatch(join(token));
+  },
+  list: () => {
+    dispatch(list());
+  }
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(LobbyPanel);

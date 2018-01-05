@@ -7,7 +7,7 @@ const DEFAULT_STATE = {
   createPending: false,
   joinPending: false,
   leavePending: false,
-  inLobby : false
+  exists : false
 };
 
 
@@ -42,10 +42,16 @@ const reducer = (state = DEFAULT_STATE, action) => {
       };
       break;
     // UPDATE
+    case types.LOBBY_UPDATE_REJECTED:
+      state = {
+        ...DEFAULT_STATE
+      }
+      break;
     case types.LOBBY_UPDATE:
       state = {
         ...state,
-        ...action.payload
+        ...action.payload,
+        exists : action.payload.token !== null
       };
       break;
     default:

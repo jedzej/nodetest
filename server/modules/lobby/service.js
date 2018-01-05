@@ -1,5 +1,6 @@
 const tools = require('../tools');
 const userService = require('../user/service');
+const SapiError = require('../../sapi').SapiError;
 const ObjectId = require('mongodb').ObjectId;
 
 const dbReset = (db) => {
@@ -14,7 +15,10 @@ const dbReset = (db) => {
 
 
 const getBy = (db, query) => {
-  return db.collection('lobby').findOne(query);
+  return db.collection('lobby').findOne(query).then(data => {
+    console.log(data);
+    return data;
+  });
 }
 
 const withFetchedMembers = (db, lobby) =>
@@ -24,8 +28,18 @@ const withFetchedMembers = (db, lobby) =>
       return Promise.resolve(lobby);
     })
 
+
 const getFor = (db, user) =>
   getBy(db, { members: user._id })
+    .then(data => {
+      console.log(":tutaj",data);
+      return data;
+    })
+    .then((lobby) => tools.verify(lobby, new SapiError("Not in lobby", "ENOLOBBY"))(lobby))
+    .then(data => {
+      console.log(":tutaj",data);
+      return data;
+    })
     .then(lobby => withFetchedMembers(db, lobby));
 
 
