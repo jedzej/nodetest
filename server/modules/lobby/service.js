@@ -11,7 +11,7 @@ const dbReset = (db) => {
 }
 
 
-function getBy(db, query) {
+const getBy = (db, query) => {
   return db.collection('lobby').findOne(query);
 }
 
@@ -82,12 +82,18 @@ const leave = (db, user) => {
 }
 
 
+const getCollection = (db) => {
+  return db.collection('lobby');
+}
+
+
 
 module.exports = {
-  'getBy': getBy,
-  'getFor': getFor,
-  'dbReset': dbReset,
-  'create': create,
-  'join': join,
-  'leave': leave
+  getBy,
+  getFor,
+  dbReset,
+  create,
+  join,
+  leave,
+  getCollection
 };

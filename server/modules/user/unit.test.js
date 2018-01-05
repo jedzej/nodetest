@@ -3,31 +3,15 @@ const userService = require('./service');
 const dbconfig = require('../../dbconfig');
 const WebSocket = require('ws');
 const sapi = require('../../sapi');
+const PARTIALS = require('../testpartials')
 
 const sendAction = sapi.test.sendAction;
 const waitForAction = sapi.test.waitForAction;
 
 const userHandlers = require('./handlers');
 
-const logThrough = msg => arg => {
-  console.log(msg);
-  return Promise.resolve(arg)
-}
-
-
-const PARTIALS = {
-  userCreate: (ws, name, password) =>
-    sendAction(ws, { type: "USER_REGISTER", payload: { name, password } })()
-      .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
-      .then(sendAction(ws, { type: "USER_LOGIN", payload: { name, password } }))
-      .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
-      .then(waitForAction(ws, "USER_UPDATE"))
-      .then((action) => Promise.resolve(action.payload))
-}
-
 
 describe('User', function () {
-
 
   before(() => {
     dbconfig.setEnv({ dbName: 'ggPlatformDev' });
@@ -87,18 +71,7 @@ describe('User', function () {
           }))
           .then(waitForAction(ws, "USER_LOGIN_REJECTED"))
 
-          .then(sendAction(ws, {
-            type: "USER_REGISTER",
-            payload: { name: 'uname', password: 'upass' }
-          }))
-          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
-
-          .then(sendAction(ws, {
-            type: "USER_LOGIN",
-            payload: { name: 'uname', password: 'upass' }
-          }))
-          .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
-          .then(waitForAction(ws, "USER_UPDATE"))
+          .then(PARTIALS.userCreate(ws,'uname','upass'))
 
           .then((action) => {
             console.log(action);
@@ -114,26 +87,29 @@ describe('User', function () {
         sapi.withWS("ws://localhost:3069", ws2 =>
           sapi.withWS("ws://localhost:3069", ws3 => {
             var usersData = [
-              { ws: ws1, name: 'uname1', password: 'upass1' },
-              { ws: ws2, name: 'uname2', password: 'upass2' },
-              { ws: ws3, name: 'uname3', password: 'upass3' },
+              { ws: ws1, name: 'uname1', password: 'upass1', id: null },
+              { ws: ws2, name: 'uname2', password: 'upass2', id: null },
+              { ws: ws3, name: 'uname3', password: 'upass3', id: null },
             ]
-            var ids = [];
             return userService.dbReset(db)
-              .then(() => PARTIALS.userCreate(usersData[0].ws, usersData[0].name, usersData[0].password))
-              .then(user => { ids.push(user.id); })
-              .then(() => PARTIALS.userCreate(usersData[1].ws, usersData[1].name, usersData[1].password))
-              .then(user => { ids.push(user.id); })
-              .then(() => PARTIALS.userCreate(usersData[2].ws, usersData[2].name, usersData[2].password))
-              .then(user => { ids.push(user.id); })
-              .then(sendAction(ws3, {
+              .then(PARTIALS.userCreate(usersData[0].ws, usersData[0].name, usersData[0].password))
+              .then(user => { usersData[0].id = user.id; })
+              .then(PARTIALS.userCreate(usersData[1].ws, usersData[1].name, usersData[1].password))
+              .then(user => { usersData[1].id = user.id; })
+              .then(PARTIALS.userCreate(usersData[2].ws, usersData[2].name, usersData[2].password))
+              .then(user => { usersData[2].id = user.id; })
+              .then(sendAction(ws3, () => ({
                 type: "USER_GET",
-                payload: { ids: ids }
-              }))
+                payload: { ids: usersData.map(ud => ud.id) }
+              })))
               .then(waitForAction(ws3, "USER_GET_FULFILLED"))
               .then(action => {
-                console.log(action)
-              })
+                var users = action.payload;
+                for (var i = 0; i < usersData.length; i++) {
+                  assert.equal(users[i].name, usersData[i].name);
+                  assert.equal(users[i].id, usersData[i].id);
+                }
+              });
           })
         )
       )

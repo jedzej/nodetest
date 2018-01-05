@@ -1,6 +1,23 @@
 const crypto = require('crypto');
 const SapiError = require('../sapi').SapiError;
 
+
+module.exports.Context = class Context {
+  store(field) {
+    var ctx = this;
+    return (data) => ctx[field] = data;
+  }
+}
+
+module.exports.logThrough = (msg, loggingFun) => arg => {
+  if(loggingFun == undefined){
+    loggingFun = console.log
+  }
+  loggingFun(msg);
+  return Promise.resolve(arg)
+}
+
+
 module.exports.genUniqueToken = function () {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(48, function (err, buffer) {

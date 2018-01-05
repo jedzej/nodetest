@@ -1,11 +1,13 @@
 const helloHandlers = require('./modules/hello/handlers');
 const userHandlers = require('./modules/user/handlers');
+const lobbyHandlers = require('./modules/user/handlers');
 const sapi = require('./sapi');
 const dbconfig = require('./dbconfig');
 
 const rootHandlers = sapi.combineHandlers(
   helloHandlers,
-  userHandlers
+  userHandlers,
+  lobbyHandlers
 );
 
 

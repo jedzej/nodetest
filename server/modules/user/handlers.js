@@ -12,12 +12,10 @@ const handlers = {
       .then(users => {
         ws.sendAction({
           type: "USER_GET_FULFILLED",
-          payload: {
-            users: users.map(user => ({
-              id: user._id,
-              name: user.name
-            }))
-          }
+          payload: users.map(user => ({
+            id: user._id,
+            name: user.name
+          }))
         });
       })
       .catch(err => {

@@ -6,6 +6,8 @@ const lobbyHandlers = require('./handlers');
 
 const dbconfig = require('../../dbconfig');
 const sapi = require('../../sapi');
+const PARTIALS = require('../testpartials');
+const Context = require('../tools').Context
 const sendAction = sapi.test.sendAction;
 const waitForAction = sapi.test.waitForAction;
 
@@ -20,42 +22,35 @@ describe('Lobby', function () {
   });
 
 
-  it('should create', function () {
+  it('should create and get', function () {
+    var context = new Context();
     return dbconfig.withDb((db) =>
       sapi.withWS("ws://localhost:3069", ws =>
         userService.dbReset(db)
 
-          /* USER REGISTER */
-          .then(sendAction(ws, {
-            type: "USER_REGISTER",
-            payload: { name: 'uname', password: 'upass' }
-          }))
-          .then(waitForAction(ws, "USER_REGISTER_FULFILLED"))
+          /* USER CREATE */
+          .then(PARTIALS.userCreate(ws, 'uname', 'upass'))
+          .then(context.store('user'))
 
-          /* USER LOGIN */
-          .then(sendAction(ws, {
-            type: "USER_LOGIN",
-            payload: { name: 'uname', password: 'upass' }
-          }))
-          .then(waitForAction(ws, "USER_LOGIN_FULFILLED"))
-          .then(waitForAction(ws, "USER_UPDATE"))
+          /* LOBBY CREATE */
+          .then(PARTIALS.lobbyCreate(ws))
+          .then(context.store('lobby'))
+
+          .then(() => {
+            assert.equal(context.lobby.leaderId, context.user.id);
+          })
+
+          /* REQUEST UPDATE */
+          .then(sendAction(ws, { type: "LOBBY_UPDATE_REQUEST" }))
+          .then(waitForAction(ws, "LOBBY_UPDATE"))
           .then(action => {
-            const user = action.payload;
-
-            /* LOBBY CREATE */
-            return sendAction(ws, { type: "LOBBY_CREATE" })()
-              .then(waitForAction(ws, "LOBBY_CREATE_FULFILLED"))
-              .then(waitForAction(ws, "LOBBY_UPDATE"))
-              .then((action) => {
-                const lobby = action.payload;
-                assert.ok(lobby.leaderId == user.id);
-              })
+            assert.deepEqual(context.lobby, action.payload);
           })
       ));
   });
 
   it('should join and leave', function () {
-    var context = {};
+    var context = new Context();
 
     return dbconfig.withDb((db) =>
       sapi.withWS("ws://localhost:3069", wsl =>
@@ -63,32 +58,16 @@ describe('Lobby', function () {
           return userService.dbReset(db)
             .then(() => lobbyService.dbReset(db))
 
-            /* USERS REGISTER */
-            .then(sendAction(wsl, { type: "USER_REGISTER", payload: { name: 'uleader', password: 'upass' } }))
-            .then(waitForAction(wsl, "USER_REGISTER_FULFILLED"))
-            .then(sendAction(wsj, { type: "USER_REGISTER", payload: { name: 'ujoiner', password: 'upass' } }))
-            .then(waitForAction(wsj, "USER_REGISTER_FULFILLED"))
-
-            /* USERS LOGIN */
-            .then(sendAction(wsl, { type: "USER_LOGIN", payload: { name: 'uleader', password: 'upass' } }))
-            .then(waitForAction(wsl, "USER_LOGIN_FULFILLED"))
-            .then(sendAction(wsj, { type: "USER_LOGIN", payload: { name: 'ujoiner', password: 'upass' } }))
-            .then(waitForAction(wsj, "USER_LOGIN_FULFILLED"))
-
-            .then(() => Promise.all([
-              waitForAction(wsl, "USER_UPDATE")(),
-              waitForAction(wsj, "USER_UPDATE")()
-            ]))
-            .then(leader_joiner => {
-              [context.leader, context.joiner] = leader_joiner.map((e) => e.payload);
-            })
+            /* USERS CREATE */
+            .then(PARTIALS.userCreate(wsl, 'uleader', 'upass'))
+            .then(context.store('leader'))
+            .then(PARTIALS.userCreate(wsj, 'ujoiner', 'upass'))
+            .then(context.store('joiner'))
 
             /* LOBBY CREATE */
-            .then(sendAction(wsl, { type: "LOBBY_CREATE" }))
-            .then(waitForAction(wsl, "LOBBY_CREATE_FULFILLED"))
-            .then(waitForAction(wsl, "LOBBY_UPDATE"))
-            .then(action => {
-              context.leaderLobby = action.payload;
+            .then(PARTIALS.lobbyCreate(wsl))
+            .then(context.store('leaderLobby'))
+            .then(() => {
               assert.equal(context.leader.id, context.leaderLobby.leaderId);
             })
 
@@ -102,13 +81,13 @@ describe('Lobby', function () {
             .then(waitForAction(wsj, "LOBBY_JOIN_FULFILLED"))
             .then(waitForAction(wsj, "LOBBY_UPDATE"))
             .then(action => {
-              context.joinerLobby = action.payload;
+              context.store('joinerLobby')(action.payload);
               assert.equal(context.joinerLobby.token, context.leaderLobby.token);
               assert.equal(context.joinerLobby.leaderId, context.leaderLobby.leaderId);
             })
             .then(waitForAction(wsl, "LOBBY_UPDATE"))
             .then(action => {
-              context.leaderLobby = action.payload;
+              context.store('leaderLobby')(action.payload);
               assert.deepEqual(context.joinerLobby, context.leaderLobby);
             })
 
@@ -123,14 +102,14 @@ describe('Lobby', function () {
             .then(waitForAction(wsl, "LOBBY_LEAVE_FULFILLED"))
             .then(waitForAction(wsl, "LOBBY_UPDATE"))
             .then(action => {
-              context.leaderLobby = action.payload;
+              context.store('leaderLobby')(action.payload);
               assert.equal(context.leaderLobby.token, null);
               assert.equal(context.leaderLobby.leaderId, null);
               assert.equal(context.leaderLobby.members, null);
             })
             .then(waitForAction(wsj, "LOBBY_UPDATE"))
             .then(action => {
-              context.joinerLobby = action.payload;
+              context.store('joinerLobby')(action.payload);
               assert.equal(context.joiner.id, context.joinerLobby.leaderId);
               assert.equal(context.joinerLobby.members.length, 1);
             })
@@ -140,7 +119,7 @@ describe('Lobby', function () {
             .then(waitForAction(wsj, "LOBBY_LEAVE_FULFILLED"))
             .then(waitForAction(wsj, "LOBBY_UPDATE"))
             .then(action => {
-              context.joinerLobby = action.payload;
+              context.store('joinerLobby')(action.payload);
               assert.equal(context.leaderLobby.token, null);
               assert.equal(context.leaderLobby.leaderId, null);
               assert.equal(context.leaderLobby.members, null);
@@ -150,6 +129,42 @@ describe('Lobby', function () {
               assert.equal(lobby, null);
             })
             .catch(err => { throw err; })
+        })
+      )
+    )
+  })
+
+
+  it('should list', function () {
+    var context = {};
+
+    return dbconfig.withDb((db) =>
+      sapi.withWS("ws://localhost:3069", ws1 =>
+        sapi.withWS("ws://localhost:3069", ws2 => {
+          return userService.dbReset(db)
+            .then(() => lobbyService.dbReset(db))
+
+            /* USERS REGISTER */
+            .then(PARTIALS.userCreate(ws1, 'uname1', 'upass'))
+            .then(user => { context.user1 = user; })
+            .then(PARTIALS.userCreate(ws2, 'uname2', 'upass'))
+            .then(user => { context.user2 = user; })
+
+            /* LOBBIES CREATE */
+            .then(PARTIALS.lobbyCreate(ws1))
+            .then(lobby => { context.lobby0 = lobby; })
+            .then(PARTIALS.lobbyCreate(ws2))
+            .then(lobby => { context.lobby1 = lobby; })
+
+            /* LOBBY LIST */
+            .then(sendAction(ws1, { type: "LOBBY_LIST" }))
+            .then(waitForAction(ws1, "LOBBY_LIST_FULFILLED"))
+            .then(action => {
+              const lobbies = action.payload;
+              assert.deepEqual(context.lobby0, lobbies[0]);
+              assert.deepEqual(context.lobby1, lobbies[1]);
+              console.log(action)
+            })
         })
       )
     )

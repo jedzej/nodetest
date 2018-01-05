@@ -3,18 +3,20 @@ var SapiError = require('../../sapi').SapiError;
 const sapi = require('../../sapi');
 const tools = require('../tools');
 
+const lobbyPayload = lobby => ({
+  token: lobby ? lobby.token : null,
+  leaderId: lobby ? lobby.leaderId : null,
+  members: lobby ? lobby.members : null
+});
+
 const lobbyUpdateAction = lobby => ({
-    type: "LOBBY_UPDATE",
-    payload: {
-      token: lobby ? lobby.token : null,
-      leaderId: lobby ? lobby.leaderId : null,
-      members: lobby ? lobby.members : null
-    }
-  })
+  type: "LOBBY_UPDATE",
+  payload: lobbyPayload(lobby)
+})
 
 const handlers = {
 
-  'LOBBY_GET': (action, ws, db) => {
+  'LOBBY_UPDATE_REQUEST': (action, ws, db) => {
     return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
       .then(() => lobbyService.getFor(db, ws.store.currentUser))
       .then(lobby => {
@@ -22,7 +24,7 @@ const handlers = {
       })
       .catch(err => {
         ws.sendAction({
-          type: "LOBBY_CREATE_REJECTED",
+          type: "LOBBY_UPDATE_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
         throw err;
@@ -52,6 +54,30 @@ const handlers = {
         throw err;
       });
   },
+
+
+  'LOBBY_LIST': (action, ws, db) => {
+    // verify input
+    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
+      // actually join the lobby
+      .then(() => lobbyService.getCollection(db).find({}))
+      .then(cursor => cursor.toArray())
+      .then(lobbies => {
+        ws.sendAction({
+          type: "LOBBY_LIST_FULFILLED",
+          payload: lobbies.map(lobbyPayload)
+        });
+      })
+      // error handling
+      .catch(err => {
+        ws.sendAction({
+          type: "LOBBY_LIST_REJECTED",
+          payload: SapiError.from(err, err.code).toPayload()
+        });
+        throw err;
+      })
+  },
+
 
   'LOBBY_JOIN': (action, ws, db) => {
     // verify input
