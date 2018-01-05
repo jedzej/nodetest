@@ -4,10 +4,20 @@ const SapiError = require('../sapi').SapiError;
 
 module.exports.Context = class Context {
   store(field) {
-    var ctx = this;
-    return (data) => ctx[field] = data;
+    return (data) => {
+      var top = this;
+      var splitted = field.split('.');
+      splitted.slice(0, -1).forEach(element => {
+        if(top[element] == undefined)
+          top[element] = new Object();
+        top = top[element];
+      });
+      top[splitted.slice(-1)] = data
+      return Promise.resolve(data);
+    }
   }
 }
+
 
 module.exports.logThrough = (msg, loggingFun) => arg => {
   if(loggingFun == undefined){

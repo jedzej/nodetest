@@ -1,4 +1,6 @@
 const tools = require('../tools');
+const userService = require('../user/service');
+const ObjectId = require('mongodb').ObjectId;
 
 const dbReset = (db) => {
   return db.dropCollection('lobby')
@@ -15,9 +17,26 @@ const getBy = (db, query) => {
   return db.collection('lobby').findOne(query);
 }
 
-const getFor = (db, user) => {
-  return getBy(db, { members: user._id });
+const withFetchedMembers = (db, lobby) =>
+  userService.getByIds(db, lobby.members)
+    .then(members => {
+      lobby.members = members.map(m => ({ name: m.name, id: m._id }))
+      return Promise.resolve(lobby);
+    })
+
+const getFor = (db, user) =>
+  getBy(db, { members: user._id })
+    .then(lobby => withFetchedMembers(db, lobby));
+
+
+const getList = (db) => {
+  return Promise.resolve(db.collection('lobby').find({}))
+    .then(cursor => cursor.toArray())
+    .then((lobbies) => Promise.all(
+      lobbies.map(lobby => withFetchedMembers(db, lobby))
+    ));
 }
+
 
 
 const create = (db, user) => {
@@ -28,7 +47,8 @@ const create = (db, user) => {
       token: token
     }))
     .then(lobby => db.collection('lobby').insertOne(lobby))
-    .then(result => (Promise.resolve(result.ops[0])));
+    .then(result => Promise.resolve(result.ops[0]))
+    .then(lobby => withFetchedMembers(db, lobby));
 }
 
 
@@ -45,12 +65,12 @@ const join = (db, user, lobbyToken) => {
         { upsert: true }
       ];
       return db.collection('lobby').updateOne(...updateQuery)
-        .then(() => getBy(db, { _id: lobby._id }));
+        .then(() => getFor(db, user));
     });
 }
 
 const leave = (db, user) => {
-  return getFor(db, user)
+  return getBy(db, { members: user._id })
     .then(lobby => {
       var leaderId = lobby.leaderId;
       var members = lobby.members.filter((mId) => !mId.equals(user._id))
@@ -76,7 +96,8 @@ const leave = (db, user) => {
         ];
         return db.collection('lobby')
           .updateOne(...updateQuery)
-          .then(() => getBy(db, { _id: lobby._id }));
+          .then(() => getBy(db, { _id: lobby._id }))
+          .then((lobby) => withFetchedMembers(db, lobby));
       }
     });
 }
@@ -95,5 +116,6 @@ module.exports = {
   create,
   join,
   leave,
-  getCollection
+  getCollection,
+  getList
 };

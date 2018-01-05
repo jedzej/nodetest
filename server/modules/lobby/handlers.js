@@ -1,5 +1,6 @@
 var lobbyService = require('./service');
-var SapiError = require('../../sapi').SapiError;
+const userService = require('../user/service');
+const SapiError = require('../../sapi').SapiError;
 const sapi = require('../../sapi');
 const tools = require('../tools');
 
@@ -17,6 +18,7 @@ const lobbyUpdateAction = lobby => ({
 const handlers = {
 
   'LOBBY_UPDATE_REQUEST': (action, ws, db) => {
+    var context = new tools.Context();
     return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
       .then(() => lobbyService.getFor(db, ws.store.currentUser))
       .then(lobby => {
@@ -60,8 +62,7 @@ const handlers = {
     // verify input
     return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
       // actually join the lobby
-      .then(() => lobbyService.getCollection(db).find({}))
-      .then(cursor => cursor.toArray())
+      .then(() => lobbyService.getList(db))
       .then(lobbies => {
         ws.sendAction({
           type: "LOBBY_LIST_FULFILLED",

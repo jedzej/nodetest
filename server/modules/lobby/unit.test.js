@@ -110,8 +110,8 @@ describe('Lobby', function () {
             .then(waitForAction(wsj, "LOBBY_UPDATE"))
             .then(action => {
               context.store('joinerLobby')(action.payload);
-              assert.equal(context.joiner.id, context.joinerLobby.leaderId);
               assert.equal(context.joinerLobby.members.length, 1);
+              assert.equal(context.joiner.id, context.joinerLobby.leaderId);
             })
 
             /* JOINER LEAVES */
@@ -136,6 +136,7 @@ describe('Lobby', function () {
 
 
   it('should list', function () {
+    this.timeout(5000);
     var context = {};
 
     return dbconfig.withDb((db) =>

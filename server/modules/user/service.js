@@ -2,6 +2,7 @@ var EventEmitter = require('events');
 var crypto = require('crypto');
 const tools = require('../tools');
 const MongoClient = require('mongodb').MongoClient;
+const ObjectId = require('mongodb').ObjectId;
 const SapiError = require('../../sapi').SapiError;
 
 var debug = require('debug')('user:service');
@@ -21,6 +22,19 @@ const dbReset = (db) => {
 
 function getBy(db, query) {
   return db.collection('user').findOne(query);
+}
+
+function getByIds(db, ids) {
+  return Promise.resolve()
+
+    .then(() => db.collection('user').find({
+      "_id": {
+        "$in": ids.map((id) => 
+          typeof id == "string" ? new ObjectId(id) : id
+        )
+      }
+    }))
+    .then(cursor => cursor.toArray())
 }
 
 
@@ -94,5 +108,6 @@ module.exports = {
   'login': login,
   'loginByToken': loginByToken,
   'logout': logout,
-  'dbReset': dbReset
+  'dbReset': dbReset,
+  'getByIds': getByIds
 };
