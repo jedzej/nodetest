@@ -9,24 +9,30 @@ import { createWebSocketMiddleWare } from './webSocketMiddleware';
 import helloEpics from './logic/hello/epics';
 import userEpics from './logic/user/epics';
 import lobbyEpics from './logic/lobby/epics';
+import chatEpics from './logic/chat/epics';
 
 import helloReducer from './logic/hello/reducers';
 import userReducer from './logic/user/reducers';
 import lobbyReducer from './logic/lobby/reducers';
+import chatReducer from './logic/chat/reducers';
 
 
 const rootEpic = combineEpics(
   helloEpics,
   userEpics,
-  lobbyEpics
+  lobbyEpics,
+  chatEpics
 );
 
+const rootReducer = combineReducers({
+  'hello': helloReducer,
+  'user': userReducer,
+  'lobby': lobbyReducer,
+  'chat': chatReducer
+});
+
 export default createStore(
-  combineReducers({
-    'hello': helloReducer,
-    'user': userReducer,
-    'lobby': lobbyReducer
-  }),
+  rootReducer,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
   applyMiddleware(
     logger,

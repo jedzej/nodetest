@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { create, join, leave, list } from '../logic/lobby/actions'
+import { message } from '../logic/chat/actions'
 
 class LobbyPanel extends Component {
   constructor(props) {
@@ -20,7 +21,17 @@ class LobbyPanel extends Component {
 
   renderInLobby() {
     return (
-      <div>In lobby</div>
+      <div>
+        Logged in as {this.props.user.name} <br />
+        In lobby with
+        <ul>
+          {this.props.lobby.members.map(m =>
+            <li key={m.id}>{m.name}</li>
+          )}
+        </ul>
+        <button onClick={() => this.props.message("LOL")}>MESSAGE</button><br />
+        <button onClick={this.props.leave}>LEAVE LOBBY</button>
+      </div>
     );
   }
 
@@ -29,6 +40,16 @@ class LobbyPanel extends Component {
       <div>
         Logged in as {this.props.user.name} <br />
         No lobby<br />
+        Join lobby:
+        <ul>
+          {this.props.lobby.lobbiesList.map(lobby =>
+            <li key={lobby.token}>
+              <span>{lobby.members[0].name}</span>
+              <button onClick={() => this.props.join(lobby.token)}>JOIN</button>
+            </li>
+          )}
+        </ul>
+        Or create:<br />
         <button onClick={this.props.create}>CREATE LOBBY</button>
       </div>
     );
@@ -67,6 +88,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   list: () => {
     dispatch(list());
+  },
+  message: (msg) => {
+    dispatch(message(msg));
   }
 })
 

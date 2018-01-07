@@ -5,7 +5,7 @@ const DEFAULT_STATE = {
   token: undefined,
   registrationPending: false,
   loginPending: false,
-  loggedIn : false
+  loggedIn: false
 };
 
 
@@ -45,6 +45,11 @@ const reducer = (state = DEFAULT_STATE, action) => {
         ...state,
         ...action.payload
       };
+      break;
+    case types.USER_UPDATE_REJECTED:
+      state = {
+        ...DEFAULT_STATE
+      }
       break;
     default:
       break;

@@ -1,9 +1,12 @@
 const dbconfig = require('./dbconfig');
-const auth = require('./modules/user/service');
+const user = require('./modules/user/service');
+const lobby = require('./modules/lobby/service');
 
 dbconfig.connect()
   .then(client => {
-    auth.dbReset(dbconfig.db(client))
+    return Promise.resolve()
+      .then(() => user.dbReset(dbconfig.db(client)))
+      .then(() => lobby.dbReset(dbconfig.db(client)))
       .then(() => {
         client.close()
       });

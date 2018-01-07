@@ -31,15 +31,7 @@ const withFetchedMembers = (db, lobby) =>
 
 const getFor = (db, user) =>
   getBy(db, { members: user._id })
-    .then(data => {
-      console.log(":tutaj",data);
-      return data;
-    })
-    .then((lobby) => tools.verify(lobby, new SapiError("Not in lobby", "ENOLOBBY"))(lobby))
-    .then(data => {
-      console.log(":tutaj",data);
-      return data;
-    })
+    .then(lobby => tools.verify(lobby, new SapiError("Not in lobby", "ENOLOBBY"))(lobby))
     .then(lobby => withFetchedMembers(db, lobby));
 
 

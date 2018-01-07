@@ -47,7 +47,7 @@ module.exports.filterLobbyMembers = lobby => ws => ws.store.lobbyId ? ws.store.l
 
 module.exports.verify = (cond, err) => (data) => {
   return new Promise((resolve, reject) => {
-    console.log("Verification: ", cond, err)
+//    console.log("Verification: ", cond, err)
     if (typeof cond == 'function')
       cond = cond();
     if (cond) {

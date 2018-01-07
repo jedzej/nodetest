@@ -54,6 +54,12 @@ const reducer = (state = DEFAULT_STATE, action) => {
         exists : action.payload.token !== null
       };
       break;
+    // LOBBY LIST
+    case types.LOBBY_LIST_FULFILLED:
+      state = {
+        ...state,
+        lobbiesList : action.payload
+      }
     default:
       break;
   }

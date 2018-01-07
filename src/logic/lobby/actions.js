@@ -14,7 +14,7 @@ export const leave = () => ({
 });
 
 export const list = () => ({
-  type: LOBBY_LEAVE
+  type: LOBBY_LIST
 });
 
 export const update = () => ({

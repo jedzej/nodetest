@@ -1,0 +1,4 @@
+export const CHAT_MESSAGE = 'CHAT_MESSAGE';
+export const CHAT_MESSAGE_REJECTED = 'CHAT_MESSAGE_REJECTED';
+export const CHAT_UPDATE = 'CHAT_UPDATE';
+export const CHAT_TRUNCATE = 'CHAT_RESET';

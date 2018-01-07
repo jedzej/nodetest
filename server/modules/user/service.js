@@ -81,9 +81,6 @@ const login = (db, name, password) => {
 
 const loginByToken = (db, token) => {
   return getBy(db, { token: token })
-    .then((user) => {
-      Promise.resolve(user);
-    });
 }
 
 

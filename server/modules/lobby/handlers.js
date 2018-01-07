@@ -3,6 +3,8 @@ const userService = require('../user/service');
 const SapiError = require('../../sapi').SapiError;
 const sapi = require('../../sapi');
 const tools = require('../tools');
+var debug = require('debug')('lobby:handlers');
+debug.log = console.log.bind(console);
 
 const lobbyPayload = lobby => ({
   token: lobby ? lobby.token : null,
@@ -104,7 +106,9 @@ const handlers = {
       // update all members
       .then(lobby => {
         const wsClientsToUpdate = sapi.getClients(tools.filterLobbyMembers(lobby));
+        debug("Notifying %d clients", wsClientsToUpdate.length);
         for (var wsClient of wsClientsToUpdate) {
+          debug("Notifying %s", wsClient.store);
           wsClient.sendAction(lobbyUpdateAction(lobby));
         }
       });
@@ -113,6 +117,10 @@ const handlers = {
   'LOBBY_LEAVE': (action, ws, db) => {
     // verify input
     return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
+      .then(() => {
+        console.log('AAA');
+        debug(ws.store)
+      })
       .then(tools.verify(ws.store.lobbyId, new SapiError("Not in lobby", "ELOBBY")))
       // acually leave the lobby
       .then(() => {
@@ -138,7 +146,9 @@ const handlers = {
       // update all lobby members
       .then(lobby => {
         const wsClientsToUpdate = sapi.getClients(tools.filterLobbyMembers(lobby));
+        debug("Notifying %d clients", wsClientsToUpdate.length);
         for (var wsClient of wsClientsToUpdate) {
+          debug("Notifying %s", wsClient.store);
           wsClient.sendAction(lobbyUpdateAction(lobby));
         }
       });

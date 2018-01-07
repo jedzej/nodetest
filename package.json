@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "server": "nodemon ./server/app.js",
+    "server": "set DEBUG=*&&nodemon ./server/app.js",
     "client": "set NODE_PATH=src&&react-scripts start",
     "start": "set NODE_PATH=src&&react-scripts start",
     "build": "react-scripts build",
@@ -11,7 +11,12 @@
     "eject": "react-scripts eject"
   },
   "nodemonConfig": {
-    "ignore": ["src/*"]
+    "ignore": [
+      "src/*"
+    ]
+  },
+  "env": {
+    "debug": "*"
   },
   "proxy": "http://localhost:3003",
   "dependencies": {
@@ -19,6 +24,7 @@
     "cookie-parser": "~1.4.3",
     "debug": "^2.6.9",
     "express": "~4.15.5",
+    "js-cookie": "^2.2.0",
     "mocha": "^4.0.1",
     "mongodb": "^3.0.1",
     "morgan": "~1.9.0",
@@ -32,6 +38,7 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-observable": "^0.17.0",
+    "redux-persist": "^5.4.0",
     "redux-promise-middleware": "^5.0.0",
     "redux-thunk": "^2.2.0",
     "redux-websocket-middleware": "^1.0.0",

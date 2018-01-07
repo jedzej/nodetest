@@ -31,6 +31,13 @@ export const createWebSocketMiddleWare = url => store => {
     });
   };
 
+  ws.onopen = (event) => {
+    store.dispatch({
+      type: "WEBSOCKET_OPENED",
+      payload: event
+    });
+  };
+
   return next => action => {
     switch (action.type) {
       case "WEBSOCKET_WRITE":
