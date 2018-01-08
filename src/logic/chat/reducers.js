@@ -8,10 +8,8 @@ const reducer = (state = DEFAULT_STATE, action) => {
   switch (action.type) {
     case types.CHAT_UPDATE:
       state = {
-        ...state
+        messages: [...state.messages, action.payload]
       };
-      console.log('aaaaaa')
-      state.messages.push(action.payload)
       break;
     case types.CHAT_TRUNCATE:
       state = {

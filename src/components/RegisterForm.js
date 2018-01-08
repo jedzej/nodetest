@@ -9,8 +9,8 @@ class RegisterForm extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.state = {
-      name : '',
-      password : ''
+      name: '',
+      password: ''
     }
   }
 
@@ -19,7 +19,6 @@ class RegisterForm extends Component {
   }
 
   handleSubmit(event) {
-    console.log('lloool')
     this.props.register(this.state.name, this.state.password);
     event.preventDefault();
   }
@@ -27,20 +26,17 @@ class RegisterForm extends Component {
   render() {
     return (
       <form onSubmit={this.handleSubmit}>
-        <div>
-          Register
+        <div className="row">
+          <div className="six columns">
+            <label htmlFor="name">Name</label>
+            <input className="u-full-width" type="text" name="name" value={this.state.name} onChange={this.handleChange} />
+          </div>
+          <div className="six columns">
+            <label htmlFor="password">Password</label>
+            <input className="u-full-width" type="password" name="password" value={this.state.password} onChange={this.handleChange} />
+          </div>
         </div>
-        <label>
-          Name:
-          <input type="text" name="name" value={this.state.name} onChange={this.handleChange} />
-        </label>
-        <br />
-        <label>
-          Password:
-          <input type="password" name="password" value={this.state.password} onChange={this.handleChange} />
-        </label>
-        <br />
-        <input type="submit" value="Submit" />
+        <input className="button-primary" type="submit" value="Submit" />
       </form>
     );
   }

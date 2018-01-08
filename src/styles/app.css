@@ -1,0 +1,22 @@
+.chat-message-box {
+  overflow-y:scroll;
+  height:250pt;
+  text-align: left;
+}
+
+.chat-box  hr {
+  margin:5pt 0;
+}
+
+.chat-entry {
+  padding:0 10pt;
+}
+
+.chat-entry-timestamp {
+  text-align: right;
+  font-size: 10pt;
+}
+
+.chat-box {
+  text-align: center;
+}

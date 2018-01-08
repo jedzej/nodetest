@@ -3,8 +3,6 @@ import { USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_LOGIN_FULFILLED, USER_LOGI
 import { loginByToken, update } from './actions'
 import { webSocketWrite } from 'webSocketMiddleware'
 import { map, mapTo, forEach, filter, tap, ignoreElements } from 'rxjs/operators';
-import Cookies from 'js-cookie'
-
 
 
 const wsTransmitEpic = action$ =>

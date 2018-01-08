@@ -24,7 +24,8 @@ const handlers = {
                 id: ws.store.currentUser._id,
                 name: ws.store.currentUser.name
               },
-              message: action.payload.message
+              message: action.payload.message,
+              timestamp: Date.now()
             }
           });
         }
