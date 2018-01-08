@@ -31,7 +31,7 @@ class TopBar extends Component {
     var partial;
     if (this.props.user.loggedIn === false) {
       partial = this.renderNotLoggedIn();
-    } else if (this.props.lobby.exists == false) {
+    } else if (this.props.lobby.exists === false) {
       partial = this.renderNoLobby();
     } else {
       partial = this.renderInLobby();

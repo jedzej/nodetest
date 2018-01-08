@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { create, join, list } from '../logic/lobby/actions'
+import { create, join } from '../logic/lobby/actions'
 
 class LobbySelectionPage extends Component {
   constructor(props) {

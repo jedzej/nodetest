@@ -31,3 +31,42 @@
 .ChatBox {
   color:red;
 }
+
+@media (min-width: 550px) {
+  .lobby.left {
+    width:250px;
+    float: left;
+  }
+}
+
+.chat-input-submit {
+  float:right;
+}
+
+.chat-input-message {
+  float:left;
+  width: 180px;
+}
+
+
+/*
+ *  STYLE 3
+ */
+
+ *::-webkit-scrollbar-track
+ {
+   -webkit-box-shadow: inset 0 0 6px rgba(110, 110, 110, 0.3);
+   background-color: rgb(245, 245, 245);
+ }
+ 
+ *::-webkit-scrollbar
+ {
+   width: 6px;
+   background-color: rgb(255, 255, 255);
+ }
+ 
+ *::-webkit-scrollbar-thumb
+ {
+   background-color: #b3b3b3;
+ }
+ 

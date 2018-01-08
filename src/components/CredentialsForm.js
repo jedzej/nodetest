@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import { register } from '../logic/user/actions'
-import { connect } from "react-redux";
 
 class CredentialsForm extends Component {
 

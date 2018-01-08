@@ -60,6 +60,7 @@ const reducer = (state = DEFAULT_STATE, action) => {
         ...state,
         lobbiesList : action.payload
       }
+      break;
     default:
       break;
   }

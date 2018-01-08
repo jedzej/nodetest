@@ -76,6 +76,9 @@ const handlers = {
               type: "USER_UPDATE",
               payload: userUpdatePayload(null)
             });
+            wsc.sendAction({
+              type: "USER_KICKED_OUT"
+            });
           });
         ws.store.currentUser = user;
         debug("User", user)

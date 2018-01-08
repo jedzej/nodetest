@@ -1,19 +1,15 @@
 import React, { Component } from 'react';
 import './App.css';
-import LoginForm from 'components/LoginForm'
-import RegisterForm from 'components/RegisterForm'
-import HelloButton from 'components/HelloButton'
 import LobbyPanel from '../containers/LobbyPanel'
 import LogoutButton from 'components/LogoutButton'
-import ChatBox from "containers/ChatBox"
 import { connect } from "react-redux";
 import TopBar from '../containers/TopBar'
 import CredentialsForm from '../components/CredentialsForm';
 import AuthenticatePage from '../containers/AuthenticatePage';
 import LobbySelectionPage from '../containers/LobbySelectionPage';
-import { register, login } from '../logic/user/actions'
+import { register, login } from '../logic/user/actions';
 import InLobbyPage from './InLobbyPage';
-
+import Notifications from 'react-notification-system-redux';
 
 class App extends Component {
 
@@ -52,16 +48,17 @@ class App extends Component {
   render() {
     var innerTemplate;
     if (this.props.user.loggedIn === false) {
-      var innerTemplate = (<AuthenticatePage />);
-    } else if (this.props.lobby.exists == false) {
-      var innerTemplate = (<LobbySelectionPage />);
+      innerTemplate = (<AuthenticatePage />);
+    } else if (this.props.lobby.exists === false) {
+      innerTemplate = (<LobbySelectionPage />);
     } else {
-      var innerTemplate = (<InLobbyPage />);
+      innerTemplate = (<InLobbyPage />);
     }
     return (
       <div className="App">
         <TopBar />
         {innerTemplate}
+        <Notifications notifications={this.props.notifications} />
       </div>
     )
   }
@@ -72,6 +69,7 @@ const mapStateToProps = (state) => {
   return {
     user: state.user,
     lobby: state.lobby,
+    notifications: state.notifications
   };
 };
 

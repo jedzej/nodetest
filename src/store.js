@@ -3,7 +3,7 @@ import logger from "redux-logger";
 import thunk from "redux-thunk";
 import promise from "redux-promise-middleware";
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
-
+import {reducer as notifications} from 'react-notification-system-redux';
 import { createWebSocketMiddleWare } from './webSocketMiddleware';
 
 import helloEpics from './logic/hello/epics';
@@ -25,10 +25,12 @@ const rootEpic = combineEpics(
 );
 
 const rootReducer = combineReducers({
+  notifications,
   'hello': helloReducer,
   'user': userReducer,
   'lobby': lobbyReducer,
   'chat': chatReducer
+
 });
 
 export default createStore(

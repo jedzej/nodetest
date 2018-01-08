@@ -5,11 +5,25 @@ class LobbyPage extends Component {
   render() {
     return (
       <div className="row">
-        <div className="four columns">
+        <div className="lobby left">
           <LobbyPanel />
         </div>
-        <div className="eight columns">
-          <h5>MY APP HERE</h5>
+        <div className="lobby right">
+          <h5>MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          MY APP HERE
+          </h5>
         </div>
       </div>
     );

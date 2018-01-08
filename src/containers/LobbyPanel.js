@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { create, join, leave, list } from '../logic/lobby/actions'
+import { join, leave } from '../logic/lobby/actions'
 import { message } from '../logic/chat/actions'
 import ChatBox from './ChatBox';
 

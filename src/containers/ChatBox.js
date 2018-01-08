@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { message } from '../logic/chat/actions'
 import dateFormat from 'dateformat'
-import { deepEqual } from 'assert';
 
 const ChatEntry = (props) => (
   <div className="chat-entry">
@@ -17,9 +16,6 @@ const ChatEntry = (props) => (
 )
 
 class ChatBox extends Component {
-  constructor(props) {
-    super(props);
-  }
 
   handleSubmit(event) {
     if (this.messageInput.value.length > 0) {
@@ -49,9 +45,9 @@ class ChatBox extends Component {
         </div>
         <div className="chat-form-box">
           <form onSubmit={event => this.handleSubmit(event)} autoComplete="off">
-            <input type="text" name="message"
+            <input type="text" className="chat-input-message" name="message"
               ref={element => { this.messageInput = element }} />
-            <input className="button-primary" type="submit" value="=>" autoComplete="off" />
+            <input className="chat-input-submit" type="submit" value="&#8626;" autoComplete="off" />
           </form>
         </div>
       </div>
