@@ -16,7 +16,7 @@ class LobbyPanel extends Component {
           )}
         </ul>
         <button onClick={this.props.leave}>LEAVE LOBBY</button>
-        <ChatBox />
+        <ChatBox withFormBox={true} />
       </div>
     );
   }

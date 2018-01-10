@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './App.css';
 import HelloButton from 'components/HelloButton'
 import LogoutButton from 'components/LogoutButton'
 import { connect } from "react-redux";

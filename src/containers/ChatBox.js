@@ -43,13 +43,16 @@ class ChatBox extends Component {
             </div>
           )}
         </div>
-        <div className="chat-form-box">
-          <form onSubmit={event => this.handleSubmit(event)} autoComplete="off">
-            <input type="text" className="chat-input-message" name="message"
-              ref={element => { this.messageInput = element }} />
-            <input className="chat-input-submit" type="submit" value="&#8626;" autoComplete="off" />
-          </form>
-        </div>
+        {(this.props.withFormBox ?
+          <div className="chat-form-box">
+            <form onSubmit={event => this.handleSubmit(event)} autoComplete="off">
+              <input type="text" className="chat-input-message" name="message"
+                ref={element => { this.messageInput = element }} />
+              <input className="chat-input-submit" type="submit" value="&#8626;" autoComplete="off" />
+            </form>
+          </div> : ""
+        )}
+
       </div>
     );
   }

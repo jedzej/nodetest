@@ -1,76 +1,53 @@
 import { ofType, combineEpics } from 'redux-observable';
-import { USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_LOGIN_FULFILLED, USER_LOGIN_REJECTED, USER_UPDATE, USER_LOGOUT_REJECTED, USER_UPDATE_REQUEST, USER_UPDATE_REJECTED, USER_REGISTER_FULFILLED, USER_REGISTER_REJECTED, USER_LOGOUT_FULFILLED, USER_KICKED_OUT } from './types'
-import { loginByToken, update } from './actions'
-import { webSocketWrite } from 'webSocketMiddleware'
 import { map, mapTo, filter, tap, ignoreElements } from 'rxjs/operators';
-import { simpleNotificationSuccess, simpleNotificationError } from '../common/operators'
+import { webSocketWrite } from 'webSocketMiddleware'
+import userNotificationsEpics from './notifications';
 
+import * as types from './types'
+import { loginByToken, update } from './actions'
+import { USER_SESSION_INTENT } from './types';
+import Rx from 'rxjs/Rx';
 
 const wsTransmitEpic = action$ =>
   action$.pipe(
-    ofType(USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_UPDATE_REQUEST),
+    ofType(
+      types.USER_REGISTER,
+      types.USER_LOGIN,
+      types.USER_LOGOUT,
+      types.USER_UPDATE_REQUEST),
     webSocketWrite
   );
 
 const storeTokenEpic = action$ =>
   action$.pipe(
-    ofType(USER_UPDATE),
+    ofType(types.USER_UPDATE),
     tap(action => sessionStorage.setItem("AUTH_TOKEN", action.payload.token)),
     ignoreElements()
   );
 
 const removeTokenEpic = action$ =>
   action$.pipe(
-    ofType(USER_UPDATE_REJECTED, USER_LOGIN_REJECTED),
+    ofType(types.USER_UPDATE_REJECTED, types.USER_LOGIN_REJECTED, types.USER_KICKED_OUT),
     tap(action => sessionStorage.removeItem("AUTH_TOKEN")),
     ignoreElements()
   );
 
 const updateTriggerEpic = action$ =>
   action$.pipe(
-    ofType(USER_LOGOUT_REJECTED),
+    ofType(types.USER_LOGOUT_REJECTED),
     mapTo(update())
   );
 
-
 const loginWithTokenEpic = action$ =>
-  action$.pipe(
-    ofType("WEBSOCKET_OPENED"),
-    mapTo(sessionStorage.getItem("AUTH_TOKEN")),
+  Rx.Observable.zip(
+    action$.ofType("WEBSOCKET_OPENED"),
+    action$.ofType(USER_SESSION_INTENT),
+    () => sessionStorage.getItem("AUTH_TOKEN")
+  ).pipe(
     filter(token => token),
     map(token => loginByToken(token))
-  );
+    )
 
-const userNotificationsEpics = [
-  action$ => action$.pipe(
-    ofType(USER_LOGIN_FULFILLED),
-    simpleNotificationSuccess('Logged in!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_LOGIN_REJECTED),
-    simpleNotificationError('Login rejected!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_REGISTER_FULFILLED),
-    simpleNotificationSuccess('User registered!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_REGISTER_REJECTED),
-    simpleNotificationError('Registration rejected!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_LOGOUT_FULFILLED),
-    simpleNotificationSuccess('Logged out!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_LOGOUT_REJECTED),
-    simpleNotificationError('Logout rejected!')
-  ),
-  action$ => action$.pipe(
-    ofType(USER_KICKED_OUT),
-    simpleNotificationError('User kicked out!')
-  )
-]
 
 
 export default combineEpics(

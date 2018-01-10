@@ -5,7 +5,8 @@ const rootHandlers = sapi.combineHandlers(
   require('./modules/hello/handlers'),
   require('./modules/user/handlers'),
   require('./modules/lobby/handlers'),
-  require('./modules/chat/handlers')
+  require('./modules/chat/handlers'),
+  require('./modules/observer/handlers'),
 );
 
 dbconfig.connect().then((client) => {

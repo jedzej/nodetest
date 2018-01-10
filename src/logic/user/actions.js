@@ -1,4 +1,8 @@
-import { USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_UPDATE_REQUEST } from './types'
+import { USER_REGISTER, USER_LOGIN, USER_LOGOUT, USER_UPDATE_REQUEST, USER_SESSION_INTENT } from './types'
+
+export const sessionIntent = () => ({
+  type: USER_SESSION_INTENT
+})
 
 export const register = (name, password) => ({
   type: USER_REGISTER,

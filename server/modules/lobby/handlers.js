@@ -21,10 +21,18 @@ const handlers = {
 
   'LOBBY_UPDATE_REQUEST': (action, ws, db) => {
     var context = new tools.Context();
-    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
-      .then(() => lobbyService.getFor(db, ws.store.currentUser))
-      .then(lobby => {
-        ws.sendAction(lobbyUpdateAction(lobby));
+    var lobbyPromise;
+    if (ws.store.lobbyId)
+      lobbyPromise = lobbyService.getBy(db, { _id: ws.store.lobbyId })
+    else if(ws.store.currentUser)
+      lobbyPromise = lobbyService.getFor(db, ws.store.currentUser);
+    else
+      lobbyPromise = Promise.reject("No active session!", "EAUTH");
+    return lobbyPromise
+      .then(context.store('lobby'))
+      .then(()=>tools.verify(ws.store.lobbyId.equals(context.lobby._id), new SapiError("Not in lobby", "EAUTH"))())
+      .then(() => {
+        ws.sendAction(lobbyUpdateAction(context.lobby));
       })
       .catch(err => {
         ws.sendAction({
@@ -61,10 +69,7 @@ const handlers = {
 
 
   'LOBBY_LIST': (action, ws, db) => {
-    // verify input
-    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
-      // actually join the lobby
-      .then(() => lobbyService.getList(db))
+    return lobbyService.getList(db)
       .then(lobbies => {
         ws.sendAction({
           type: "LOBBY_LIST_FULFILLED",
