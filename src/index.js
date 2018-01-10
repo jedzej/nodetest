@@ -1,5 +1,5 @@
-import './styles/normalize.css';
-import './styles/skeleton.css';
+//import './styles/normalize.css';
+//import './styles/skeleton.css';
 import './styles/app.css';
 
 import React from 'react';

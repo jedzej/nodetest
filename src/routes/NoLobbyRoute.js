@@ -2,6 +2,13 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { create, join } from '../logic/lobby/actions';
 import UserAppWrapper from '../containers/UserAppWrapper';
+import Grid from 'material-ui/Grid';
+import Button from 'material-ui/Button/Button';
+import Paper from 'material-ui/Paper/Paper';
+import Typography from 'material-ui/Typography';
+import AppBar from 'material-ui/AppBar';
+import LobbySelector from '../components/LobbySelector';
+
 
 class NoLobbyRoute extends Component {
   constructor(props) {
@@ -16,20 +23,25 @@ class NoLobbyRoute extends Component {
   render() {
     return (
       <UserAppWrapper>
-        <div>
-          <h4>Create lobby</h4>
-          <button onClick={this.props.create}>CREATE</button>
-          <h4>Join lobby</h4>
-          <ul>
-            {this.props.lobby.lobbiesList.map(lobby =>
-              <li key={lobby.token}>
-                <span>{lobby.members[0].name}</span>
-                <button onClick={() => this.props.join(lobby.token)}>&lt;=</button>
-              </li>
-            )}
-          </ul>
-        </div>
-      </UserAppWrapper>
+        <Grid container spacing={16}>
+          <Grid item xs={12} sm={6}>
+            <AppBar position="static" color="default">
+              <Typography type="title" color="inherit">Create lobby</Typography>
+            </AppBar>
+            <Paper>
+              <Button onClick={this.props.create}>CREATE</Button>
+            </Paper>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <AppBar position="static" color="default">
+              <Typography type="title" color="inherit">Join lobby</Typography>
+            </AppBar>
+            <Paper>
+              <LobbySelector lobbies={this.props.lobby.lobbiesList} onJoin={this.props.join} />
+            </Paper>
+          </Grid>
+        </Grid>
+      </UserAppWrapper >
     );
   }
 }

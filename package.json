@@ -27,6 +27,8 @@
     "express": "~4.15.5",
     "history": "^4.7.2",
     "js-cookie": "^2.2.0",
+    "material-ui": "^1.0.0-beta.27",
+    "material-ui-icons": "^1.0.0-beta.17",
     "mocha": "^4.0.1",
     "mongodb": "^3.0.1",
     "morgan": "~1.9.0",

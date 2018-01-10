@@ -23,7 +23,7 @@ const handlers = {
     var context = new tools.Context();
     var lobbyPromise;
     if (ws.store.lobbyId)
-      lobbyPromise = lobbyService.getBy(db, { _id: ws.store.lobbyId })
+      lobbyPromise = lobbyService.getBy(db, { _id: ws.store.lobbyId }, true)
     else if(ws.store.currentUser)
       lobbyPromise = lobbyService.getFor(db, ws.store.currentUser);
     else

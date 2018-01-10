@@ -14,13 +14,6 @@ const dbReset = (db) => {
 }
 
 
-const getBy = (db, query) => {
-  return db.collection('lobby').findOne(query).then(data => {
-    console.log(data);
-    return data;
-  });
-}
-
 const withFetchedMembers = (db, lobby) =>
   userService.getByIds(db, lobby.members)
     .then(members => {
@@ -34,6 +27,16 @@ const getFor = (db, user) =>
     .then(lobby => tools.verify(lobby, new SapiError("Not in lobby", "ENOLOBBY"))(lobby))
     .then(lobby => withFetchedMembers(db, lobby));
 
+
+const getBy = (db, query, withFetched) => {
+  return db.collection('lobby').findOne(query)
+    .then(lobby => {
+      if (withFetched === true)
+        return withFetchedMembers(db, lobby);
+      else
+        return Promise.resolve(lobby);
+    });
+}
 
 const getList = (db) => {
   return Promise.resolve(db.collection('lobby').find({}))

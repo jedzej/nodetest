@@ -1,52 +1,114 @@
-import React, { Component } from 'react';
-import HelloButton from 'components/HelloButton'
-import LogoutButton from 'components/LogoutButton'
+import React from 'react';
+import PropTypes from 'prop-types';
+import { withStyles } from 'material-ui/styles';
+import AppBar from 'material-ui/AppBar';
+import Toolbar from 'material-ui/Toolbar';
+import Typography from 'material-ui/Typography';
+import IconButton from 'material-ui/IconButton';
+import MenuIcon from 'material-ui-icons/Menu';
+import AccountCircle from 'material-ui-icons/AccountCircle';
+import Menu, { MenuItem } from 'material-ui/Menu';
 import { connect } from "react-redux";
+import { logout } from '../logic/user/actions';
+import { leave } from '../logic/lobby/actions';
 
+const styles = {
+  root: {
+    width: '100%',
+  },
+  flex: {
+    flex: 1,
+  },
+  menuButton: {
+    marginLeft: -12,
+    marginRight: 20,
+  },
+};
 
-class TopBar extends Component {
+class MenuAppBar extends React.Component {
+  state = {
+    auth: true,
+    anchorEl: null,
+  };
 
-  renderNotLoggedIn() {
-    return (
-      <div>
-        Not logged in
-      </div>
-    )
-  }
+  handleChange = (event, checked) => {
+    this.setState({ auth: checked });
+  };
 
-  renderNoLobby() {
-    return (
-      <LogoutButton />
-    );
-  }
+  handleMenu = event => {
+    this.setState({ anchorEl: event.currentTarget });
+  };
 
-  renderInLobby() {
-    return (
-      <LogoutButton />
-    );
-  }
+  handleClose = () => {
+    this.setState({ anchorEl: null });
+  };
+  handleLeaveLobby = () => {
+    this.handleClose();
+    this.props.leave();
+  };
+
+  handleLogout = () => {
+    this.handleClose();
+    this.props.logout();
+  };
 
   render() {
-    var partial;
-    if (this.props.user.loggedIn === false) {
-      partial = this.renderNotLoggedIn();
-    } else if (this.props.lobby.exists === false) {
-      partial = this.renderNoLobby();
-    } else {
-      partial = this.renderInLobby();
-    }
+    const { classes } = this.props;
+    const { auth, anchorEl } = this.state;
+    const open = Boolean(anchorEl);
+
     return (
-      <div className="row">
-        <div className="six columns">
-          <HelloButton />
-        </div>
-        <div className="six columns">
-          {partial}
-        </div>
+      <div className={classes.root}>
+        <AppBar position="static">
+          <Toolbar>
+            <IconButton className={classes.menuButton} color="contrast" aria-label="Menu">
+              <MenuIcon />
+            </IconButton>
+            <Typography type="title" color="inherit" className={classes.flex}>
+              .nerdparty
+            </Typography>
+            {auth && (
+              <div>
+                <IconButton
+                  aria-owns={open ? 'menu-appbar' : null}
+                  aria-haspopup="true"
+                  onClick={this.handleMenu}
+                  color="contrast"
+                >
+                  <AccountCircle />
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorEl}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={open}
+                  onClose={this.handleClose}
+                >
+                  {this.props.user.loggedIn ?
+                    <MenuItem onClick={this.handleLeaveLobby}>Leave lobby</MenuItem> : null
+                  }
+                  <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+                </Menu>
+              </div>
+            )}
+          </Toolbar>
+        </AppBar>
       </div>
-    )
+    );
   }
 }
+
+MenuAppBar.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
 
 const mapStateToProps = (state) => {
   return {
@@ -54,5 +116,15 @@ const mapStateToProps = (state) => {
     lobby: state.lobby,
   };
 };
+const mapDispatchToProps = (dispatch) => ({
+  logout: () => {
+    dispatch(logout());
+  },
+  leave: () => {
+    dispatch(leave())
+  }
+});
 
-export default connect(mapStateToProps, null)(TopBar);
+export default connect(mapStateToProps, mapDispatchToProps)(
+  withStyles(styles)(MenuAppBar));
+

@@ -1,5 +1,4 @@
 import { createStore, combineReducers, applyMiddleware } from "redux";
-//import logger from "redux-logger";
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { reducer as notificationsReducer } from 'react-notification-system-redux';
 import { createWebSocketMiddleWare, webSocketReducer } from './webSocketMiddleware';
@@ -42,7 +41,6 @@ export default history => createStore(
   rootReducer,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
   applyMiddleware(
-    //logger,
     createWebSocketMiddleWare('ws://localhost:3004'),
     createEpicMiddleware(rootEpic),
     routerMiddleware(history)

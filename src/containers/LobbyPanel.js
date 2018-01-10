@@ -11,12 +11,10 @@ class LobbyPanel extends Component {
       <div>
         In lobby with
         <ul>
-          {this.props.lobby.members.map(m =>
-            <li key={m.id}>{m.name}</li>
-          )}
+          {this.props.lobby.members.map(m => <li key={m.id}>{m.name}</li>)}
         </ul>
         <button onClick={this.props.leave}>LEAVE LOBBY</button>
-        <ChatBox withFormBox={true} />
+        <ChatBox withFormBox />
       </div>
     );
   }

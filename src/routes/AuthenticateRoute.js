@@ -11,12 +11,10 @@ class AuthenticateRoute extends Component {
       <UserAppWrapper>
         <div className="row">
           <div className="six columns">
-            <h4>Register</h4>
-            <CredentialsForm onSubmit={this.props.register} submitValue="Register" />
+            <CredentialsForm title="Register" onSubmit={this.props.register} submitValue="Register" />
           </div>
           <div className="six columns">
-            <h4>Login</h4>
-            <CredentialsForm onSubmit={this.props.login} submitValue="Login" />
+            <CredentialsForm title="Login" onSubmit={this.props.login} submitValue="Login" />
           </div>
         </div>
       </UserAppWrapper>
