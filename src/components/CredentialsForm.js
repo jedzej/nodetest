@@ -12,7 +12,6 @@ class CredentialsForm extends Component {
   render() {
     return (
       <Card>
-        <h3>{this.props.title}</h3>
         {this.props.children}
         <form onSubmit={event => this.handleSubmit(event)}>
           <div className="row">
