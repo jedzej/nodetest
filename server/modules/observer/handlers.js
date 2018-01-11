@@ -13,6 +13,10 @@ const handlers = {
     var context = new tools.Context();
     return lobbyService.getBy(db, {token:action.payload.token})
       .then(context.store('lobby'))
+      .then(lobby=>{
+        console.log(lobby)
+        return lobby;
+      })
       .then(tools.verify(context.lobby !== null, new SapiError('Lobby does not exist', 'ENOLOBBY')))
       .then(lobby => {
         debug('Joining lobby ',lobby._id);

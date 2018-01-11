@@ -1,10 +1,20 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
 import LobbyPanel from '../containers/LobbyPanel'
 import UserAppWrapper from '../containers/UserAppWrapper';
+import Button from 'material-ui/Button/Button';
+import AppSelector from '../components/AppSelector';
+import RspApp from '../apps/rsp/containers/RspApp'
 
 class InLobbyRoute extends Component {
 
   render() {
+    const exclusiveApp = this.props.app.filter(app => app.isExclusive)[0];
+
+    const app_map = {
+      'rsp': () => <RspApp/>
+    }
+
     return (
       <UserAppWrapper>
         <div className="row">
@@ -12,21 +22,7 @@ class InLobbyRoute extends Component {
             <LobbyPanel />
           </div>
           <div className="lobby right">
-            <h5>MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-              MY APP HERE
-            </h5>
+            {(exclusiveApp === undefined ? <AppSelector /> : app_map[exclusiveApp.name]())}
           </div>
         </div>
       </UserAppWrapper>
@@ -34,5 +30,21 @@ class InLobbyRoute extends Component {
   }
 }
 
+const mapDispatchToProps = (dispatch) => ({
+  rsp_test: () => dispatch({
+    type: "WEBSOCKET_WRITE",
+    payload: {
+      type: "RSP_COUNT_UP"
+    }
+  })
+})
 
-export default InLobbyRoute;
+const mapStateToProps = (state) => {
+  return {
+    lobby: state.lobby,
+    user: state.user,
+    app: state.app
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(InLobbyRoute);

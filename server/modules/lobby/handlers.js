@@ -110,7 +110,7 @@ const handlers = {
       })
       // update all members
       .then(lobby => {
-        const wsClientsToUpdate = sapi.getClients(tools.filterLobbyMembers(lobby));
+        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
         debug("Notifying %d clients", wsClientsToUpdate.length);
         for (var wsClient of wsClientsToUpdate) {
           debug("Notifying %s", wsClient.store);
@@ -150,7 +150,7 @@ const handlers = {
       })
       // update all lobby members
       .then(lobby => {
-        const wsClientsToUpdate = sapi.getClients(tools.filterLobbyMembers(lobby));
+        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
         debug("Notifying %d clients", wsClientsToUpdate.length);
         for (var wsClient of wsClientsToUpdate) {
           debug("Notifying %s", wsClient.store);

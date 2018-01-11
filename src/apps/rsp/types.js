@@ -1,0 +1,6 @@
+export const RSP_START = 'RSP_START';
+export const RSP_START_FULFILLED = 'RSP_START_FULFILLED';
+export const RSP_START_REJECTED = 'RSP_START_REJECTED';
+export const RSP_UPDATE_REQUEST = 'RSP_UPDATE_REQUEST';
+export const RSP_UPDATE = 'RSP_UPDATE';
+export const RSP_MOVE = 'RSP_MOVE';

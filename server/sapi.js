@@ -2,9 +2,9 @@ const WebSocket = require('ws');
 
 var debug = {
   connection: require('debug')('sapi:connection'),
-  data: require('debug')('sapi:connection'),
-  handlers: require('debug')('sapi:connection'),
-  test: require('debug')('sapi:connection')
+  data: require('debug')('sapi:data'),
+  handlers: require('debug')('sapi:handlers'),
+  test: require('debug')('sapi:test')
 }
 Object.values(debug).forEach((v) => {
   v.log = console.log.bind(console);
@@ -39,7 +39,7 @@ function combineHandlers(...handlers) {
     resultHandlers = {
       ...resultHandlers,
       ...handler
-    }
+    };
   }
   return resultHandlers;
 }
@@ -50,8 +50,8 @@ function sendAction(action) {
     throw new SapiError("No action type", "EINVACTION");
   }
   try {
-    const message = JSON.stringify(action);
-    debug.data("=> %s%s", message.substring(0, 100), message.length > 100 ? "..." : "");
+    const message = JSON.stringify(action, null, 2);
+    debug.data("=>", message);//.substring(0, 100), message.length > 100 ? "..." : "");
     return this.send(message);
   } catch (e) {
     throw SapiError.from(e, "EPARSEERROR");
@@ -70,7 +70,7 @@ function onConnection(handlers, db) {
     });
 
     ws.on('message', function (message) {
-      debug.data("<= %s%s", message.substring(0, 100), message.length > 100 ? "..." : "");
+      debug.data("<=", message);//.substring(0, 100), message.length > 100 ? "..." : "");
       var action = null;
       try {
         action = JSON.parse(message);
@@ -116,6 +116,9 @@ const start = (port, handlers, db) => {
       server.on('connection', onConnection(handlers, db));
       server.on('open', resolve);
       server.on('error', reject);
+
+      Object.keys(handlers).forEach(type => debug.handlers("Registering handler: " + type))
+
 
       // heart beat
       if (server.heartBeatInterval == undefined) {
@@ -205,7 +208,7 @@ const test = {
       if (typeof action === 'function')
         action = action();
       debug.test("Sending action %s", action.type);
-      ws.send(JSON.stringify(action));
+      ws.send(JSON.stringify(action, null, 2));
       resolve();
     })
   }

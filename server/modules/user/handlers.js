@@ -72,6 +72,7 @@ const handlers = {
         ).forEach(
           wsc => {
             delete wsc.store.currentUser;
+            delete wsc.store.lobbyId;
             wsc.sendAction({
               type: "USER_UPDATE",
               payload: userUpdatePayload(null)
@@ -114,6 +115,7 @@ const handlers = {
       .then(() => userService.logout(db, ws.store.currentUser.token))
       .then(user => {
         delete ws.store.currentUser;
+        delete ws.store.lobbyId;
         ws.sendAction({
           type: "USER_LOGOUT_FULFILLED"
         });
@@ -144,6 +146,7 @@ const handlers = {
       })
       .catch(err => {
         delete ws.store.currentUser;
+        delete ws.store.lobbyId;
         ws.sendAction({
           type: "USER_UPDATE_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()

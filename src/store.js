@@ -8,12 +8,19 @@ import userEpics from './logic/user/epics';
 import lobbyEpics from './logic/lobby/epics';
 import chatEpics from './logic/chat/epics';
 import observerEpics from './logic/observer/epics';
+import appEpics from './logic/app/epics';
 
 import helloReducer from './logic/hello/reducers';
 import userReducer from './logic/user/reducers';
 import lobbyReducer from './logic/lobby/reducers';
 import chatReducer from './logic/chat/reducers';
 import ovserverReducer from './logic/observer/reducers';
+import appReducer from './logic/app/reducers';
+
+// ROCK-SCISSORS-PAPER
+import rspEpics from './apps/rsp/epics';
+import rspReducer from './apps/rsp/reducers';
+
 import { routerReducer, routerMiddleware } from "react-router-redux";
 
 
@@ -22,7 +29,9 @@ const rootEpic = combineEpics(
   userEpics,
   lobbyEpics,
   chatEpics,
-  observerEpics
+  observerEpics,
+  appEpics,
+  rspEpics
 );
 
 const rootReducer = combineReducers({
@@ -33,7 +42,9 @@ const rootReducer = combineReducers({
   'user': userReducer,
   'lobby': lobbyReducer,
   'chat': chatReducer,
-  'observer': ovserverReducer
+  'observer': ovserverReducer,
+  'app': appReducer,
+  'rsp' :rspReducer
 });
 
 
