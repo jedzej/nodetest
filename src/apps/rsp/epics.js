@@ -7,7 +7,7 @@ import { update } from './actions';
 
 
 const wsTransmitEpic = action$ => action$
-  .ofType(types.RSP_START, types.RSP_MOVE, types.RSP_UPDATE_REQUEST)
+  .ofType(types.RSP_START, types.RSP_MOVE, types.RSP_UPDATE_REQUEST, types.RSP_TERMINATE)
   .let(webSocketWrite)
 
 const rspUpdateTrigger = (action$, store) => action$

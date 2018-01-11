@@ -1,4 +1,5 @@
 const app2sapi = require('../../app2sapi');
+const sapi = require('../../sapi');
 const tools = require('../../modules/tools');
 const appService = require('../../modules/app/service');
 const DEFAULT_STATE = require('../../../src/apps/rsp/default.json')
@@ -53,7 +54,6 @@ const handlers = {
     });
   },
 
-
   'RSP_START': (action, appContext) => {
     return requireLeader(appContext)
       .then(tools.verify(appContext.lobby.members.length == 2,
@@ -107,13 +107,13 @@ const handlers = {
           var result = DUEL_TABLE[me.moves.slice(-1)][opponent.moves.slice(-1)];
           if (result == VICTORY) {
             me.points++;
-          } else if(result == DEFEAT) {
+          } else if (result == DEFEAT) {
             opponent.points++;
           }
           if (me.moves.length == store.roundLimit)
             store.stage = "complete"
         }
-        appContext.commit()
+        return appContext.commit()
           .then(() => {
             appContext.forSapiClients(ws => {
               ws.sendAction({
@@ -121,12 +121,33 @@ const handlers = {
                 payload: appContext.appstore
               });
             });
-          })
+          });
         break;
       default:
+        throw new sapi.SapiError("Invalid stage!", "EINVSTAGE");
         break;
     }
+  },
 
+  'RSP_TERMINATE': (action, appContext) => {
+    return requireLeader(appContext)
+      .then(tools.verify(
+        appContext.appstore.stage == "complete",
+        new sapi.SapiError("Invalid stage!", "EINVSTAGE")))
+      .then(() => appContext.terminate())
+      .then(() => {
+        appContext.sapi.me.sendAction({
+          type: "RSP_TERMINATE_FULFILLED"
+        })
+      })
+      .then(() => appContext.doAppUpdate())
+      .catch(err => {
+        appContext.sapi.me.sendAction({
+          type: "RSP_TERMINATE_REJECTED",
+          payload: sapi.SapiError.from(err, err.code).toPayload()
+        })
+        throw err;
+      });
   }
 }
 

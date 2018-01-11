@@ -52,6 +52,11 @@ class AppContext {
     this._sapiFields().lobbyObservers.forEach(foo);
   }
 
+  terminate() {
+    console.log("terminate ", this._lobby._id)
+    return this._db.collection('appstore').deleteOne({ _lobbyId: this._lobby._id })
+  }
+
   doAppUpdate() {
     var _this = this;
     return appService.getList(this._db, this._lobby._id)
@@ -82,7 +87,7 @@ const app2sapi = (appHandlers, name, defaultStore = {}, exclusive = false) => {
     const appHandler = appHandlers[type];
     sapiHandlers[type] = (action, ws, db) => {
       var ctx = new tools.Context();
-      lobbyService.getBy(db, { _id: ws.store.lobbyId }, true)
+      return lobbyService.getBy(db, { _id: ws.store.lobbyId }, true)
         .then(tools.verify(lobby => lobby !== null, new SapiError('Lobby does not exist', "ELOBBY")))
         .then(ctx.store('lobby'))
         .then(() => db.collection('appstore').findOne({ _lobbyId: ctx.lobby._id }))
