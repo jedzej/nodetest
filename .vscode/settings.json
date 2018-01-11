@@ -6,5 +6,6 @@
   "mocha.files.glob": "server/**/*.test.js",
   "mocha.env": {
     "DEBUG": "*"
-  }
+  },
+  "jslint.version": "es6"
 }

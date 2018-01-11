@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import LobbyPanel from '../containers/LobbyPanel'
 import UserAppWrapper from '../containers/UserAppWrapper';
-import Button from 'material-ui/Button/Button';
 import AppSelector from '../components/AppSelector';
 import RspApp from '../apps/rsp/containers/RspApp'
 

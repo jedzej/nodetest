@@ -1,4 +1,4 @@
-import { ofType, combineEpics } from 'redux-observable';
+import { combineEpics } from 'redux-observable';
 import { webSocketWrite } from 'webSocketMiddleware'
 
 import * as types from './types'

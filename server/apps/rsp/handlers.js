@@ -30,7 +30,7 @@ const DUEL_TABLE = {
 
 
 const requireLeader = appContext => {
-  return appContext.lobby.leaderId.equals(appContext.currentUser._id) ?
+  return appContext.lobby.leaderId.equals(appContext.currentUser.id) ?
     Promise.resolve() : Promise.reject("Not a leader");
 }
 

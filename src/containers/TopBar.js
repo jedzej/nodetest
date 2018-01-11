@@ -69,6 +69,7 @@ class MenuAppBar extends React.Component {
             </Typography>
             {auth && (
               <div>
+                {this.props.user.name}
                 <IconButton
                   aria-owns={open ? 'menu-appbar' : null}
                   aria-haspopup="true"
