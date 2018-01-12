@@ -1,4 +1,4 @@
-import { combineEpics } from 'redux-observable';
+import { combineEpics, ofType } from 'redux-observable';
 import { webSocketWrite } from '../../webSocketMiddleware'
 import observerNotificationsEpics from './notifications';
 import * as types from './types';
@@ -19,11 +19,12 @@ const joinEpic = action$ =>
   ).map(token => join(token))
 
 const listTriggerEpic = action$ =>
-  Rx.Observable.concat(
-    action$.ofType(types.OBSERVER_JOIN_REJECTED).first(),
+  Rx.Observable.combineLatest(
+    action$.ofType(types.OBSERVER_JOIN_REJECTED, types.OBSERVER_JOIN_FULFILLED),
     Rx.Observable.interval(3000)
   )
-    .takeUntil(action$.ofType(types.OBSERVER_JOIN_FULFILLED))
+    .map(([action, _]) => action)
+    .let(ofType(types.OBSERVER_JOIN_REJECTED))
     .mapTo(list())
 
 const updateTriggerEpic = action$ => action$

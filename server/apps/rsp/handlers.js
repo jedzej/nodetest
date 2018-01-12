@@ -105,12 +105,13 @@ const handlers = {
         }
         if (me.moves.length == opponent.moves.length) {
           var result = DUEL_TABLE[me.moves.slice(-1)][opponent.moves.slice(-1)];
-          if (result == VICTORY) {
+          if (result === VICTORY) {
             me.points++;
-          } else if (result == DEFEAT) {
+          } else if (result === DEFEAT) {
             opponent.points++;
           }
-          if (me.moves.length == store.roundLimit)
+          var roundsLeft = store.roundLimit - me.moves.length;
+          if (Math.abs(me.points - opponent.points) > roundsLeft || roundsLeft == 0)
             store.stage = "complete"
         }
         return appContext.commit()

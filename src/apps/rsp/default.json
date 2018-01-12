@@ -1,5 +1,5 @@
 {
-  "roundLimit": 10,
+  "roundLimit": 5,
   "player1": {
     "id": null,
     "points": 0,
