@@ -39,7 +39,7 @@ const updateTriggerEpic = action$ =>
   );
 
 const loginWithTokenEpic = action$ =>
-  Rx.Observable.zip(
+  Rx.Observable.combineLatest(
     action$.ofType("WEBSOCKET_OPENED"),
     action$.ofType(USER_SESSION_INTENT),
     () => sessionStorage.getItem("AUTH_TOKEN")

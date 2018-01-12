@@ -3,6 +3,7 @@ import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { reducer as notificationsReducer } from 'react-notification-system-redux';
 import { createWebSocketMiddleWare, webSocketReducer } from './webSocketMiddleware';
 
+import commonEpics from './logic/common/epics';
 import helloEpics from './logic/hello/epics';
 import userEpics from './logic/user/epics';
 import lobbyEpics from './logic/lobby/epics';
@@ -25,13 +26,14 @@ import { routerReducer, routerMiddleware } from "react-router-redux";
 
 
 const rootEpic = combineEpics(
+  commonEpics,
   helloEpics,
   userEpics,
   lobbyEpics,
   chatEpics,
   observerEpics,
   appEpics,
-  rspEpics
+  rspEpics,
 );
 
 const rootReducer = combineReducers({

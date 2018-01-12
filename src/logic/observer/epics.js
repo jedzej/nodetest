@@ -12,7 +12,7 @@ const wsTransmitEpic = action$ => action$
   .let(webSocketWrite);
 
 const joinEpic = action$ =>
-  Rx.Observable.zip(
+  Rx.Observable.combineLatest(
     action$.ofType("WEBSOCKET_OPENED"),
     action$.ofType(types.OBSERVER_SESSION_INTENT),
     (openedAction, sessionIntentAction) => sessionIntentAction.payload.token

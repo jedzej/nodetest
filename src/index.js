@@ -14,6 +14,7 @@ import registerServiceWorker from './registerServiceWorker';
 import ObserveRoute from './routes/ObserveRoute';
 import IndexRoute from './routes/IndexRoute';
 import NotificationsProvider from './containers/NotificationsProvider';
+import ConnectingModal from './components/ConnectingModal';
 
 
 const history = createHistory();
@@ -30,6 +31,7 @@ ReactDOM.render(
           <Route path="*" component={() => <div>LOL NIE</div>} />
         </Switch>
       </ConnectedRouter>
+      <ConnectingModal/>
     </NotificationsProvider>
   </Provider>
   , document.getElementById('root'));

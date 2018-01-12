@@ -4,6 +4,7 @@ export const WEBSOCKET_OPENED = "WEBSOCKET_OPENED";
 export const WEBSOCKET_CLOSED = "WEBSOCKET_CLOSED";
 export const WEBSOCKET_ERROR = "WEBSOCKET_ERROR";
 
+
 const DEFAULT_STATE = WEBSOCKET_NOT_INITIALIZED;
 
 export const webSocketWrite = map(action => ({
@@ -17,11 +18,14 @@ export const webSocketOpen = () => ({
 
 export const webSocketReducer = (state = DEFAULT_STATE, action) => {
   switch (action.type) {
-    case "WEBSOCKET_OPEN":
-      state = WEBSOCKET_OPENED;
+    case "WEBSOCKET_CLOSED":
+      state = WEBSOCKET_CLOSED;
       break;
     case "WEBSOCKET_ERROR":
       state = WEBSOCKET_ERROR;
+      break;
+    case "WEBSOCKET_OPENED":
+      state = WEBSOCKET_OPENED;
       break;
     default:
       break;
@@ -36,7 +40,7 @@ export const createWebSocketMiddleWare = url => store => {
   return next => action => {
     switch (action.type) {
       case "WEBSOCKET_OPEN":
-        if (ws === null) {
+        if (ws === null || ws.readyState === WebSocket.CLOSED) {
 
           ws = new WebSocket(url);
 
@@ -48,12 +52,14 @@ export const createWebSocketMiddleWare = url => store => {
           }
 
           ws.onerror = (event) => {
+            console.log(ws)
             store.dispatch({
               type: "WEBSOCKET_ERROR"
             });
           };
 
           ws.onclose = (event) => {
+            console.log(ws)
             store.dispatch({
               type: "WEBSOCKET_CLOSED",
               payload: event
