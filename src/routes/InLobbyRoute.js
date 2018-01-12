@@ -4,6 +4,9 @@ import LobbyPanel from '../containers/LobbyPanel'
 import UserAppWrapper from '../containers/UserAppWrapper';
 import AppSelector from '../components/AppSelector';
 import RspApp from '../apps/rsp/containers/RspApp'
+import AppLayout from '../containers/AppLayout';
+import AppLayoutPartial from '../containers/AppLayoutPartial';
+import TopBar from '../containers/TopBar';
 
 class InLobbyRoute extends Component {
 
@@ -11,20 +14,20 @@ class InLobbyRoute extends Component {
     const exclusiveApp = this.props.app.filter(app => app.isExclusive)[0];
 
     const app_map = {
-      'rsp': () => <RspApp/>
+      'rsp': () => <RspApp />
     }
-
     return (
-      <UserAppWrapper>
-        <div className="row">
-          <div className="lobby left">
-            <LobbyPanel />
-          </div>
-          <div className="lobby right">
-            {(exclusiveApp === undefined ? <AppSelector /> : app_map[exclusiveApp.name]())}
-          </div>
-        </div>
-      </UserAppWrapper>
+      <AppLayout>
+        <AppLayoutPartial key="drawer">
+          <LobbyPanel />
+        </AppLayoutPartial>
+        <AppLayoutPartial key="top">
+          <TopBar />
+        </AppLayoutPartial>
+        <AppLayoutPartial key="main">
+          {(exclusiveApp === undefined ? <AppSelector /> : app_map[exclusiveApp.name]())}
+        </AppLayoutPartial>
+      </AppLayout>
     );
   }
 }

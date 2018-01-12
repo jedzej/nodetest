@@ -1,5 +1,5 @@
 import { combineEpics } from 'redux-observable';
-import { webSocketWrite } from 'webSocketMiddleware'
+import { webSocketWrite } from '../../webSocketMiddleware'
 
 import * as types from './types'
 import { update } from './actions';

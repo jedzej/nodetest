@@ -6,7 +6,7 @@ import Toolbar from 'material-ui/Toolbar';
 import Typography from 'material-ui/Typography';
 import IconButton from 'material-ui/IconButton';
 import MenuIcon from 'material-ui-icons/Menu';
-import AccountCircle from 'material-ui-icons/AccountCircle';
+import Settings from 'material-ui-icons/Settings';
 import Menu, { MenuItem } from 'material-ui/Menu';
 import { connect } from "react-redux";
 import { logout } from '../logic/user/actions';
@@ -58,12 +58,7 @@ class MenuAppBar extends React.Component {
     const open = Boolean(anchorEl);
 
     return (
-      <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton className={classes.menuButton} color="contrast" aria-label="Menu">
-              <MenuIcon />
-            </IconButton>
+          <Toolbar className={classes.root}>
             <Typography type="title" color="inherit" className={classes.flex}>
               .nerdparty
             </Typography>
@@ -76,7 +71,7 @@ class MenuAppBar extends React.Component {
                   onClick={this.handleMenu}
                   color="contrast"
                 >
-                  <AccountCircle />
+                  <Settings />
                 </IconButton>
                 <Menu
                   id="menu-appbar"
@@ -100,8 +95,6 @@ class MenuAppBar extends React.Component {
               </div>
             )}
           </Toolbar>
-        </AppBar>
-      </div>
     );
   }
 }

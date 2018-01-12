@@ -1,6 +1,6 @@
 import { ofType, combineEpics } from 'redux-observable';
 import { mapTo, filter } from 'rxjs/operators';
-import { webSocketWrite } from 'webSocketMiddleware'
+import { webSocketWrite } from '../../webSocketMiddleware'
 import { CHAT_MESSAGE } from './types'
 import { truncate } from './actions'
 import { LOBBY_UPDATE, LOBBY_UPDATE_REJECTED } from '../lobby/types';

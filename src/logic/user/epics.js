@@ -1,6 +1,6 @@
 import { ofType, combineEpics } from 'redux-observable';
 import { map, mapTo, filter, tap, ignoreElements } from 'rxjs/operators';
-import { webSocketWrite } from 'webSocketMiddleware'
+import { webSocketWrite } from '../../webSocketMiddleware'
 import userNotificationsEpics from './notifications';
 
 import * as types from './types'

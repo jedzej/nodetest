@@ -1,6 +1,6 @@
 import { ofType, combineEpics } from 'redux-observable';
 import { mapTo } from 'rxjs/operators';
-import { webSocketWrite } from 'webSocketMiddleware'
+import { webSocketWrite } from '../../webSocketMiddleware'
 import lobbyNotificationsEpics from './notifications'
 
 import * as types from './types'
