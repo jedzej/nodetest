@@ -26,7 +26,6 @@ var AppSelectorCard = (props) => {
         <CardMedia
           className={classes.media}
           image={appCardRSP}
-          title="Contemplative Reptile"
         />
         <CardContent>
           <Typography type="headline" component="h2">

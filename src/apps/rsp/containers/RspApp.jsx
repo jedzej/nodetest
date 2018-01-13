@@ -2,7 +2,23 @@ import React from 'react';
 import { connect } from "react-redux";
 import { move, terminate } from '../actions';
 import Button from 'material-ui/Button/Button';
+import RockIconData from '../../../images/rockIcon.svg';
+import PaperIconData from '../../../images/paperIcon.svg';
+import ScissorsIconData from '../../../images/scissorsIcon.svg';
+import SvgIcon from 'material-ui/SvgIcon';
+console.log(RockIconData)
 
+const RockIcon = props => (
+  <img {...props} src={RockIconData} />
+);
+
+const PaperIcon = props => (
+  <img {...props} src={PaperIconData} />
+);
+
+const ScissorsIcon = props => (
+  <img {...props} src={ScissorsIconData} />
+);
 
 const getMatch = (rspState, lobbyState, cond) => {
   var match = cond(rspState.player1) ? rspState.player1 : rspState.player2;
@@ -43,9 +59,9 @@ class RspApp extends React.Component {
   renderMoveButtons() {
     return (
       <div>
-        <Button onClick={() => this.props.rspMove('rock')}>ROCK</Button>
-        <Button onClick={() => this.props.rspMove('paper')}>PAPER</Button>
-        <Button onClick={() => this.props.rspMove('scissors')}>SCISSORS</Button>
+        <Button onClick={() => this.props.rspMove('rock')}><RockIcon width={100} /></Button>
+        <Button onClick={() => this.props.rspMove('paper')}><PaperIcon width={100}/></Button>
+        <Button onClick={() => this.props.rspMove('scissors')}><ScissorsIcon width={100}/></Button>
       </div>
     );
   }
