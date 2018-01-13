@@ -6,19 +6,8 @@ import RockIconData from '../../../images/rockIcon.svg';
 import PaperIconData from '../../../images/paperIcon.svg';
 import ScissorsIconData from '../../../images/scissorsIcon.svg';
 import SvgIcon from 'material-ui/SvgIcon';
-console.log(RockIconData)
-
-const RockIcon = props => (
-  <img {...props} src={RockIconData} />
-);
-
-const PaperIcon = props => (
-  <img {...props} src={PaperIconData} />
-);
-
-const ScissorsIcon = props => (
-  <img {...props} src={ScissorsIconData} />
-);
+import { RockIcon, PaperIcon, ScissorsIcon } from '../components/RSPIcons'
+import PointsTable from '../components/PointsTable';
 
 const getMatch = (rspState, lobbyState, cond) => {
   var match = cond(rspState.player1) ? rspState.player1 : rspState.player2;
@@ -41,6 +30,11 @@ const getOpponent = (rspState, lobbyState, userState) => getMatch(
 )
 
 
+const moveButtonStyle = {
+  width: '90%',
+  height: '90%'
+}
+
 const getFinishedRounds = rspState => Math.floor((
   rspState.player1.moves.length +
   rspState.player2.moves.length) / 2);
@@ -49,19 +43,22 @@ class RspApp extends React.Component {
 
   renderPointsTable(me, opponent, roundNumber) {
     return (
-      <div>
-        Round {roundNumber} of {this.props.rsp.roundLimit}<br />
-        {me.name} : {me.points} vs {opponent.points} : {opponent.name}
-      </div>
+      <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit}/>
     );
   }
 
   renderMoveButtons() {
     return (
       <div>
-        <Button onClick={() => this.props.rspMove('rock')}><RockIcon width={100} /></Button>
-        <Button onClick={() => this.props.rspMove('paper')}><PaperIcon width={100}/></Button>
-        <Button onClick={() => this.props.rspMove('scissors')}><ScissorsIcon width={100}/></Button>
+        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('rock')}>
+          <RockIcon style={moveButtonStyle} />
+        </Button>
+        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('paper')}>
+          <PaperIcon style={moveButtonStyle} />
+        </Button>
+        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('scissors')}>
+          <ScissorsIcon style={moveButtonStyle} />
+        </Button>
       </div>
     );
   }
