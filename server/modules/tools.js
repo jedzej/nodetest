@@ -41,9 +41,11 @@ module.exports.genUniqueToken = function () {
   });
 }
 
-
-module.exports.filterByLobby = lobby => ws => ws.store.lobbyId ? ws.store.lobbyId.equals(lobby._id) : false
-
+module.exports.error = (msg, code) => new SapiError(msg, code);
+module.exports.rejectionAction = (type, err) => ({
+  type: type,
+  payload: SapiError.from(err, err.code).toPayload()
+});
 
 module.exports.verify = (cond, err) => (data) => {
   return new Promise((resolve, reject) => {

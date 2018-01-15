@@ -1,42 +1,8 @@
 const tools = require('../tools');
 const userService = require('../user/service');
-const SapiError = require('../../sapi').SapiError;
-const ObjectId = require('mongodb').ObjectId;
 var debug = require('debug')('lobby:service');
 debug.log = console.log.bind(console);
 
-class ServiceResult {
-  static get STATUS() {
-    return { "OK": "OK", "ERROR": "ERROR" }
-  }
-
-  static ok(data) {
-    return new ServiceResult(ServiceResult.STATUS.OK, data)
-  }
-
-  static error(data) {
-    return new ServiceResult(ServiceResult.STATUS.ERROR, data)
-  }
-
-  constructor(status, data) {
-    this.status = status;
-    this.data = data;
-  }
-
-  isOk() {
-    return this.status === ServiceResult.STATUS.OK;
-  }
-
-  isError() {
-    return this.status === ServiceResult.STATUS.ERROR;
-  }
-
-  toPromise() {
-    return this.isOk() ? Promise.resolve(this.data) : Promise.reject(this.data);
-  }
-}
-
-var lastResult = undefined;
 
 const dbReset = (db) => {
   return db.dropCollection('lobby')
@@ -59,7 +25,7 @@ const get = {
 
   byToken: (db, token) => get.byQuery(db, { token }),
 
-  withMembers: (db, lobby) => userService.getByIds(db, lobby.membersIds)
+  withMembers: (db, lobby) => userService.get.manyByIds(db, lobby.membersIds)
     .then(members => ({ ...lobby, members })),
 
   byIdWithMembers: (db, lobbyId) => get.byId(db, lobbyId)
@@ -72,24 +38,18 @@ const get = {
         lobbies.map(lobby => get.withMembers(db, lobby))
       )
     })
+};
 
-}
 
-
-const create = (db, user) => {
-  return tools.genUniqueToken()
-    .then(token => ({
-      leaderId: user._id,
-      membersIds: [user._id],
-      token: token
-    }))
-    .then(lobby => db.collection('lobby').insertOne(lobby))
-    .then(result => (result.result.n == 1 && result.result.ok == 1) ?
-      Promise.resolve(result.ops[0]) : Promise.reject())
-}
-
-const verifyOk = (result) => tools.verify(result => result.isOk(), new Error(result.data))(result)
-  .then(result => result.data);
+const create = (db, user) => tools.genUniqueToken()
+  .then(token => ({
+    leaderId: user._id,
+    membersIds: [user._id],
+    token: token
+  }))
+  .then(lobby => db.collection('lobby').insertOne(lobby))
+  .then(result => (result.result.n == 1 && result.result.ok == 1) ?
+    Promise.resolve(result.ops[0]) : Promise.reject())
 
 
 const join = (db, userId, token) => get.byToken(db, token)
@@ -108,7 +68,6 @@ const join = (db, userId, token) => get.byToken(db, token)
   );
 
 
-
 const leave = (db, userId) => get.byMemberId(db, userId)
   .then(lobby => {
     var newLeaderId = lobby.leaderId;
@@ -117,14 +76,7 @@ const leave = (db, userId) => get.byMemberId(db, userId)
     // last member in party is leaving
     if (membersIds.length == 0) {
       return db.collection('lobby').deleteOne({ _id: lobby._id })
-        .then(result => {
-          debug("DELETED", result);
-          if (result.result.ok == 1 && result.deletedCount == 1) {
-            return Promise.resolve();
-          } else {
-            return Promise.reject();
-          }
-        });
+        .then(result => (result.result.ok == 1 && result.deletedCount == 1) ? Promise.resolve() : Promise.reject());
     } else {
       // promote new leader if leader is leaving
       if (lobby.leaderId.equals(userId)) {
@@ -155,18 +107,10 @@ const leave = (db, userId) => get.byMemberId(db, userId)
   });
 
 
-
-const getCollection = (db) => {
-  return db.collection('lobby');
-}
-
-
-
 module.exports = {
   get,
   dbReset,
   create,
   join,
   leave,
-  getCollection,
 };
