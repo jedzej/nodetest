@@ -32,7 +32,7 @@ class LobbySelector extends Component {
         {this.props.lobbies.map(lobby =>
           <ExpansionPanel key={lobby.token} expanded={expanded === lobby.token} onChange={handleChange(lobby.token)} >
             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-              {lobby.members.filter(m => m.id === lobby.leaderId)[0].name} ({lobby.members.length} members)
+              {lobby.members.filter(m => m._id === lobby.leaderId)[0].name} ({lobby.members.length} members)
               </ExpansionPanelSummary>
             <ExpansionPanelDetails>
               <Grid container alignItems="center">
@@ -40,7 +40,7 @@ class LobbySelector extends Component {
                   <Typography>Members</Typography>
                   <ul>
                     {(lobby.members.map(m =>
-                      <li key={m.id}>{m.name}</li>))}
+                      <li key={m._id}>{m.name}</li>))}
                   </ul>
                 </Grid>
                 <Grid xs={12} sm={6} item>

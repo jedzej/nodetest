@@ -25,9 +25,9 @@ class LobbyPanel extends Component {
         <Divider />
         <List>
           {this.props.lobby.members.map(m => {
-            const isLeader = this.props.lobby.leaderId === m.id;
+            const isLeader = this.props.lobby.leaderId === m._id;
             return (
-              <ListItem button key={m.id}>
+              <ListItem button key={m._id}>
                 <ListItemAvatar>
                   <Avatar>
                     {isLeader ? <StarBorder /> : <AccountCircle />}
@@ -35,8 +35,8 @@ class LobbyPanel extends Component {
                 </ListItemAvatar>
                 <ListItemText
                   primary={m.name}
-                  secondary={this.props.lobby.leaderId === m.id ? 'Leader' : null}
-                  onClick={()=>this.props.kick(m.id)}
+                  secondary={this.props.lobby.leaderId === m._id ? 'Leader' : null}
+                  onClick={() => this.props.kick(m._id)}
                 />
               </ListItem>
             );

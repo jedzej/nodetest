@@ -2,6 +2,7 @@ import { ofType, combineEpics } from 'redux-observable';
 import { mapTo } from 'rxjs/operators';
 import { webSocketWrite } from '../../webSocketMiddleware'
 import lobbyNotificationsEpics from './notifications'
+import Rx from 'rxjs/Rx';
 
 import * as types from './types'
 import { USER_UPDATE } from '../user/types'
@@ -32,14 +33,18 @@ const updateTriggersEpic = action$ =>
   );
 
 const listTriggersEpic = action$ =>
-  action$.pipe(
-    ofType(
+  Rx.Observable.combineLatest(
+    action$.ofType(
       types.LOBBY_UPDATE_REJECTED,
       types.LOBBY_LEAVE_FULFILLED,
       types.LOBBY_JOIN_REJECTED,
+      types.LOBBY_JOIN_FULFILLED
     ),
-    mapTo(list())
-  );
+    Rx.Observable.interval(3000)
+  )
+    .map(([action, _]) => action)
+    .filter(action => action.type !== types.LOBBY_JOIN_FULFILLED)
+    .mapTo(list());
 
 
 export default combineEpics(

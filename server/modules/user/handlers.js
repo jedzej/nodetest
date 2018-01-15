@@ -30,10 +30,7 @@ const handlers = {
         });
       })
       .catch(err => {
-        ws.sendAction({
-          type: "USER_GET_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction("USER_GET_REJECTED", SapiError.from(err, err.code).toPayload());
         throw err;
       })
   },
@@ -42,21 +39,16 @@ const handlers = {
     return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Already logged in!"))()
       .then(() => userService.register(db, action.payload.name, action.payload.password))
       .then(user => {
-        ws.sendAction({
-          type: "USER_REGISTER_FULFILLED"
-        });
+        ws.sendAction("USER_REGISTER_FULFILLED");
       })
       .catch(err => {
-        ws.sendAction({
-          type: "USER_REGISTER_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction("USER_REGISTER_REJECTED", SapiError.from(err, err.code).toPayload());
         throw err;
       })
   },
 
   'USER_LOGIN': (action, ws, db) => {
-    return tools.verify(ws.store.currentUser === undefined, new SapiError("EAUTH", "Already logged in!"))()
+    return tools.verify(ws.store.currentUser === undefined, new SapiError("Already logged in!", "EAUTH"))()
       // authenticate user
       .then(() => {
         if (action.payload.token)
@@ -73,39 +65,27 @@ const handlers = {
           wsc => {
             delete wsc.store.currentUser;
             delete wsc.store.lobbyId;
-            wsc.sendAction({
-              type: "USER_UPDATE",
-              payload: userUpdatePayload(null)
-            });
-            wsc.sendAction({
-              type: "USER_KICKED_OUT"
-            });
+            wsc.sendAction("USER_UPDATE", userUpdatePayload(null));
+            wsc.sendAction("USER_KICKED_OUT");
           });
         ws.store.currentUser = user;
-        debug("User", user)
-        return Promise.resolve(user);
+        return user;
       })
       // get user's lobby
-      .then(user => lobbyService.getBy(db, { members: user._id }))
-      .then(lobby => {
-        debug("Lobby", lobby);
-
-        if (lobby)
-          ws.store.lobbyId = lobby._id
-
-        ws.sendAction({
-          type: "USER_LOGIN_FULFILLED"
-        });
-        ws.sendAction({
-          type: "USER_UPDATE",
-          payload: userUpdatePayload(ws.store.currentUser)
-        });
+      .then(user => {
+        return lobbyService.get.byMemberId(db, user._id)
+          .then(lobby => {
+            ws.store.lobbyId = lobby._id;
+          })
+          .catch(err => { })
+      })
+      // send response
+      .then(() => {
+        ws.sendAction("USER_LOGIN_FULFILLED");
+        ws.sendAction("USER_UPDATE", userUpdatePayload(ws.store.currentUser));
       })
       .catch(err => {
-        ws.sendAction({
-          type: "USER_LOGIN_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction("USER_LOGIN_REJECTED", SapiError.from(err, err.code).toPayload());
         throw err;
       });
   },
@@ -116,19 +96,11 @@ const handlers = {
       .then(user => {
         delete ws.store.currentUser;
         delete ws.store.lobbyId;
-        ws.sendAction({
-          type: "USER_LOGOUT_FULFILLED"
-        });
-        ws.sendAction({
-          type: "USER_UPDATE",
-          payload: userUpdatePayload(null)
-        });
+        ws.sendAction("USER_LOGOUT_FULFILLED");
+        ws.sendAction("USER_UPDATE", userUpdatePayload(null));
       })
       .catch(err => {
-        ws.sendAction({
-          type: "USER_LOGOUT_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction("USER_LOGOUT_REJECTED", SapiError.from(err, err.code).toPayload());
         throw err;
       });
   },

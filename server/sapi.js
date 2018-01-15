@@ -45,7 +45,16 @@ function combineHandlers(...handlers) {
 }
 
 
-function sendAction(action) {
+function sendAction(param1, param2) {
+  var action;
+  if (typeof param1 === 'string') {
+    action = {
+      type: param1,
+      payload: param2
+    }
+  } else {
+    action = param1;
+  }
   if (action.type === undefined) {
     throw new SapiError("No action type", "EINVACTION");
   }
@@ -203,10 +212,19 @@ const test = {
   },
 
 
-  sendAction: (ws, action) => () => {
+  sendAction: (ws, param1, param2) => () => {
+    var action;
+    if (typeof param1 === 'string') {
+      action = {
+        type: param1,
+        payload: param2
+      }
+    } else if (typeof action === 'function') {
+      action = param1();
+    } else {
+      action = param1;
+    }
     return new Promise((resolve, reject) => {
-      if (typeof action === 'function')
-        action = action();
       debug.test("Sending action %s", action.type);
       ws.send(JSON.stringify(action, null, 2));
       resolve();

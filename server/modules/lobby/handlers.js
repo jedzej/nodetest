@@ -6,6 +6,8 @@ const tools = require('../tools');
 var debug = require('debug')('lobby:handlers');
 debug.log = console.log.bind(console);
 
+const error = (msg, code) => new SapiError(msg, code);
+
 const lobbyPayload = lobby => ({
   token: lobby ? lobby.token : null,
   leaderId: lobby ? lobby.leaderId : null,
@@ -17,71 +19,79 @@ const lobbyUpdateAction = lobby => ({
   payload: lobbyPayload(lobby)
 })
 
+const lobbyRejectAction = (type, err) => ({
+  type: type,
+  payload: SapiError.from(err, err.code).toPayload()
+});
+
+const verify = {
+  loggedIn: ws => tools.verify(ws.store.currentUser, error("Not logged in", "EAUTH")),
+  notLoggedIn: ws => tools.verify(ws.store.currentUser, error("Already logged in", "EAUTH")),
+  inLobby: ws => tools.verify(ws.store.currentUser, error("Not in lobby", "EAUTH")),
+  notInLobby: ws => tools.verify(ws.store.currentUser, error("Already in lobby", "EAUTH")),
+  isLeader: (ws, lobby) => tools.verify(ws.store.currentUser._id.equals(lobby.leaderId), error("Not a leader", "EAUTH"))
+}
+
+const dbgAndGo = msg => data => {
+  debug(msg, data);
+  return data;
+}
+
+
+
 const handlers = {
 
   'LOBBY_UPDATE_REQUEST': (action, ws, db) => {
     var context = new tools.Context();
+
     var lobbyPromise;
     if (ws.store.lobbyId)
-      lobbyPromise = lobbyService.getBy(db, { _id: ws.store.lobbyId }, true)
+      lobbyPromise = lobbyService.get.byId(db, ws.store.lobbyId)
     else if (ws.store.currentUser)
-      lobbyPromise = lobbyService.getFor(db, ws.store.currentUser);
+      lobbyPromise = lobbyService.get.byMemberId(db, ws.store.currentUser._id);
     else
       lobbyPromise = Promise.reject("No active session!", "EAUTH");
+
     return lobbyPromise
+      .then(lobby => lobbyService.get.withMembers(db, lobby))
       .then(context.store('lobby'))
-      .then(() => tools.verify(ws.store.lobbyId.equals(context.lobby._id), new SapiError("Not in lobby", "EAUTH"))())
-      .then(() => {
-        ws.sendAction(lobbyUpdateAction(context.lobby));
-      })
+      .then(() => ws.sendAction(lobbyUpdateAction(context.lobby)))
       .catch(err => {
-        ws.sendAction({
-          type: "LOBBY_UPDATE_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        console.log("ERRR",err)
+        ws.sendAction(lobbyRejectAction("LOBBY_UPDATE_REJECTED", err));
         throw err;
       });
   },
 
   'LOBBY_CREATE': (action, ws, db) => {
     // verify input
-    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
-      .then(tools.verify(ws.store.lobbyId == undefined, new SapiError("Already in a lobby", "ELOBBY")))
+    return Promise.resolve()
+      .then(verify.loggedIn(ws))
+      .then(verify.notInLobby(ws))
       // acutally create the lobby
       .then(() => lobbyService.create(db, ws.store.currentUser))
       // store handle and respond
       .then(lobby => {
         ws.store.lobbyId = lobby._id;
-        ws.sendAction({
-          type: "LOBBY_CREATE_FULFILLED"
-        });
+        ws.sendAction("LOBBY_CREATE_FULFILLED");
         ws.sendAction(lobbyUpdateAction(lobby));
       })
       // error handling
       .catch(err => {
-        ws.sendAction({
-          type: "LOBBY_CREATE_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction(lobbyRejectAction("LOBBY_CREATE_REJECTED", err));
         throw err;
       });
   },
 
 
   'LOBBY_LIST': (action, ws, db) => {
-    return lobbyService.getList(db)
+    return lobbyService.get.list(db)
       .then(lobbies => {
-        ws.sendAction({
-          type: "LOBBY_LIST_FULFILLED",
-          payload: lobbies.map(lobbyPayload)
-        });
+        ws.sendAction("LOBBY_LIST_FULFILLED", lobbies.map(lobbyPayload));
       })
       // error handling
       .catch(err => {
-        ws.sendAction({
-          type: "LOBBY_LIST_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction(lobbyRejectAction("LOBBY_LIST_REJECTED", err));
         throw err;
       })
   },
@@ -89,71 +99,61 @@ const handlers = {
 
   'LOBBY_JOIN': (action, ws, db) => {
     // verify input
-    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
+    return Promise.resolve()
+      .then(verify.loggedIn(ws))
+      .then(verify.notInLobby(ws))
       // actually join the lobby
-      .then(() => lobbyService.join(db, ws.store.currentUser, action.payload.token))
+      .then(() => lobbyService.join(db, ws.store.currentUser._id, action.payload.token))
+      .then(lobby => lobbyService.get.byToken(db, action.payload.token))
       // store handle and respond
       .then(lobby => {
         ws.store.lobbyId = lobby._id;
-        ws.sendAction({
-          type: "LOBBY_JOIN_FULFILLED"
-        });
-        return Promise.resolve(lobby);
+        ws.sendAction("LOBBY_JOIN_FULFILLED");
+        return lobby;
       })
       // error handling
       .catch(err => {
-        ws.sendAction({
-          type: "LOBBY_JOIN_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction(lobbyRejectAction("LOBBY_JOIN_REJECTED", err));
         throw err;
       })
       // update all members
+      .then(lobby => lobbyService.get.withMembers(db, lobby))
       .then(lobby => {
-        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
-        debug("Notifying %d clients", wsClientsToUpdate.length);
-        for (var wsClient of wsClientsToUpdate) {
-          debug("Notifying %s", wsClient.store);
+        console.log('update all', lobby, sapi.getClients(tools.filterByLobby(lobby)), lobby)
+        sapi.getClients(tools.filterByLobby(lobby)).forEach(wsClient => {
+          console.log('updating')
           wsClient.sendAction(lobbyUpdateAction(lobby));
-        }
+        });
       });
   },
 
   'LOBBY_KICK': (action, ws, db) => {
     var context = new tools.Context();
-    debug('LOBBY KICK', ws.store.currentUser)
     // verify input
     return Promise.resolve()
-      .then(tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH")))
+      .then(verify.loggedIn(ws))
+      .then(verify.inLobby(ws))
+      .then(tools.verify(action.payload.id, error("Invalid action payload", "EINVACTION")))
       // get current user's lobby
-      .then(() => console.log('LOOOL'))
-      .then(() => lobbyService.getFor(db, ws.store.currentUser))
-      .then((lobby) => {
-        debug('CONTEXT', lobby)
-        return Promise.resolve(lobby);
-      })
+      .then(() => lobbyService.get.byMemberId(db, ws.store.currentUser._id))
       .then(context.store('lobby'))
-      .then(tools.verify(() => context.lobby, new SapiError("No lobby")))
       // verify if leader is kicking
-      .then(tools.verify(() => context.lobby.leaderId.equals(ws.store.currentUser._id), new SapiError("Not a leader", "EAUTH")))
+      .then(data => verify.isLeader(ws, context.lobby)(data))
+      .then(dbgAndGo([context.lobby, action.payload]))
       // get kicked user
-      .then(() => context.lobby.members.find(m => m.id.equals(action.payload.id)))
-      .then(context.store('kickedUser'))
-      .then(tools.verify(() => context.kickedUser, new SapiError("User not in lobby", "EAUTH")))
+      .then(() => context.lobby.membersIds.find(id => id.equals(action.payload.id)))
+      .then(context.store('kickedUserId'))
+      .then(tools.verify(() => context.kickedUserId, error("User not in lobby", "EAUTH")))
       // remove kicked user from lobby
-      .then(() => lobbyService.leave(db, { _id: context.kickedUser.id }))
+      .then(() => lobbyService.leave(db, context.kickedUserId))
       // store handle and respond
-      .then((lobby) => {
+      .then(result => {
         debug('User kicked')
-        ws.store.lobbyId = lobby._id;
         sapi.getClients(client => client.store.currentUser && client.store.currentUser._id.equals(action.payload.id)).forEach(client => {
           delete client.store.lobbyId;
-          client.sendAction({ type: "LOBBY_KICKED" });
+          client.sendAction("LOBBY_KICKED");
         })
-        ws.sendAction({
-          type: "LOBBY_KICK_FULFILLED"
-        });
-        return Promise.resolve(lobby);
+        ws.sendAction("LOBBY_KICK_FULFILLED");
       })
       // error handling
       .catch(err => {
@@ -164,53 +164,40 @@ const handlers = {
         throw err;
       })
       // update all members
+      .then(() => lobbyService.get.byIdWithMembers(db, context.lobby._id))
       .then(lobby => {
-        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
-        debug("Notifying %d clients", wsClientsToUpdate.length);
-        for (var wsClient of wsClientsToUpdate) {
-          debug("Notifying %s", wsClient.store);
+        sapi.getClients(tools.filterByLobby(lobby)).forEach(wsClient => {
           wsClient.sendAction(lobbyUpdateAction(lobby));
-        }
+        });
       });
   },
 
   'LOBBY_LEAVE': (action, ws, db) => {
+    var context = new tools.Context();
     // verify input
-    return tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH"))()
-      .then(() => {
-        console.log('AAA');
-        debug(ws.store)
-      })
-      .then(tools.verify(ws.store.lobbyId, new SapiError("Not in lobby", "ELOBBY")))
+    return Promise.resolve()
+      .then(verify.loggedIn(ws))
+      .then(verify.inLobby(ws))
       // acually leave the lobby
-      .then(() => {
-        return lobbyService.leave(db, ws.store.currentUser);
-      })
+      .then(() => lobbyService.leave(db, ws.store.currentUser._id))
       // delete handle and respond
-      .then(lobby => {
+      .then(() => {
+        context.lobbyId = ws.store.lobbyId;
         delete ws.store.lobbyId;
-        ws.sendAction({
-          type: "LOBBY_LEAVE_FULFILLED"
-        });
+        ws.sendAction("LOBBY_LEAVE_FULFILLED");
         ws.sendAction(lobbyUpdateAction(null));
-        return Promise.resolve(lobby);
       })
       // error handling
       .catch(err => {
-        ws.sendAction({
-          type: "LOBBY_LEAVE_REJECTED",
-          payload: SapiError.from(err, err.code).toPayload()
-        });
+        ws.sendAction(lobbyRejectAction("LOBBY_LEAVE_REJECTED", err));
         throw err;
       })
       // update all lobby members
+      .then(() => lobbyService.get.byIdWithMembers(db, context.lobbyId))
       .then(lobby => {
-        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
-        debug("Notifying %d clients", wsClientsToUpdate.length);
-        for (var wsClient of wsClientsToUpdate) {
-          debug("Notifying %s", wsClient.store);
+        sapi.getClients(tools.filterByLobby(lobby)).forEach(wsClient => {
           wsClient.sendAction(lobbyUpdateAction(lobby));
-        }
+        });
       });
   },
 }
