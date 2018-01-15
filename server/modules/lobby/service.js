@@ -17,6 +17,7 @@ const dbReset = (db) => {
 const withFetchedMembers = (db, lobby) =>
   userService.getByIds(db, lobby.members)
     .then(members => {
+      console.log("withFetchedMembers")
       lobby.members = members.map(m => ({ name: m.name, id: m._id }))
       return Promise.resolve(lobby);
     })

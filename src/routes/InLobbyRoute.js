@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
 import LobbyPanel from '../containers/LobbyPanel'
-import UserAppWrapper from '../containers/UserAppWrapper';
 import AppSelector from '../components/AppSelector';
 import RspApp from '../apps/rsp/containers/RspApp'
 import AppLayout from '../containers/AppLayout';

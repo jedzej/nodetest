@@ -14,6 +14,7 @@ const wsTransmitEpic = action$ =>
       types.LOBBY_LIST,
       types.LOBBY_LEAVE,
       types.LOBBY_JOIN,
+      types.LOBBY_KICK,
       types.LOBBY_UPDATE_REQUEST),
     webSocketWrite
   );
@@ -24,7 +25,8 @@ const updateTriggersEpic = action$ =>
       USER_UPDATE,
       types.LOBBY_LEAVE_REJECTED,
       types.LOBBY_CREATE_REJECTED,
-      types.LOBBY_JOIN_REJECTED
+      types.LOBBY_JOIN_REJECTED,
+      types.LOBBY_KICKED
     ),
     mapTo(update())
   );

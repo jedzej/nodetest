@@ -4,11 +4,8 @@ import { withStyles } from 'material-ui/styles';
 import Drawer from 'material-ui/Drawer';
 import AppBar from 'material-ui/AppBar';
 import Toolbar from 'material-ui/Toolbar';
-import List from 'material-ui/List';
-import Typography from 'material-ui/Typography';
 import IconButton from 'material-ui/IconButton';
 import Hidden from 'material-ui/Hidden';
-import Divider from 'material-ui/Divider';
 import MenuIcon from 'material-ui-icons/Menu';
 
 const drawerWidth = 240;
@@ -26,12 +23,15 @@ const styles = theme => ({
     width: '100%',
     height: '100%',
   },
-  appBar: {
+  appBarWithDrawer: {
     position: 'absolute',
     marginLeft: drawerWidth,
     [theme.breakpoints.up('md')]: {
       width: `calc(100% - ${drawerWidth}px)`,
     },
+  },
+  appBar: {
+    position: 'absolute'
   },
   navIconHide: {
     [theme.breakpoints.up('md')]: {
@@ -75,57 +75,64 @@ class AppLayout extends React.Component {
     var nodes = {};
 
     React.Children.forEach(this.props.children, (child) => {
-      if (child.key && requiredKeys.some((k) => k == child.key)) {
-        requiredKeys = requiredKeys.filter((k) => k != child.key);
+      if (child.key && requiredKeys.some((k) => k === child.key)) {
+        requiredKeys = requiredKeys.filter((k) => k !== child.key);
         return nodes[child.key] = child;
       } else {
         throw new Error("Unacceptable key: " + child.key + ". Must be 'top','drawer' or 'main'");
       }
     });
+    const hasDrawer = nodes['drawer'] !== undefined;
 
     return (
       <div className={classes.root}>
         <div className={classes.appFrame}>
-          <AppBar className={classes.appBar}>
+          <AppBar className={hasDrawer ? classes.appBarWithDrawer : classes.appBar}>
             <Toolbar>
-              <IconButton
-                color="contrast"
-                aria-label="open drawer"
-                onClick={this.handleDrawerToggle}
-                className={classes.navIconHide}
-              >
-                <MenuIcon />
-              </IconButton>
+              {hasDrawer ?
+                <IconButton
+                  color="contrast"
+                  aria-label="open drawer"
+                  onClick={this.handleDrawerToggle}
+                  className={classes.navIconHide}
+                >
+                  <MenuIcon />
+                </IconButton> : null
+              }
               {nodes['top']}
             </Toolbar>
           </AppBar>
-          <Hidden mdUp>
-            <Drawer
-              type="temporary"
-              anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-              open={this.state.mobileOpen}
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              onClose={this.handleDrawerToggle}
-              ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
-              }}
-            >
-              {nodes['drawer']}
-            </Drawer>
-          </Hidden>
-          <Hidden smDown implementation="css">
-            <Drawer
-              type="permanent"
-              open
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-            >
-              {nodes['drawer']}
-            </Drawer>
-          </Hidden>
+          {hasDrawer ?
+            <Hidden mdUp>
+              <Drawer
+                type="temporary"
+                anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+                open={this.state.mobileOpen}
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                onClose={this.handleDrawerToggle}
+                ModalProps={{
+                  keepMounted: true, // Better open performance on mobile.
+                }}
+              >
+                {nodes['drawer']}
+              </Drawer>
+            </Hidden> : null
+          }
+          {hasDrawer ?
+            <Hidden smDown implementation="css">
+              <Drawer
+                type="permanent"
+                open
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+              >
+                {nodes['drawer']}
+              </Drawer>
+            </Hidden> : null
+          }
           <main className={classes.content}>
             {nodes['main']}
           </main>

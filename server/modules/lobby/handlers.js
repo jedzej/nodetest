@@ -24,13 +24,13 @@ const handlers = {
     var lobbyPromise;
     if (ws.store.lobbyId)
       lobbyPromise = lobbyService.getBy(db, { _id: ws.store.lobbyId }, true)
-    else if(ws.store.currentUser)
+    else if (ws.store.currentUser)
       lobbyPromise = lobbyService.getFor(db, ws.store.currentUser);
     else
       lobbyPromise = Promise.reject("No active session!", "EAUTH");
     return lobbyPromise
       .then(context.store('lobby'))
-      .then(()=>tools.verify(ws.store.lobbyId.equals(context.lobby._id), new SapiError("Not in lobby", "EAUTH"))())
+      .then(() => tools.verify(ws.store.lobbyId.equals(context.lobby._id), new SapiError("Not in lobby", "EAUTH"))())
       .then(() => {
         ws.sendAction(lobbyUpdateAction(context.lobby));
       })
@@ -104,6 +104,61 @@ const handlers = {
       .catch(err => {
         ws.sendAction({
           type: "LOBBY_JOIN_REJECTED",
+          payload: SapiError.from(err, err.code).toPayload()
+        });
+        throw err;
+      })
+      // update all members
+      .then(lobby => {
+        const wsClientsToUpdate = sapi.getClients(tools.filterByLobby(lobby));
+        debug("Notifying %d clients", wsClientsToUpdate.length);
+        for (var wsClient of wsClientsToUpdate) {
+          debug("Notifying %s", wsClient.store);
+          wsClient.sendAction(lobbyUpdateAction(lobby));
+        }
+      });
+  },
+
+  'LOBBY_KICK': (action, ws, db) => {
+    var context = new tools.Context();
+    debug('LOBBY KICK', ws.store.currentUser)
+    // verify input
+    return Promise.resolve()
+      .then(tools.verify(ws.store.currentUser, new SapiError("Not logged in", "EAUTH")))
+      // get current user's lobby
+      .then(() => console.log('LOOOL'))
+      .then(() => lobbyService.getFor(db, ws.store.currentUser))
+      .then((lobby) => {
+        debug('CONTEXT', lobby)
+        return Promise.resolve(lobby);
+      })
+      .then(context.store('lobby'))
+      .then(tools.verify(() => context.lobby, new SapiError("No lobby")))
+      // verify if leader is kicking
+      .then(tools.verify(() => context.lobby.leaderId.equals(ws.store.currentUser._id), new SapiError("Not a leader", "EAUTH")))
+      // get kicked user
+      .then(() => context.lobby.members.find(m => m.id.equals(action.payload.id)))
+      .then(context.store('kickedUser'))
+      .then(tools.verify(() => context.kickedUser, new SapiError("User not in lobby", "EAUTH")))
+      // remove kicked user from lobby
+      .then(() => lobbyService.leave(db, { _id: context.kickedUser.id }))
+      // store handle and respond
+      .then((lobby) => {
+        debug('User kicked')
+        ws.store.lobbyId = lobby._id;
+        sapi.getClients(client => client.store.currentUser && client.store.currentUser._id.equals(action.payload.id)).forEach(client => {
+          delete client.store.lobbyId;
+          client.sendAction({ type: "LOBBY_KICKED" });
+        })
+        ws.sendAction({
+          type: "LOBBY_KICK_FULFILLED"
+        });
+        return Promise.resolve(lobby);
+      })
+      // error handling
+      .catch(err => {
+        ws.sendAction({
+          type: "LOBBY_KICK_REJECTED",
           payload: SapiError.from(err, err.code).toPayload()
         });
         throw err;

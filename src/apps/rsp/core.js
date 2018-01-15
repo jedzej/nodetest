@@ -2,32 +2,41 @@ export const MOVE_ROCK = 'rock';
 export const MOVE_SCISSORS = 'scissors';
 export const MOVE_PAPER = 'paper';
 
-export const VICTORY = new Object();
-export const DEFEAT = new Object();
+export const MOVE = {
+  ROCK:'rock',
+  SCISSORS:'scissors',
+  PAPER:'paper'
+};
+
+export const RESULT = {
+  VICTORY: 'VICTORY',
+  DEFEAT: 'DEFEAT',
+  TIE: 'TIE',
+  UNKNOWN: 'UNKNOWN',
+};
 
 const DUEL_TABLE = {
-  [MOVE_ROCK]: {
-    [MOVE_ROCK]: undefined,
-    [MOVE_SCISSORS]: VICTORY,
-    [MOVE_PAPER]: DEFEAT
+  [MOVE.ROCK]: {
+    [MOVE.ROCK]: RESULT.TIE,
+    [MOVE.SCISSORS]: RESULT.VICTORY,
+    [MOVE.PAPER]: RESULT.DEFEAT
   },
-  [MOVE_SCISSORS]: {
-    [MOVE_ROCK]: DEFEAT,
-    [MOVE_SCISSORS]: undefined,
-    [MOVE_PAPER]: VICTORY
+  [MOVE.SCISSORS]: {
+    [MOVE.ROCK]: RESULT.DEFEAT,
+    [MOVE.SCISSORS]: RESULT.TIE,
+    [MOVE.PAPER]: RESULT.VICTORY
   },
   [MOVE_PAPER]: {
-    [MOVE_ROCK]: VICTORY,
-    [MOVE_SCISSORS]: DEFEAT,
-    [MOVE_PAPER]: undefined
+    [MOVE.ROCK]: RESULT.VICTORY,
+    [MOVE.SCISSORS]: RESULT.DEFEAT,
+    [MOVE.PAPER]: RESULT.TIE
   }
 };
 
 export const rspMatch = (moveA, moveB) => {
-  console.log(moveA, moveB)
   try {
     return DUEL_TABLE[moveA][moveB]
-  } catch(e){
-    return undefined;
+  } catch (e) {
+    return RESULT.UNKNOWN;
   }
 }

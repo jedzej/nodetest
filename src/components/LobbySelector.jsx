@@ -30,7 +30,7 @@ class LobbySelector extends Component {
     return (
       <div>
         {this.props.lobbies.map(lobby =>
-          <ExpansionPanel expanded={expanded === lobby.token} onChange={handleChange(lobby.token)} >
+          <ExpansionPanel key={lobby.token} expanded={expanded === lobby.token} onChange={handleChange(lobby.token)} >
             <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
               {lobby.members.filter(m => m.id === lobby.leaderId)[0].name} ({lobby.members.length} members)
               </ExpansionPanelSummary>

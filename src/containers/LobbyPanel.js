@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { join, leave } from '../logic/lobby/actions'
+import { join, leave, kick } from '../logic/lobby/actions'
 import { message } from '../logic/chat/actions'
 import ChatBox from './ChatBox';
-import Button from 'material-ui/Button/Button';
 import ListItemText from 'material-ui/List/ListItemText';
 import List from 'material-ui/List/List';
 import ListItem from 'material-ui/List/ListItem';
@@ -12,35 +11,7 @@ import AccountCircle from 'material-ui-icons/AccountCircle'
 import StarBorder from 'material-ui-icons/StarBorder'
 import Divider from 'material-ui/Divider/Divider';
 import Typography from 'material-ui/Typography/Typography';
-import { withStyles } from 'material-ui/styles';
-
-
-const styles = theme => ({
-  card: {
-    display: 'flex',
-  },
-  details: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  content: {
-    flex: '1 0 auto',
-  },
-  cover: {
-    width: 151,
-    height: 151,
-  },
-  controls: {
-    display: 'flex',
-    alignItems: 'center',
-    paddingLeft: theme.spacing.unit,
-    paddingBottom: theme.spacing.unit,
-  },
-  playIcon: {
-    height: 38,
-    width: 38,
-  },
-});
+import Avatar from 'material-ui/Avatar/Avatar';
 
 
 class LobbyPanel extends Component {
@@ -54,15 +25,18 @@ class LobbyPanel extends Component {
         <Divider />
         <List>
           {this.props.lobby.members.map(m => {
-            const isLeader = this.props.lobby.leaderId == m.id;
+            const isLeader = this.props.lobby.leaderId === m.id;
             return (
               <ListItem button key={m.id}>
                 <ListItemAvatar>
-                  {isLeader ? <StarBorder /> : <AccountCircle />}
+                  <Avatar>
+                    {isLeader ? <StarBorder /> : <AccountCircle />}
+                  </Avatar>
                 </ListItemAvatar>
                 <ListItemText
                   primary={m.name}
-                  secondary={this.props.lobby.leaderId == m.id ? 'Leader' : null}
+                  secondary={this.props.lobby.leaderId === m.id ? 'Leader' : null}
+                  onClick={()=>this.props.kick(m.id)}
                 />
               </ListItem>
             );
@@ -95,7 +69,8 @@ const mapDispatchToProps = (dispatch) => ({
   },
   message: (msg) => {
     dispatch(message(msg));
-  }
+  },
+  kick: id => dispatch(kick(id))
 })
 
 

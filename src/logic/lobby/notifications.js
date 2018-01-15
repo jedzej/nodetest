@@ -15,21 +15,18 @@ const lobbyNotificationsEpics = [
       ofType(types.LOBBY_CREATE_REJECTED),
       simpleNotificationError('Lobby create rejected!')
     ),
-  action$ =>
-    action$.pipe(
-      ofType(types.LOBBY_JOIN_FULFILLED),
-      simpleNotificationSuccess("Lobby joined!")
-    ),
-  action$ =>
-    action$.pipe(
-      ofType(types.LOBBY_JOIN_REJECTED),
-      simpleNotificationError('Lobby join rejected!')
-    ),
-  action$ =>
-    action$.pipe(
-      ofType(types.LOBBY_LEAVE_FULFILLED),
-      simpleNotificationSuccess('Lobby left!')
-    ),
+  action$ => action$.ofType(types.LOBBY_JOIN_FULFILLED)
+    .let(simpleNotificationSuccess("Lobby joined!")),
+
+  action$ => action$.ofType(types.LOBBY_JOIN_REJECTED)
+    .let(simpleNotificationError('Lobby join rejected!')),
+
+  action$ => action$.ofType(types.LOBBY_LEAVE_FULFILLED)
+    .let(simpleNotificationSuccess('Lobby left!')),
+
+  action$ => action$.ofType(types.LOBBY_KICKED)
+    .let(simpleNotificationError('Kicked from lobby!')),
+
   action$ =>
     action$.pipe(
       ofType(types.LOBBY_LEAVE_REJECTED),

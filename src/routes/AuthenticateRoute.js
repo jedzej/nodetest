@@ -15,7 +15,7 @@ class AuthenticateRoute extends Component {
       <UserAppWrapper>
         <Grid container spacing={16}>
           <Grid item xs={12} sm={6}>
-            <AppBar position="static" color="default">
+            <AppBar position="static" color="inherit">
               <Typography type="title" color="inherit">Create account</Typography>
             </AppBar>
             <Paper>
@@ -23,7 +23,7 @@ class AuthenticateRoute extends Component {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <AppBar position="static" color="default">
+            <AppBar position="static" color="inherit">
               <Typography type="title" color="inherit">Log in</Typography>
             </AppBar>
             <Paper>

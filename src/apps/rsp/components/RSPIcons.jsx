@@ -1,5 +1,6 @@
 import React from 'react';
 import SvgIcon from 'material-ui/SvgIcon/SvgIcon';
+import { MOVE } from '../core';
 
 
 export const RockIcon = props => (
@@ -57,3 +58,17 @@ export const ScissorsIcon = props => (
    </g>
   </SvgIcon>
 );
+
+const iconMap = {
+  [MOVE.SCISSORS]: ScissorsIcon,
+  [MOVE.ROCK]: RockIcon,
+  [MOVE.PAPER]: PaperIcon
+}
+
+export const RSPMoveIcon = (props) => {
+  var IconElement = iconMap[props.move];
+  if (IconElement)
+    return <IconElement {...props} />
+  else
+    return null;
+}

@@ -2,18 +2,34 @@ import React from 'react';
 import { connect } from "react-redux";
 import { move, terminate } from '../actions';
 import Button from 'material-ui/Button/Button';
-import RockIconData from '../../../images/rockIcon.svg';
-import PaperIconData from '../../../images/paperIcon.svg';
-import ScissorsIconData from '../../../images/scissorsIcon.svg';
-import SvgIcon from 'material-ui/SvgIcon';
-import { RockIcon, PaperIcon, ScissorsIcon } from '../components/RSPIcons'
+import { RSPMoveIcon } from '../components/RSPIcons'
 import PointsTable from '../components/PointsTable';
+import { MOVE } from '../core'
+import Grid from 'material-ui/Grid/Grid';
+import withStyles from 'material-ui/styles/withStyles';
+
+const styles = theme => ({
+  root: {
+    flexGrow: 1,
+  },
+  demo: {
+    height: 240,
+  },
+  paper: {
+    padding: theme.spacing.unit * 2,
+    height: '100%',
+  },
+  control: {
+    padding: theme.spacing.unit * 2,
+  },
+});
+
 
 const getMatch = (rspState, lobbyState, cond) => {
   var match = cond(rspState.player1) ? rspState.player1 : rspState.player2;
   return {
     ...match,
-    ...lobbyState.members.find(m => m.id == match.id)
+    ...lobbyState.members.find(m => m.id === match.id)
   };
 }
 
@@ -35,38 +51,27 @@ const moveButtonStyle = {
   height: '90%'
 }
 
-const getFinishedRounds = rspState => Math.floor((
-  rspState.player1.moves.length +
-  rspState.player2.moves.length) / 2);
 
 class RspApp extends React.Component {
 
-  renderPointsTable(me, opponent, roundNumber) {
-    return (
-      <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit}/>
-    );
-  }
-
   renderMoveButtons() {
     return (
-      <div>
-        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('rock')}>
-          <RockIcon style={moveButtonStyle} />
-        </Button>
-        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('paper')}>
-          <PaperIcon style={moveButtonStyle} />
-        </Button>
-        <Button fab color="primary" aria-label="rock" onClick={() => this.props.rspMove('scissors')}>
-          <ScissorsIcon style={moveButtonStyle} />
-        </Button>
-      </div>
+      <Grid container spacing={40} justify="center" className={this.props.classes.root}>
+        {Object.values(MOVE).map(move =>
+          <Grid item xs style={{textAlign:'center',width:'100px'}} key={move}>
+            <Button fab color="primary" aria-label={move} onClick={() => this.props.rspMove(move)}>
+              <RSPMoveIcon move={move} style={moveButtonStyle} />
+            </Button>
+          </Grid>
+        )}
+      </Grid>
     );
   }
 
   renderOngoingOpponentsMove(me, opponent) {
     return (
       <div>
-        {this.renderPointsTable(me, opponent)}
+        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
         <br /><br />
         Waiting for oponent...
       </div>
@@ -76,7 +81,7 @@ class RspApp extends React.Component {
   renderOngoingYourMove(me, opponent) {
     return (
       <div>
-        {this.renderPointsTable(me, opponent, getFinishedRounds(this.props.rsp) + 1)}
+        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
         <br /><br />
         Your move! <br />
         {this.renderMoveButtons()}
@@ -107,7 +112,7 @@ class RspApp extends React.Component {
     }
     return (
       <div>
-        {this.renderPointsTable(me, opponent, getFinishedRounds(this.props.rsp))}<br />
+        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
         {result}
         <br /><br />
         <Button onClick={() => this.props.rspTerminate()}>TERMINATE</Button>
@@ -124,12 +129,10 @@ class RspApp extends React.Component {
       switch (this.props.rsp.stage) {
         case 'ongoing':
           return this.renderOngoing(me, opponent);
-          break;
         case 'complete':
           return this.renderComplete(me, opponent);
-          break;
         default:
-          break;
+        return <div/>
       }
     } catch (err) {
       console.log(err)
@@ -152,5 +155,5 @@ const mapDispatchToProps = (dispatch) => ({
 })
 
 
-export default connect(mapStateToProps, mapDispatchToProps)(RspApp);
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(RspApp));
 

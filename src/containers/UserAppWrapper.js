@@ -17,7 +17,6 @@ class UserAppWrapper extends Component {
   render() {
     return (
       <div className="App">
-        <TopBar/>
         {this.props.children}
       </div>
     )

@@ -62,6 +62,7 @@ const handlers = {
         const members = appContext.lobby.members;
         appContext.appstore.player1.id = members[0].id;
         appContext.appstore.player2.id = members[1].id;
+        appContext.appstore.stage = "ongoing";
         return appContext.commit()
       })
 
