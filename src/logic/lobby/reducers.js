@@ -7,7 +7,7 @@ const DEFAULT_STATE = {
   createPending: false,
   joinPending: false,
   leavePending: false,
-  exists : false
+  exists: false
 };
 
 
@@ -38,7 +38,20 @@ const reducer = (state = DEFAULT_STATE, action) => {
     case types.LOBBY_JOIN_REJECTED:
       state = {
         ...state,
-        joinPending: false
+        joinPending: false,
+      };
+      break;
+    case types.LOBBY_LEAVE:
+      state = {
+        ...state,
+        leavePending: true
+      };
+      break;
+    case types.LOBBY_JOIN_FULFILLED:
+    case types.LOBBY_JOIN_REJECTED:
+      state = {
+        ...DEFAULT_STATE,
+        leavePending: false,
       };
       break;
     // UPDATE
@@ -51,14 +64,14 @@ const reducer = (state = DEFAULT_STATE, action) => {
       state = {
         ...state,
         ...action.payload,
-        exists : action.payload.token !== null
+        exists: action.payload.token !== null
       };
       break;
     // LOBBY LIST
     case types.LOBBY_LIST_FULFILLED:
       state = {
         ...state,
-        lobbiesList : action.payload
+        lobbiesList: action.payload
       }
       break;
     default:

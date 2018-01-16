@@ -8,7 +8,7 @@ module.exports.Context = class Context {
       var top = this;
       var splitted = field.split('.');
       splitted.slice(0, -1).forEach(element => {
-        if(top[element] == undefined)
+        if (top[element] == undefined)
           top[element] = new Object();
         top = top[element];
       });
@@ -20,7 +20,7 @@ module.exports.Context = class Context {
 
 
 module.exports.logThrough = (msg, loggingFun) => arg => {
-  if(loggingFun == undefined){
+  if (loggingFun == undefined) {
     loggingFun = console.log
   }
   loggingFun(msg);
@@ -41,15 +41,24 @@ module.exports.genUniqueToken = function () {
   });
 }
 
+
 module.exports.error = (msg, code) => new SapiError(msg, code);
-module.exports.rejectionAction = (type, err) => ({
-  type: type,
-  payload: SapiError.from(err, err.code).toPayload()
-});
+
+
+module.exports.rejectionAction = (type, err) => {
+  if (typeof err === 'string') {
+    err = new SapiError(err, "EUNKNOWN");
+  }
+  return ({
+    type: type,
+    payload: SapiError.from(err, err.code).toPayload()
+  })
+};
+
 
 module.exports.verify = (cond, err) => (data) => {
   return new Promise((resolve, reject) => {
-//    console.log("Verification: ", cond, err)
+    //    console.log("Verification: ", cond, err)
     if (typeof cond == 'function')
       cond = cond(data);
     if (cond) {

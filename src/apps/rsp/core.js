@@ -33,10 +33,21 @@ const DUEL_TABLE = {
   }
 };
 
-export const rspMatch = (moveA, moveB) => {
+export const rspRound = (moveA, moveB) => {
   try {
     return DUEL_TABLE[moveA][moveB]
   } catch (e) {
     return RESULT.UNKNOWN;
+  }
+}
+
+export const rspMatch = (me, opponent, roundsLimit) => {
+  const result = me.points - opponent.points;
+  if (result > 0) {
+    return RESULT.VICTORY;
+  } else if (result < 0) {
+    return RESULT.DEFEAT;
+  } else {
+    return RESULT.TIE;
   }
 }

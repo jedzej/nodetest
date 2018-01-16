@@ -4,7 +4,7 @@ import { withStyles } from 'material-ui/styles';
 import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
 import { ScissorsIcon, RockIcon, PaperIcon, RSPMoveIcon } from './RSPIcons';
-import { rspMatch, RESULT } from '../core';
+import { rspRound, RESULT } from '../core';
 import MutatorIcon from './MutatorIcon';
 
 const styles = theme => ({
@@ -22,16 +22,24 @@ const styles = theme => ({
 });
 
 const colorMap = {
-  [RESULT.VICTORY]: 'accent',
-  [RESULT.DEFEAT]: 'disabled',
-  [RESULT.TIE]: 'primary',
-  [RESULT.UNKNOWN]: 'disabled',
+  me: {
+    [RESULT.VICTORY]: 'primary',
+    [RESULT.DEFEAT]: 'disabled',
+    [RESULT.TIE]: 'inherit',
+    [RESULT.UNKNOWN]: 'disabled',
+  },
+  opponent: {
+    [RESULT.VICTORY]: 'accent',
+    [RESULT.DEFEAT]: 'disabled',
+    [RESULT.TIE]: 'inherit',
+    [RESULT.UNKNOWN]: 'disabled',
+  }
 }
 
 const MOVE_HIDDEN = 'hidden'
 
 
-const result2color = result => colorMap[result];
+const result2color = (result, player) => colorMap[player][result];
 
 const PointsTable = props => {
   const { classes, roundLimit } = props;
@@ -41,8 +49,9 @@ const PointsTable = props => {
       moves = [...moves.slice(0, -1), MOVE_HIDDEN];
     }
     return [...moves, ...Array(len - moves.length).fill()]
-      .map((move, i) => [move, rspMatch(move, opponentMoves[i])]);
+      .map((move, i) => [move, rspRound(move, opponentMoves[i])]);
   }
+  console.log(props.me, props.opponent)
 
   const data = {
     rounds: [...Array(roundLimit).keys()].map(e => e + 1),
@@ -70,14 +79,14 @@ const PointsTable = props => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.players.map(player => (
+          {data.players.map((player, playerNum) => (
             <TableRow key={player.name}>
               <TableCell className={classes.cell}>{player.name}</TableCell>
               {player.moves.map(([move, result], i) => (
                 <TableCell key={i} numeric className={classes.cell}>
                   {move === MOVE_HIDDEN ?
                     <MutatorIcon icons={[ScissorsIcon, RockIcon, PaperIcon]} interval={100} color="inherit" /> :
-                    <RSPMoveIcon move={move} color={result2color(result)} />
+                    <RSPMoveIcon move={move} color={result2color(result, playerNum === 0 ? "me" : "opponent")} />
                   }
                 </TableCell>
               )

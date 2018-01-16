@@ -3,6 +3,7 @@ const sapi = require('../../sapi');
 const tools = require('../../modules/tools');
 const appService = require('../../modules/app/service');
 const DEFAULT_STATE = require('../../../src/apps/rsp/default.json')
+const rejectionAction = tools.rejectionAction
 
 const MOVE_ROCK = 'rock';
 const MOVE_SCISSORS = 'scissors';
@@ -31,7 +32,7 @@ const DUEL_TABLE = {
 
 
 const requireLeader = appContext => {
-  return appContext.lobby.leaderId.equals(appContext.currentUser.id) ?
+  return appContext.lobby.leaderId.equals(appContext.currentUser._id) ?
     Promise.resolve() : Promise.reject("Not a leader");
 }
 
@@ -47,10 +48,7 @@ const handlers = {
 
   'RSP_UPDATE_REQUEST': (action, appContext) => {
     appContext.forSapiClients(ws => {
-      ws.sendAction({
-        type: "RSP_UPDATE",
-        payload: appContext.appstore
-      });
+      ws.sendAction("RSP_UPDATE", appContext.appstore);
     });
   },
 
@@ -60,31 +58,23 @@ const handlers = {
         new Error("There must be 2 members in the lobby")))
       .then(() => {
         const members = appContext.lobby.members;
-        appContext.appstore.player1.id = members[0].id;
-        appContext.appstore.player2.id = members[1].id;
+        appContext.appstore.player1._id = members[0]._id;
+        appContext.appstore.player2._id = members[1]._id;
         appContext.appstore.stage = "ongoing";
         return appContext.commit()
       })
 
       .then(() => {
-        appContext.sapi.me.sendAction({
-          type: "RSP_START_FULFILLED"
-        });
+        appContext.sapi.me.sendAction("RSP_START_FULFILLED");
         appContext.forSapiClients(ws => {
-          ws.sendAction({
-            type: "RSP_UPDATE",
-            payload: appContext.appstore
-          });
+          ws.sendAction("RSP_UPDATE", appContext.appstore);
         });
         console.log(appContext)
       })
       .then(() => appContext.doAppUpdate())
       .catch(err => {
         console.log(err)
-        appContext.sapi.me.sendAction({
-          type: "RSP_START_REJECTED",
-          payload: err
-        });
+        appContext.sapi.me.sendAction(rejectionAction("RSP_START_REJECTED", err));
       });
   },
 
@@ -93,8 +83,9 @@ const handlers = {
     var me, opponent;
     switch (store.stage) {
       case "ongoing":
-        console.log(store.player1.id, appContext.currentUser.id)
-        if (store.player1.id.equals(appContext.currentUser.id)) {
+        console.log(store)
+        console.log(store.player1._id, appContext.currentUser._id)
+        if (store.player1._id.equals(appContext.currentUser._id)) {
           me = store.player1;
           opponent = store.player2;
         } else {
@@ -138,16 +129,11 @@ const handlers = {
         new sapi.SapiError("Invalid stage!", "EINVSTAGE")))
       .then(() => appContext.terminate())
       .then(() => {
-        appContext.sapi.me.sendAction({
-          type: "RSP_TERMINATE_FULFILLED"
-        })
+        appContext.sapi.me.sendAction("RSP_TERMINATE_FULFILLED")
       })
       .then(() => appContext.doAppUpdate())
       .catch(err => {
-        appContext.sapi.me.sendAction({
-          type: "RSP_TERMINATE_REJECTED",
-          payload: sapi.SapiError.from(err, err.code).toPayload()
-        })
+        appContext.sapi.me.sendAction(rejectionAction("RSP_TERMINATE_REJECTED", err));
         throw err;
       });
   }

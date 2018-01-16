@@ -13,7 +13,7 @@ debug.log = console.log.bind(console)
 
 
 const userUpdatePayload = user => ({
-  id: user ? user._id : null,
+  _id: user ? user._id : null,
   loggedIn: user ? true : false,
   name: user ? user.name : null,
   token: user ? user.token : null

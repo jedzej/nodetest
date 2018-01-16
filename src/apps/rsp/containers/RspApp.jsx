@@ -4,9 +4,13 @@ import { move, terminate } from '../actions';
 import Button from 'material-ui/Button/Button';
 import { RSPMoveIcon } from '../components/RSPIcons'
 import PointsTable from '../components/PointsTable';
-import { MOVE } from '../core'
+import { MOVE, RESULT, rspMatch } from '../core'
 import Grid from 'material-ui/Grid/Grid';
 import withStyles from 'material-ui/styles/withStyles';
+import Paper from 'material-ui/Paper/Paper';
+import MoveSection from '../components/MoveSection';
+import Typography from 'material-ui/Typography/Typography';
+import CompleteSection from '../components/CompleteSection';
 
 const styles = theme => ({
   root: {
@@ -22,100 +26,63 @@ const styles = theme => ({
   control: {
     padding: theme.spacing.unit * 2,
   },
+  headline: {
+    paddingBottom: theme.spacing.unit * 2
+  }
 });
 
 
 const getMatch = (rspState, lobbyState, cond) => {
   var match = cond(rspState.player1) ? rspState.player1 : rspState.player2;
+  console.log('match', match, lobbyState.members)
   return {
     ...match,
-    ...lobbyState.members.find(m => m.id === match.id)
+    ...lobbyState.members.find(m => m._id === match._id)
   };
 }
 
 const getMe = (rspState, lobbyState, userState) => getMatch(
   rspState,
   lobbyState,
-  player => player.id === userState.id
+  player => {
+    console.log("getMe", player, userState)
+    return player._id === userState._id;
+  }
 )
 
 const getOpponent = (rspState, lobbyState, userState) => getMatch(
   rspState,
   lobbyState,
-  player => player.id !== userState.id
+  player => player._id !== userState._id
 )
-
-
-const moveButtonStyle = {
-  width: '90%',
-  height: '90%'
-}
-
 
 class RspApp extends React.Component {
 
-  renderMoveButtons() {
-    return (
-      <Grid container spacing={40} justify="center" className={this.props.classes.root}>
-        {Object.values(MOVE).map(move =>
-          <Grid item xs style={{textAlign:'center',width:'100px'}} key={move}>
-            <Button fab color="primary" aria-label={move} onClick={() => this.props.rspMove(move)}>
-              <RSPMoveIcon move={move} style={moveButtonStyle} />
-            </Button>
-          </Grid>
-        )}
-      </Grid>
-    );
-  }
-
-  renderOngoingOpponentsMove(me, opponent) {
-    return (
-      <div>
-        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        <br /><br />
-        Waiting for oponent...
-      </div>
-    );
-  }
-
-  renderOngoingYourMove(me, opponent) {
-    return (
-      <div>
-        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        <br /><br />
-        Your move! <br />
-        {this.renderMoveButtons()}
-      </div>
-    );
-  }
-
   renderOngoing(me, opponent) {
-    return <div>
-      {me.moves.length <= opponent.moves.length ?
-        this.renderOngoingYourMove(me, opponent) :
-        this.renderOngoingOpponentsMove(me, opponent)}
-    </div>
+    const opponentsTurn = me.moves.length > opponent.moves.length;
+    return (
+      <div>
+        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
+        <br />
+        <MoveSection {...this.props} disabled={opponentsTurn} onClick={move => this.props.rspMove(move)} {...this.props}>
+          <Typography type="headline" align="center" gutterBottom className={this.props.classes.headline}>
+            {opponentsTurn ? "waiting for opponent" : "your move"}
+          </Typography>
+        </MoveSection>
+      </div>
+    );
   }
 
   renderComplete(me, opponent) {
-    var result = me.points - opponent.points
-    var winner = undefined;
-    if (result > 0) {
-      winner = me;
-    } else if (result < 0) {
-      winner = opponent;
-    }
-    if (winner) {
-      result = <div>{winner.name} wins!</div>;
-    } else {
-      result = <div>TIE</div>;
-    }
+    const result = rspMatch(me, opponent);
+    const isLeader = this.props.lobby.leaderId === this.props.user._id;
     return (
       <div>
         <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        {result}
-        <br /><br />
-        <Button onClick={() => this.props.rspTerminate()}>TERMINATE</Button>
+        <CompleteSection
+          terminateable={isLeader}
+          result={result}
+          onTerminate={() => this.props.rspTerminate()} />
       </div>
     );
   }
@@ -123,8 +90,8 @@ class RspApp extends React.Component {
   render() {
     console.log(this.props)
     try {
-      var me = getMe(this.props.rsp, this.props.lobby, this.props.user);
-      var opponent = getOpponent(this.props.rsp, this.props.lobby, this.props.user);
+      const me = getMe(this.props.rsp, this.props.lobby, this.props.user);
+      const opponent = getOpponent(this.props.rsp, this.props.lobby, this.props.user);
 
       switch (this.props.rsp.stage) {
         case 'ongoing':
@@ -132,7 +99,7 @@ class RspApp extends React.Component {
         case 'complete':
           return this.renderComplete(me, opponent);
         default:
-        return <div/>
+          return <div />
       }
     } catch (err) {
       console.log(err)
