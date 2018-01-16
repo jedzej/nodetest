@@ -47,8 +47,8 @@ const reducer = (state = DEFAULT_STATE, action) => {
         leavePending: true
       };
       break;
-    case types.LOBBY_JOIN_FULFILLED:
-    case types.LOBBY_JOIN_REJECTED:
+    case types.LOBBY_LEAVE_FULFILLED:
+    case types.LOBBY_LEAVE_REJECTED:
       state = {
         ...DEFAULT_STATE,
         leavePending: false,

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import TopBar from '../containers/TopBar'
 import { webSocketOpen, WEBSOCKET_NOT_INITIALIZED } from '../webSocketMiddleware';
 import { sessionIntent } from '../logic/user/actions';
 

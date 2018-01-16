@@ -1,13 +1,9 @@
 import React from 'react';
 import { connect } from "react-redux";
 import { move, terminate } from '../actions';
-import Button from 'material-ui/Button/Button';
-import { RSPMoveIcon } from '../components/RSPIcons'
 import PointsTable from '../components/PointsTable';
-import { MOVE, RESULT, rspMatch } from '../core'
-import Grid from 'material-ui/Grid/Grid';
+import { rspMatch } from '../core'
 import withStyles from 'material-ui/styles/withStyles';
-import Paper from 'material-ui/Paper/Paper';
 import MoveSection from '../components/MoveSection';
 import Typography from 'material-ui/Typography/Typography';
 import CompleteSection from '../components/CompleteSection';
@@ -15,9 +11,6 @@ import CompleteSection from '../components/CompleteSection';
 const styles = theme => ({
   root: {
     flexGrow: 1,
-  },
-  demo: {
-    height: 240,
   },
   paper: {
     padding: theme.spacing.unit * 2,
@@ -64,7 +57,7 @@ class RspApp extends React.Component {
       <div>
         <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
         <br />
-        <MoveSection {...this.props} disabled={opponentsTurn} onClick={move => this.props.rspMove(move)} {...this.props}>
+        <MoveSection disabled={opponentsTurn} onClick={move => this.props.rspMove(move)}>
           <Typography type="headline" align="center" gutterBottom className={this.props.classes.headline}>
             {opponentsTurn ? "waiting for opponent" : "your move"}
           </Typography>

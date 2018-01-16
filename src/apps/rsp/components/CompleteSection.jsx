@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
-import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
-import { ScissorsIcon, RockIcon, PaperIcon, RSPMoveIcon } from './RSPIcons';
-import { RESULT, MOVE } from '../core';
-import MutatorIcon from './MutatorIcon';
+import { RESULT } from '../core';
 import Grid from 'material-ui/Grid/Grid';
 import Button from 'material-ui/Button/Button';
 import Typography from 'material-ui/Typography/Typography';

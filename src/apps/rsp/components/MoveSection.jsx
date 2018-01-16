@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
-import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
-import { ScissorsIcon, RockIcon, PaperIcon, RSPMoveIcon } from './RSPIcons';
-import { RESULT, MOVE } from '../core';
-import MutatorIcon from './MutatorIcon';
+import { RSPMoveIcon } from './RSPIcons';
+import { MOVE } from '../core';
 import Grid from 'material-ui/Grid/Grid';
 import Button from 'material-ui/Button/Button';
 
@@ -15,9 +13,6 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3,
     overflowX: 'auto',
     padding: theme.spacing.unit * 3,
-  },
-  table: {
-    //minWidth: 700,
   },
   buttonCell: {
     textAlign: 'center',
@@ -34,12 +29,12 @@ class MoveSection extends Component {
     const { classes } = this.props;
     return (
       <Paper>
-        <Grid container spacing={20} justify="center" className={classes.root}>
+        <Grid container spacing={24} justify="center" className={classes.root}>
           <Grid item xs={12}>
             {this.props.children}
           </Grid>
           {Object.values(MOVE).map(move =>
-            <Grid item xs className={classes.buttonCell} justify="center" key={move}>
+            <Grid item xs className={classes.buttonCell} key={move}>
               <Button fab disabled={this.props.disabled} color="primary" aria-label={move} onClick={() => this.props.onClick(move)}>
                 <RSPMoveIcon move={move} className={classes.button} />
               </Button>
