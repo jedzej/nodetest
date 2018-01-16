@@ -34,7 +34,7 @@ var AppSelectorCard = (props) => {
           </Typography>
         </CardContent>
         <CardActions>
-          <Button dense color="primary" onClick={props.onStart}>
+          <Button disabled={props.disabled} dense color="primary" onClick={props.onStart}>
             START
           </Button>
         </CardActions>
@@ -55,7 +55,8 @@ class AppSelector extends Component {
       <AppSelectorCard
         onStart={this.props.rspStart}
         title="Rock-Scissors-Paper"
-        description="Best game ever. If you lose, git gud." />
+        description="Best game ever. If you lose, git gud."
+        disabled={this.props.user._id !== this.props.lobby.leaderId} />
     );
   }
 }

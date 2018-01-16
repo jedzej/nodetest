@@ -102,8 +102,9 @@ class RspApp extends React.Component {
 }
 
 const mapStateToProps = (state) => {
+  console.log(state)
   return {
-    rsp: state.rsp,
+    rsp: state.app.rsp.store,
     lobby: state.lobby,
     user: state.user
   };

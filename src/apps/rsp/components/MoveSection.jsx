@@ -29,7 +29,7 @@ class MoveSection extends Component {
     const { classes } = this.props;
     return (
       <Paper>
-        <Grid container spacing={24} justify="center" className={classes.root}>
+        <Grid container spacing={18} justify="center" className={classes.root}>
           <Grid item xs={12}>
             {this.props.children}
           </Grid>

@@ -10,7 +10,7 @@ import TopBar from '../containers/TopBar';
 class InLobbyRoute extends Component {
 
   render() {
-    const exclusiveApp = this.props.app.filter(app => app.isExclusive)[0];
+    const exclusiveApp = Object.values(this.props.app).find(app => app.exclusive);
 
     const app_map = {
       'rsp': () => <RspApp />

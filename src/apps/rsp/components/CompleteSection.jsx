@@ -54,7 +54,7 @@ class CompleteSection extends Component {
     const { classes } = this.props;
     return (
       <Paper>
-        <Grid container spacing={20} justify="center" className={classes.root}>
+        <Grid container spacing={18} justify="center" className={classes.root}>
           <Grid item xs={12}>
             {(() => {
               switch (this.props.result) {

@@ -11,12 +11,9 @@ debug.log = console.log.bind(console);
 const handlers = {
 
   'APP_UPDATE_REQUEST': (action, ws, db) => {
-    return appService.getList(db, ws.store.lobbyId)
-      .then(apps => {
-        ws.sendAction({
-          type: "APP_UPDATE",
-          payload: apps
-        });
+    return appService.getMap(db, ws.store.lobbyId)
+      .then(appdataMap => {
+        ws.sendAction("APP_UPDATE", appdataMap);
       })
       .catch(err => {
         ws.sendAction({

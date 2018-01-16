@@ -40,7 +40,7 @@ const updateAll = appContext =>
   appContext.forSapiClients(ws => {
     ws.sendAction({
       type: "RSP_UPDATE",
-      payload: appContext.appstore
+      payload: appContext.store
     });
   })
 
@@ -48,7 +48,8 @@ const handlers = {
 
   'RSP_UPDATE_REQUEST': (action, appContext) => {
     appContext.forSapiClients(ws => {
-      ws.sendAction("RSP_UPDATE", appContext.appstore);
+      appContext.doAppUpdate(ws);
+      //ws.sendAction("RSP_UPDATE", appContext.store);
     });
   },
 
@@ -58,16 +59,16 @@ const handlers = {
         new Error("There must be 2 members in the lobby")))
       .then(() => {
         const members = appContext.lobby.members;
-        appContext.appstore.player1._id = members[0]._id;
-        appContext.appstore.player2._id = members[1]._id;
-        appContext.appstore.stage = "ongoing";
+        appContext.store.player1._id = members[0]._id;
+        appContext.store.player2._id = members[1]._id;
+        appContext.store.stage = "ongoing";
         return appContext.commit()
       })
 
       .then(() => {
         appContext.sapi.me.sendAction("RSP_START_FULFILLED");
         appContext.forSapiClients(ws => {
-          ws.sendAction("RSP_UPDATE", appContext.appstore);
+          ws.sendAction("RSP_UPDATE", appContext.store);
         });
         console.log(appContext)
       })
@@ -79,7 +80,7 @@ const handlers = {
   },
 
   'RSP_MOVE': (action, appContext) => {
-    var store = appContext.appstore;
+    var store = appContext.store;
     var me, opponent;
     switch (store.stage) {
       case "ongoing":
@@ -108,11 +109,13 @@ const handlers = {
         }
         return appContext.commit()
           .then(() => {
+            appContext.doAppUpdate();
             appContext.forSapiClients(ws => {
-              ws.sendAction({
+              //appContext.doAppUpdate();
+              /*ws.sendAction({
                 type: "RSP_UPDATE",
-                payload: appContext.appstore
-              });
+                payload: appContext.store
+              });*/
             });
           });
         break;
@@ -125,7 +128,7 @@ const handlers = {
   'RSP_TERMINATE': (action, appContext) => {
     return requireLeader(appContext)
       .then(tools.verify(
-        appContext.appstore.stage == "complete",
+        appContext.store.stage == "complete",
         new sapi.SapiError("Invalid stage!", "EINVSTAGE")))
       .then(() => appContext.terminate())
       .then(() => {

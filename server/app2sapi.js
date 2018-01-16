@@ -11,31 +11,28 @@ debug.log = console.log.bind(console);
 
 
 class AppContext {
-  constructor(lock, ws, db, lobby, appstore, exclusive) {
-    this._ws = ws;
-    this._db = db;
+  constructor(lock, ws, db, lobby, appdata) {
+    this.ws = ws;
+    this.db = db;
     this.currentUser = {
       _id: ws.store.currentUser._id,
       name: ws.store.currentUser.name
     };
-    this._lobby = lobby;
-    this.appstore = appstore;
+    this.appdata = appdata;
+    this.store = this.appdata.store;
     this.sapi = {
       me: ws,
       clients: undefined,
       lobbyMembers: undefined,
       lobbyObservers: undefined
     }
-    this.lobby = {
-      members: lobby.members,
-      leaderId: lobby.leaderId
-    }
+    this.lobby = lobby;
     this.isObserver = ws.store.isObserver === true;
   }
 
   _sapiFields() {
     if (this.sapi.clients === undefined) {
-      this.sapi.clients = sapi.getClients(filter.ws.byLobbyId(this._lobby._id));
+      this.sapi.clients = sapi.getClients(filter.ws.byLobbyId(this.lobby._id));
       this.sapi.lobbyMembers = this.sapi.clients.filter(ws => ws.isObserver !== true);
       this.sapi.lobbyObservers = this.sapi.clients.filter(ws => ws.isObserver === true);
     }
@@ -55,30 +52,34 @@ class AppContext {
   }
 
   terminate() {
-    console.log("terminate ", this._lobby._id)
-    return this._db.collection('appstore').deleteOne({ _lobbyId: this._lobby._id })
+    console.log("terminate ", this.lobby._id)
+    return this.db.collection('appdata').deleteOne({
+      lobbyId: this.appdata.lobbyId,
+      name: this.appdata.name
+    })
   }
 
-  doAppUpdate() {
+  doAppUpdate(ws) {
     var _this = this;
-    return appService.getList(this._db, this._lobby._id)
-      .then(apps => {
-        _this.forSapiClients(ws => {
-          ws.sendAction({
-            type: "APP_UPDATE",
-            payload: apps
-          });
-        });
-      });
+    return appService.getMap(this.db, this.lobby._id)
+      .then(appdataList => {
+        const sendUpdate = (client) => client.sendAction(
+          "APP_UPDATE", appdataList
+        )
+        if (ws)
+          sendUpdate(ws);
+        else
+          _this.forSapiClients(sendUpdate);
+      })
   }
 
   commit() {
     const updateQuery = [
-      { _lobbyId: this._lobby._id },
-      { $set: this.appstore },
+      { _lobbyId: this.lobby._id },
+      { $set: this.appdata },
       { upsert: true }
     ];
-    return this._db.collection('appstore').updateOne(...updateQuery);
+    return this.db.collection('appdata').updateOne(...updateQuery);
   }
 }
 
@@ -92,17 +93,17 @@ const app2sapi = (appHandlers, name, defaultStore = {}, exclusive = false) => {
       return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
         .then(check.ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY"))
         .then(ctx.store('lobby'))
-        .then(() => db.collection('appstore').findOne({ _lobbyId: ctx.lobby._id }))
-        .then(appstore => {
-          if (appstore === null) {
-            appstore = {
-              ...defaultStore,
-              _lobbyId: ctx.lobby._id,
-              _name: name,
-              _exclusive: exclusive
+        .then(() => db.collection('appdata').findOne({ lobbyId: ctx.lobby._id, name: name }))
+        .then(appdata => {
+          if (appdata === null) {
+            appdata = {
+              store: defaultStore,
+              lobbyId: ctx.lobby._id,
+              name: name,
+              exclusive: exclusive
             };
           }
-          return appHandler(action, new AppContext(null, ws, db, ctx.lobby, appstore, exclusive))
+          return appHandler(action, new AppContext(null, ws, db, ctx.lobby, appdata, exclusive))
         });
     }
   });

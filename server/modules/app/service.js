@@ -4,10 +4,10 @@ const SapiError = require('../../sapi').SapiError;
 const ObjectId = require('mongodb').ObjectId;
 
 const dbReset = (db) => {
-  return db.dropCollection('appstore')
+  return db.dropCollection('appdata')
     .catch((err) => { console.log(err) })
-    .then(() => db.createCollection('appstore'))
-    .then(() => db.collection('appstore').createIndex(
+    .then(() => db.createCollection('appdata'))
+    .then(() => db.collection('appdata').createIndex(
       { _lobbyId: 1, _exclusive: 1 },
       { unique: true }
     ));
@@ -15,17 +15,21 @@ const dbReset = (db) => {
 
 
 const getList = (db, lobbyId) => {
-  return Promise.resolve(db.collection('appstore').find({ _lobbyId: lobbyId }))
-    .then(cursor => cursor.toArray())
-    .then(apps => apps.map(app => ({
-      id: app._id,
-      name: app._name,
-      isExclusive: app._exclusive
-    })));
+  return Promise.resolve(db.collection('appdata').find({ _lobbyId: lobbyId }))
+    .then(cursor => cursor.toArray());
 }
+
+const getMap = (db, lobbyId) => getList(db, lobbyId)
+  .then(appdataList => appdataList.reduce(
+    (accum, curr) => {
+      accum[curr.name] = curr;
+      return accum;
+    },
+    {}))
 
 
 module.exports = {
   dbReset,
-  getList
+  getList,
+  getMap
 };
