@@ -2,7 +2,11 @@ const app2sapi = require('../../app2sapi');
 var debug = require('debug')('chat:handlers');
 debug.log = console.log.bind(console);
 
-const handlers = {
+const CHAT_APP_NAME = 'chat';
+
+const CHAT_APP_HOOKS = {};
+
+const CHAT_APP_HANDLERS = {
 
   'CHAT_MESSAGE': (action, appContext) => {
     appContext.forSapiClients(ws => ws.sendAction({
@@ -19,5 +23,10 @@ const handlers = {
   }
 }
 
-
-module.exports = app2sapi(handlers, "chat");
+module.exports = {
+  name: CHAT_APP_NAME,
+  handlers: CHAT_APP_HANDLERS,
+  hooks: CHAT_APP_HOOKS,
+  defaultStore: {},
+  exclusive: false
+}

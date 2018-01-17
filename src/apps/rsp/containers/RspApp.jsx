@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { move, terminate } from '../actions';
+import { move } from '../actions';
+import { terminate } from '../../../logic/app/actions';
 import PointsTable from '../components/PointsTable';
 import { rspMatch } from '../core'
 import withStyles from 'material-ui/styles/withStyles';
@@ -112,7 +113,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   rspMove: (variant) => dispatch(move(variant)),
-  rspTerminate: (variant) => dispatch(terminate()),
+  rspTerminate: (variant) => dispatch(terminate('rsp')),
 })
 
 

@@ -101,7 +101,7 @@ function onConnection(handlers, db) {
           ws.debug.handlers("Action handler for [%s] present", action.type);
           Promise.resolve(handlers[action.type](action, ws, db))
             .catch(err => {
-              ws.debug.handlers(err);
+              ws.debug.handlers(err.stack);
             })
         } else {
           ws.debug.handlers("No action handler for [%s]", action.type);

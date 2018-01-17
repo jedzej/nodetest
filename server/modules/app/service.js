@@ -3,33 +3,74 @@ const userService = require('../user/service');
 const SapiError = require('../../sapi').SapiError;
 const ObjectId = require('mongodb').ObjectId;
 
+var debug = require('debug')('app:service');
+debug.log = console.log.bind(console);
+
+var apps = [];
+
 const dbReset = (db) => {
   return db.dropCollection('appdata')
     .catch((err) => { console.log(err) })
     .then(() => db.createCollection('appdata'))
-    .then(() => db.collection('appdata').createIndex(
-      { _lobbyId: 1, _exclusive: 1 },
+    .then(() => db.collection('appdata')
+      .createIndex(
+      { lobbyId: 1, exclusive: 1 },
       { unique: true }
-    ));
+      ))
+    .then(() => db.collection('appdata')
+      .createIndex(
+      { lobbyId: 1, name: 1 },
+      { unique: true }
+      ));
 }
+
+
+const destroyAppdata = (db, lobbyId, name) => {
+  debug('Destroy app %s for %s', name, lobbyId);
+  return db.collection('appdata')
+    .deleteOne({
+      lobbyId: lobbyId,
+      name: name
+    })
+    .then(cmdRes => (cmdRes.result.ok == 1 && cmdRes.result.n == 1) ?
+      Promise.resolve() : Promise.reject("Not deleted"));
+}
+
+const commitAppdata = (db, appdata) =>
+  db.collection('appdata').updateOne(
+    { lobbyId: appdata.lobbyId },
+    { $set: appdata },
+    { upsert: true }
+  );
+
+
+const getByLobbyIdAndName = (db, lobbyId, name) =>
+  db.collection('appdata').findOne({
+    lobbyId: lobbyId,
+    name: name
+  })
 
 
 const getList = (db, lobbyId) => {
-  return Promise.resolve(db.collection('appdata').find({ _lobbyId: lobbyId }))
-    .then(cursor => cursor.toArray());
+  return db.collection('appdata')
+    .find({ lobbyId: lobbyId })
+    .toArray();
 }
+
 
 const getMap = (db, lobbyId) => getList(db, lobbyId)
   .then(appdataList => appdataList.reduce(
     (accum, curr) => {
       accum[curr.name] = curr;
       return accum;
-    },
-    {}))
+    }, {}))
 
 
 module.exports = {
   dbReset,
+  getByLobbyIdAndName,
   getList,
-  getMap
+  getMap,
+  commitAppdata,
+  destroyAppdata
 };

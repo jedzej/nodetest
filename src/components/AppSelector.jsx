@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { start } from '../apps/rsp/actions';
+import { start } from '../logic/app/actions';
 import { withStyles } from 'material-ui/styles';
 import Card, { CardActions, CardContent, CardMedia } from 'material-ui/Card';
 import Button from 'material-ui/Button';
@@ -53,7 +53,7 @@ class AppSelector extends Component {
   render() {
     return (
       <AppSelectorCard
-        onStart={this.props.rspStart}
+        onStart={()=>this.props.rspStart('rsp')}
         title="Rock-Scissors-Paper"
         description="Best game ever. If you lose, git gud."
         disabled={this.props.user._id !== this.props.lobby.leaderId} />
@@ -70,8 +70,8 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  rspStart: (msg) => {
-    dispatch(start(msg));
+  rspStart: (name) => {
+    dispatch(start(name));
   }
 })
 

@@ -16,8 +16,11 @@ const dbReset = (db) => {
 
 
 const get = {
-  byQuery: (db, query) => db.collection('lobby').findOne(query)
-    .then(lobby => lobby ? Promise.resolve(lobby) : Promise.reject("Lobby not found")),
+  byQuery: (db, query) => db.collection('lobby')
+    .findOne(query)
+    .then(lobby =>
+      lobby ? Promise.resolve(lobby) : Promise.reject("Lobby not found")
+    ),
 
   byId: (db, id) => get.byQuery(db, { _id: id }),
 
@@ -25,19 +28,19 @@ const get = {
 
   byToken: (db, token) => get.byQuery(db, { token }),
 
-  withMembers: (db, lobby) => userService.get.manyByIds(db, lobby.membersIds)
+  withMembers: (db, lobby) => userService
+    .get.manyByIds(db, lobby.membersIds)
     .then(members => ({ ...lobby, members })),
 
   byIdWithMembers: (db, lobbyId) => get.byId(db, lobbyId)
     .then(lobby => get.withMembers(db, lobby)),
 
-  list: db => db.collection('lobby').find({}).toArray()
-    .then(lobbies => {
-      console.log(lobbies)
-      return Promise.all(
-        lobbies.map(lobby => get.withMembers(db, lobby))
-      )
-    })
+  list: db => db.collection('lobby')
+    .find({})
+    .toArray()
+    .then(lobbies => Promise.all(
+      lobbies.map(lobby => get.withMembers(db, lobby))
+    ))
 };
 
 

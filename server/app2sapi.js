@@ -9,6 +9,21 @@ const SapiError = sapi.SapiError;
 var debug = require('debug')('sapi:app');
 debug.log = console.log.bind(console);
 
+var apps = {};
+
+const doAppUpdate = (db, lobbyId, ws) => {
+  var _this = this;
+  return appService.getMap(db, lobbyId)
+    .then(appdataMap => {
+      const sendUpdate = (client) => client.sendAction(
+        "APP_UPDATE", appdataMap
+      )
+      if (ws)
+        sendUpdate(ws);
+      else
+        sapi.getClients(filter.ws.byLobbyId(lobbyId)).forEach(sendUpdate)
+    })
+}
 
 class AppContext {
   constructor(lock, ws, db, lobby, appdata) {
@@ -32,9 +47,12 @@ class AppContext {
 
   _sapiFields() {
     if (this.sapi.clients === undefined) {
-      this.sapi.clients = sapi.getClients(filter.ws.byLobbyId(this.lobby._id));
-      this.sapi.lobbyMembers = this.sapi.clients.filter(ws => ws.isObserver !== true);
-      this.sapi.lobbyObservers = this.sapi.clients.filter(ws => ws.isObserver === true);
+      this.sapi.clients = sapi.getClients(
+        filter.ws.byLobbyId(this.lobby._id));
+      this.sapi.lobbyMembers = this.sapi.clients.filter(
+        ws => ws.isObserver !== true);
+      this.sapi.lobbyObservers = this.sapi.clients.filter(
+        ws => ws.isObserver === true);
     }
     return this.sapi;
   }
@@ -52,63 +70,68 @@ class AppContext {
   }
 
   terminate() {
-    debug("terminate " + this.lobby._id)
-    return this.db.collection('appdata').deleteOne({
-      lobbyId: this.appdata.lobbyId,
-      name: this.appdata.name
-    })
+    return appService.destroyAppdata(
+      this.db,
+      this.appdata.lobbyId,
+      this.appdata.name
+    );
   }
 
   doAppUpdate(ws) {
-    var _this = this;
-    return appService.getMap(this.db, this.lobby._id)
-      .then(appdataList => {
-        const sendUpdate = (client) => client.sendAction(
-          "APP_UPDATE", appdataList
-        )
-        if (ws)
-          sendUpdate(ws);
-        else
-          _this.forSapiClients(sendUpdate);
-      })
+    return doAppUpdate(this.db, this.lobby._id, ws);
   }
 
   commit() {
-    const updateQuery = [
-      { _lobbyId: this.lobby._id },
-      { $set: this.appdata },
-      { upsert: true }
-    ];
-    return this.db.collection('appdata').updateOne(...updateQuery);
+    return appService.commitAppdata(this.db, this.appdata);
   }
 }
 
+const createAppContext = (ws, db, appName) => {
+  var ctx = new tools.Context();
+  return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+    .then(check
+      .ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY")
+    )
+    .then(ctx.store('lobby'))
+    .then(() =>
+      appService.getByLobbyIdAndName(db, ctx.lobby._id, apps[appName].name))
+    .then(appdata => {
+      if (appdata === null) {
+        appdata = {
+          store: apps[appName].defaultStore,
+          lobbyId: ctx.lobby._id,
+          name: appName,
+          exclusive: apps[appName].exclusive
+        };
+      }
+      return new AppContext(null, ws, db, ctx.lobby, appdata)
+    });
+}
 
-const app2sapi = (appHandlers, name, defaultStore = {}, exclusive = false) => {
+const fireHook = (ws, db, appName, hookName) => {
+  const hook = apps[appName].hooks[hookName];
+  if (hook)
+    return createAppContext(ws, db, appName)
+      .then(appContext => hook(appContext));
+  else
+    return Promise.resolve();
+}
+
+const app2sapi = (appConfig) => {
+  debug('registering %s', appConfig.name)
+  apps[appConfig.name] = appConfig;
   var sapiHandlers = {}
-  Object.keys(appHandlers).forEach(type => {
-    const appHandler = appHandlers[type];
-    sapiHandlers[type] = (action, ws, db) => {
-      var ctx = new tools.Context();
-      return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
-        .then(check.ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY"))
-        .then(ctx.store('lobby'))
-        .then(() => db.collection('appdata').findOne({ lobbyId: ctx.lobby._id, name: name }))
-        .then(appdata => {
-          if (appdata === null) {
-            appdata = {
-              store: defaultStore,
-              lobbyId: ctx.lobby._id,
-              name: name,
-              exclusive: exclusive
-            };
-          }
-          return appHandler(action, new AppContext(null, ws, db, ctx.lobby, appdata, exclusive))
-        });
-    }
+  Object.keys(appConfig.handlers).forEach(type => {
+    const appHandler = appConfig.handlers[type];
+    sapiHandlers[type] = (action, ws, db) =>
+      createAppContext(ws, db, appConfig.name)
+        .then(appContext => appHandler(action, appContext))
   });
   return sapiHandlers;
 }
 
+app2sapi.doAppUpdate = doAppUpdate;
+app2sapi.createAppContext = createAppContext;
+app2sapi.fireHook = fireHook;
 
 module.exports = app2sapi;

@@ -107,7 +107,9 @@ const handlers = {
       .then(check.loggedIn(ws))
       .then(check.notInLobby(ws))
       // actually join the lobby
-      .then(() => lobbyService.join(db, ws.store.currentUser._id, action.payload.token))
+      .then(() =>
+        lobbyService.join(db, ws.store.currentUser._id, action.payload.token)
+      )
       .then(lobby => lobbyService.get.byToken(db, action.payload.token))
       // store handle and respond
       .then(lobby => {
@@ -131,7 +133,9 @@ const handlers = {
     return Promise.resolve()
       .then(check.loggedIn(ws))
       .then(check.inLobby(ws))
-      .then(check.ifTrue(action.payload.id, "Invalid action payload", "EINVACTION"))
+      .then(check
+        .ifTrue(action.payload.id, "Invalid action payload", "EINVACTION")
+      )
       // get current user's lobby
       .then(() => lobbyService.get.byMemberId(db, ws.store.currentUser._id))
       .then(ctx.store('lobby'))

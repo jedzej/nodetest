@@ -81,6 +81,5 @@ module.exports.objectId = o => {
       writable: false
     });
   }
-
   return o.__uniqueid;
 };

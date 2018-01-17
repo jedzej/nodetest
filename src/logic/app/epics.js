@@ -7,7 +7,7 @@ import { LOBBY_UPDATE } from '../lobby/types';
 
 
 const wsTransmitEpic = action$ => action$
-  .ofType(types.APP_UPDATE_REQUEST)
+  .ofType(types.APP_UPDATE_REQUEST, types.APP_TERMINATE, types.APP_START)
   .let(webSocketWrite)
 
 const updateTriggerEpic = action$ => action$
