@@ -1,10 +1,12 @@
 const WebSocket = require('ws');
+const OID = require('./object-id');
 
 var debug = {
   connection: require('debug')('sapi:connection'),
   data: require('debug')('sapi:data'),
   handlers: require('debug')('sapi:handlers'),
-  test: require('debug')('sapi:test')
+  test: require('debug')('sapi:test'),
+  actions: require('debug')('sapi:actions')
 }
 Object.values(debug).forEach((v) => {
   v.log = console.log.bind(console);
@@ -60,7 +62,8 @@ function sendAction(param1, param2) {
   }
   try {
     const message = JSON.stringify(action, null, 2);
-    debug.data("=>", message);//.substring(0, 100), message.length > 100 ? "..." : "");
+    this.debug.actions("=> " + action.type);//.substring(0, 100), message.length > 100 ? "..." : "");
+    this.debug.data("=> " + message);//.substring(0, 100), message.length > 100 ? "..." : "");
     return this.send(message);
   } catch (e) {
     throw SapiError.from(e, "EPARSEERROR");
@@ -69,7 +72,11 @@ function sendAction(param1, param2) {
 
 function onConnection(handlers, db) {
   return (ws, req) => {
-    debug.connection("connection initiated");
+    ws.debug = {};
+    Object.keys(debug).forEach(key => {
+      ws.debug[key] = (...args) => debug[key]('[ws:%d] ' + args[0], OID(ws), ...args.slice(1));
+    })
+    ws.debug.connection("connection initiated " + OID(ws));
     ws.isAlive = true;
     ws.store = {};
     ws.sendAction = sendAction.bind(ws);
@@ -79,24 +86,25 @@ function onConnection(handlers, db) {
     });
 
     ws.on('message', function (message) {
-      debug.data("<=", message);//.substring(0, 100), message.length > 100 ? "..." : "");
+      ws.debug.data("<= " + message);//.substring(0, 100), message.length > 100 ? "..." : "");
       var action = null;
       try {
         action = JSON.parse(message);
       } catch (e) {
-        debug.data(SapiError.from(e, "EPARSEERROR"));
+        ws.debug.data(SapiError.from(e, "EPARSEERROR"));
       }
       try {
         if (action.type === undefined) {
-          debug.data("Malformed action! No action type!");
+          ws.debug.data("Malformed action! No action type!");
         } else if (handlers[action.type] !== undefined) {
-          debug.handlers("Action handler for [%s] present ", action.type);
+          ws.debug.actions("<= %s", action.type);
+          ws.debug.handlers("Action handler for [%s] present", action.type);
           Promise.resolve(handlers[action.type](action, ws, db))
             .catch(err => {
-              debug.handlers(err);
+              ws.debug.handlers(err);
             })
         } else {
-          debug.handlers("No action handler for [%s]", action.type);
+          ws.debug.handlers("No action handler for [%s]", action.type);
         }
       } catch (e) {
         throw e;
@@ -104,15 +112,15 @@ function onConnection(handlers, db) {
     });
 
     ws.on('open', function () {
-      debug.connection("connection opened");
+      ws.debug.connection("connection opened");
     });
 
     ws.on('close', function (code, reason) {
-      debug.connection("connection closed, code: %s reason: %s", code, reason);
+      ws.debug.connection("connection closed, code: %s reason: %s", code, reason);
     });
 
     ws.on('error', function (err) {
-      debug.connection("connection error: %s", err);
+      ws.debug.connection("connection error: %s", err);
     })
   }
 }
@@ -138,7 +146,7 @@ const start = (port, handlers, db) => {
               ws.isAlive = false;
             }
             else {
-              debug.connection('Dead connection terminating');
+              ws.debug.connection('Dead connection terminating');
               ws.terminate();
             }
           }
@@ -184,14 +192,14 @@ const getClients = filter => {
 const test = {
   waitForAction: (ws, expected) => () => {
     return new Promise((resolve, reject) => {
-      debug.test("waiting for action %s", expected);
+      ws.debug.test("waiting for action %s", expected);
       const trigger = () => {
         const action = JSON.parse(ws.buffer.pop());
         if (expected) {
           if (action.type == expected) {
             resolve(action);
           } else {
-            debug.test("Unexpected action %s", action.type);
+            ws.debug.test("Unexpected action %s", action.type);
             const err = new SapiError(
               "Incorrect action: " + action.type + " instead of " + expected + ")",
               "EUNEXPECTEDACTION");
@@ -225,7 +233,7 @@ const test = {
       action = param1;
     }
     return new Promise((resolve, reject) => {
-      debug.test("Sending action %s", action.type);
+      ws.debug.test("Sending action %s", action.type);
       ws.send(JSON.stringify(action, null, 2));
       resolve();
     })

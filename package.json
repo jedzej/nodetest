@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "mongo": "mongod --dbpath C:\\data\\db",
-    "server": "set DEBUG=*&&nodemon ./server/app.js",
+    "server": "set DEBUG=*,-sapi:data&&nodemon ./server/app.js",
     "client": "set NODE_PATH=src&&react-scripts start",
     "start": "set NODE_PATH=src&&react-scripts start",
     "build": "react-scripts build",
@@ -18,7 +18,7 @@
     ]
   },
   "env": {
-    "debug": "*"
+    "DEBUG": "*,-sapi:data"
   },
   "proxy": "http://localhost:3003",
   "dependencies": {

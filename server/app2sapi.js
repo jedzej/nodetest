@@ -52,7 +52,7 @@ class AppContext {
   }
 
   terminate() {
-    console.log("terminate ", this.lobby._id)
+    debug("terminate " + this.lobby._id)
     return this.db.collection('appdata').deleteOne({
       lobbyId: this.appdata.lobbyId,
       name: this.appdata.name

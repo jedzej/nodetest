@@ -36,20 +36,12 @@ const requireLeader = appContext => {
     Promise.resolve() : Promise.reject("Not a leader");
 }
 
-const updateAll = appContext =>
-  appContext.forSapiClients(ws => {
-    ws.sendAction({
-      type: "RSP_UPDATE",
-      payload: appContext.store
-    });
-  })
 
 const handlers = {
 
   'RSP_UPDATE_REQUEST': (action, appContext) => {
     appContext.forSapiClients(ws => {
       appContext.doAppUpdate(ws);
-      //ws.sendAction("RSP_UPDATE", appContext.store);
     });
   },
 
@@ -64,28 +56,22 @@ const handlers = {
         appContext.store.stage = "ongoing";
         return appContext.commit()
       })
-
       .then(() => {
-        appContext.sapi.me.sendAction("RSP_START_FULFILLED");
-        appContext.forSapiClients(ws => {
-          ws.sendAction("RSP_UPDATE", appContext.store);
-        });
-        console.log(appContext)
+        appContext.sapi.me.sendAction("RSP_START_FULFILLED")
+        appContext.doAppUpdate()
       })
-      .then(() => appContext.doAppUpdate())
       .catch(err => {
-        console.log(err)
-        appContext.sapi.me.sendAction(rejectionAction("RSP_START_REJECTED", err));
+        appContext.sapi.me.sendAction(rejectionAction("RSP_START_REJECTED", err))
+        throw err;
       });
   },
+
 
   'RSP_MOVE': (action, appContext) => {
     var store = appContext.store;
     var me, opponent;
     switch (store.stage) {
       case "ongoing":
-        console.log(store)
-        console.log(store.player1._id, appContext.currentUser._id)
         if (store.player1._id.equals(appContext.currentUser._id)) {
           me = store.player1;
           opponent = store.player2;
@@ -108,22 +94,14 @@ const handlers = {
             store.stage = "complete"
         }
         return appContext.commit()
-          .then(() => {
-            appContext.doAppUpdate();
-            appContext.forSapiClients(ws => {
-              //appContext.doAppUpdate();
-              /*ws.sendAction({
-                type: "RSP_UPDATE",
-                payload: appContext.store
-              });*/
-            });
-          });
+          .then(() => appContext.doAppUpdate());
         break;
       default:
         throw new sapi.SapiError("Invalid stage!", "EINVSTAGE");
         break;
     }
   },
+
 
   'RSP_TERMINATE': (action, appContext) => {
     return requireLeader(appContext)
@@ -133,8 +111,8 @@ const handlers = {
       .then(() => appContext.terminate())
       .then(() => {
         appContext.sapi.me.sendAction("RSP_TERMINATE_FULFILLED")
+        appContext.doAppUpdate()
       })
-      .then(() => appContext.doAppUpdate())
       .catch(err => {
         appContext.sapi.me.sendAction(rejectionAction("RSP_TERMINATE_REJECTED", err));
         throw err;
