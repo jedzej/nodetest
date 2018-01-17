@@ -4,7 +4,7 @@ import { webSocketWrite } from '../../webSocketMiddleware'
 import * as types from './types'
 
 const wsTransmitEpic = action$ => action$
-  .ofType(types.RSP_START, types.RSP_MOVE)
+  .ofType(types.RSP_MOVE)
   .let(webSocketWrite)
 
 

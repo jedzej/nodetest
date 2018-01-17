@@ -1,4 +1,1 @@
-export const RSP_START = 'APP_START';
-export const RSP_START_FULFILLED = 'RSP_START_FULFILLED';
-export const RSP_START_REJECTED = 'RSP_START_REJECTED';
 export const RSP_MOVE = 'RSP_MOVE';

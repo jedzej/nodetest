@@ -8,6 +8,7 @@
     "client": "set NODE_PATH=src&&react-scripts start",
     "start": "set NODE_PATH=src&&react-scripts start",
     "build": "react-scripts build",
+    "migrate": "node server/migratedb.js",
     "clean": "rm -r ./build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"

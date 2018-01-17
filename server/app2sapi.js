@@ -117,14 +117,21 @@ const fireHook = (ws, db, appName, hookName) => {
     return Promise.resolve();
 }
 
-const app2sapi = (appConfig) => {
-  debug('registering %s', appConfig.name)
-  apps[appConfig.name] = appConfig;
+const app2sapi = (appPath) => {
+  const manifest = require(appPath + '/manifest.json');
+  const index = require(appPath + '/index');
+  const app = {
+    ...manifest,
+    handlers: index.handlers,
+    hooks: index.hooks
+  }
+  debug('registering %s', app.name)
+  apps[app.name] = app;
   var sapiHandlers = {}
-  Object.keys(appConfig.handlers).forEach(type => {
-    const appHandler = appConfig.handlers[type];
+  Object.keys(app.handlers).forEach(type => {
+    const appHandler = app.handlers[type];
     sapiHandlers[type] = (action, ws, db) =>
-      createAppContext(ws, db, appConfig.name)
+      createAppContext(ws, db, app.name)
         .then(appContext => appHandler(action, appContext))
   });
   return sapiHandlers;

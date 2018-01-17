@@ -2,10 +2,8 @@ const sapi = require('../../sapi');
 const tools = require('../../modules/tools');
 const check = require('../../modules/check');
 const appService = require('../../modules/app/service');
-const DEFAULT_STORE = require('../../../src/apps/rsp/default.json')
+const MANIFEST = require('./manifest.json')
 const rejectionAction = tools.rejectionAction
-
-const RSP_APP_NAME = 'rsp';
 
 const MOVE_ROCK = 'rock';
 const MOVE_SCISSORS = 'scissors';
@@ -115,9 +113,6 @@ const RSP_APP_HANDLERS = {
 }
 
 module.exports = {
-  name: RSP_APP_NAME,
   handlers: RSP_APP_HANDLERS,
-  hooks: RSP_APP_HOOKS,
-  defaultStore: DEFAULT_STORE,
-  exclusive: true
+  hooks: RSP_APP_HOOKS
 }

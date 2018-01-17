@@ -32,18 +32,15 @@ const updateTriggersEpic = action$ =>
     mapTo(update())
   );
 
-const listTriggersEpic = action$ =>
-  Rx.Observable.combineLatest(
-    action$.ofType(
-      types.LOBBY_UPDATE_REJECTED,
-      types.LOBBY_LEAVE_FULFILLED,
-      types.LOBBY_JOIN_REJECTED,
-      types.LOBBY_JOIN_FULFILLED
-    ),
-    Rx.Observable.interval(3000)
-  )
-    .map(([action, _]) => action)
-    .filter(action => action.type !== types.LOBBY_JOIN_FULFILLED)
+const listTriggersEpic = (action$, store) =>
+  action$.ofType(
+    types.LOBBY_UPDATE_REJECTED,
+    types.LOBBY_LEAVE_FULFILLED,
+    types.LOBBY_JOIN_REJECTED
+  ).exhaustMap(_ =>
+    Rx.Observable.interval(3000).startWith(1)
+      .takeWhile(() => store.getState().lobby.exists === false)
+    )
     .mapTo(list());
 
 

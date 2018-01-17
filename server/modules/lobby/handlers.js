@@ -74,6 +74,7 @@ const handlers = {
       .then(check.notInLobby(ws))
       // acutally create the lobby
       .then(() => lobbyService.create(db, ws.store.currentUser))
+      .then(lobby => lobbyService.get.withMembers(db, lobby))
       // store handle and respond
       .then(lobby => {
         ws.store.lobbyId = lobby._id;

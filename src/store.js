@@ -15,12 +15,11 @@ import helloReducer from './logic/hello/reducers';
 import userReducer from './logic/user/reducers';
 import lobbyReducer from './logic/lobby/reducers';
 import chatReducer from './logic/chat/reducers';
-import ovserverReducer from './logic/observer/reducers';
+import observerReducer from './logic/observer/reducers';
 import appReducer from './logic/app/reducers';
 
 // ROCK-SCISSORS-PAPER
 import rspEpics from './apps/rsp/epics';
-import rspReducer from './apps/rsp/reducers';
 
 import { routerReducer, routerMiddleware } from "react-router-redux";
 
@@ -44,9 +43,8 @@ const rootReducer = combineReducers({
   'user': userReducer,
   'lobby': lobbyReducer,
   'chat': chatReducer,
-  'observer': ovserverReducer,
-  'app': appReducer,
-  'rsp': rspReducer
+  'observer': observerReducer,
+  'app': appReducer
 });
 
 

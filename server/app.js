@@ -4,8 +4,8 @@ const app2sapi = require('./app2sapi')
 const appService = require('./modules/app/service')
 
 const apps = [
-  require('./apps/rsp/config'),
-  require('./apps/chat/config')
+  './apps/rsp'
+  //require('./apps/chat/config')
 ]
 
 const rootHandlers = sapi.combineHandlers(
