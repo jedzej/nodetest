@@ -4,6 +4,7 @@ import { webSocketWrite } from '../../webSocketMiddleware'
 import * as types from './types'
 import { update } from './actions';
 import { LOBBY_UPDATE } from '../lobby/types';
+import appNotificationsEpics from './notifications'
 
 
 const wsTransmitEpic = action$ => action$
@@ -16,5 +17,6 @@ const updateTriggerEpic = action$ => action$
 
 export default combineEpics(
   wsTransmitEpic,
-  updateTriggerEpic
+  updateTriggerEpic,
+  ...appNotificationsEpics
 );

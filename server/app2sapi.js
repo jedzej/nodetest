@@ -103,35 +103,13 @@ const createAppContext = (ws, db, lobby, appName) => {
     });
 }
 
-const fireHook = (hookName, ws, db, action) => {
-  var ctx = new tools.Context();
-  // get the lobby
-  return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
-    .then(check
-      .ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY")
-    )
-    .then(ctx.store('lobby'))
-    // create context and call hooks for all apps
-    .then(() => Promise.all(
-      apps.map(app => {
-        const hook = app.hooks[action.type];
-        if (hook) {
-          return createAppContext(ws, db, ctx.lobby, app.name)
-            .then(appContext => hook(appContext));
-        } else {
-          return Promise.resolve();
-        }
-      })
-    ))
-}
 
 const app2sapi = (appPath) => {
   const manifest = require(appPath + '/manifest.json');
   const index = require(appPath + '/index');
   const app = {
     ...manifest,
-    handlers: index.handlers,
-    hooks: index.hooks
+    handlers: index.handlers
   }
   debug('registering %s', app.name)
   apps[app.name] = app;
@@ -139,20 +117,57 @@ const app2sapi = (appPath) => {
   Object.keys(app.handlers).forEach(type => {
     const appHandler = app.handlers[type];
     var ctx = new tools.Context();
-    sapiHandlers[type] = (action, ws, db) =>
-      lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
-        .then(check
-          .ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY")
-        )
+    sapiHandlers[type] = (action, ws, db) => {
+      console.log('sapihandler')
+      return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
         .then(ctx.store('lobby'))
         .then(() => createAppContext(ws, db, ctx.lobby, app.name))
-        .then(appContext => appHandler(action, appContext))
+        .then(ctx.store('appContext'))
+        .catch(err => { })
+        .then(appContext => appHandler(action, ctx.appContext))
+    }
   });
   return sapiHandlers;
 }
 
+const preverify = {
+
+  start: (db, lobby, appName) => {
+    const app = apps[appName];
+    // check members count
+    if (lobby.members.length > app.usersLimit.max) {
+      throw new Error('Too many lobby members!');
+    }
+    if (lobby.members.length < app.usersLimit.min) {
+      throw new Error('Too few lobby members!');
+    }
+  },
+
+  join: (db, lobby, appName) => {
+    const app = apps[appName];
+    if (app.hotJoin === false) {
+      throw new Error('Unable to join during app operation');
+    }
+    // check members count
+    if (lobby.members.length > app.usersLimit.max) {
+      throw new Error('Lobby full!');
+    }
+  },
+
+  leave: (db, lobby, appName) => {
+    const app = apps[appName];
+    if (app.hotLeave === false) {
+      throw new Error('Unable to join during app operation');
+    }
+    // check members count
+    if (lobby.members.length < app.usersLimit.min) {
+      throw new Error('Too few lobby members!');
+    }
+  }
+}
+
 app2sapi.doAppUpdate = doAppUpdate;
 app2sapi.createAppContext = createAppContext;
-app2sapi.fireHook = fireHook;
+app2sapi.preverify = preverify
 
 module.exports = app2sapi;

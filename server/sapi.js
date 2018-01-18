@@ -14,7 +14,7 @@ Object.values(debug).forEach((v) => {
 
 
 var server = null;
-
+var handlersList = [];
 
 class SapiError extends Error {
   constructor(message, code) {
@@ -35,18 +35,6 @@ class SapiError extends Error {
 }
 
 
-function combineHandlers(...handlers) {
-  var resultHandlers = {};
-  for (var handler of handlers) {
-    resultHandlers = {
-      ...resultHandlers,
-      ...handler
-    };
-  }
-  return resultHandlers;
-}
-
-
 PromiseWhen = (promises, errHandler) => {
   const results = [];
   var chain = Promise.resolve();
@@ -64,6 +52,18 @@ PromiseWhen = (promises, errHandler) => {
       )
   });
   return chain.then(() => results)
+}
+
+
+function combineHandlers(...handlers) {
+  var resultHandlers = {};
+  for (var handler of handlers) {
+    resultHandlers = {
+      ...resultHandlers,
+      ...handler
+    };
+  }
+  return resultHandlers;
 }
 
 
@@ -90,6 +90,7 @@ function sendAction(param1, param2) {
   }
 }
 
+
 const inject = (action, ws, db) => {
   ws.debug.actions("<= %s", action.type);
   const matchedHandlers = handlersList.filter(handler => handler.type === action.type);
@@ -98,9 +99,22 @@ const inject = (action, ws, db) => {
     matchedHandlers.map(
       handler => handler(action, ws, db)
     ),
-    err => { ws.debug.handlers(err.stack); }
-  )
+    err => { ws.debug.handlers(err.stack);throw err; }
+  )/*/
+  return Promise.all(
+    matchedHandlers.map(
+      handler => {
+        console.log('calling handler', handler);
+        return handler(action, ws, db);
+      }
+    )
+  ).catch(
+    err => {
+      ws.debug.handlers(err.stack);
+      throw err;
+    })*/
 }
+
 
 function onConnection(db) {
   return (ws, req) => {
@@ -129,7 +143,7 @@ function onConnection(db) {
         if (action.type === undefined) {
           ws.debug.data("Malformed action! No action type!");
         } else {
-          inject(action, ws, db)
+          inject(action, ws, db).catch(err => { })
         }
       } catch (e) {
         throw e;
@@ -150,14 +164,11 @@ function onConnection(db) {
   }
 }
 
-var handlersList = [];
 
 const start = (port, handlers, db) => {
   if (server === null) {
     new Promise((resolve, reject) => {
       server = new WebSocket.Server({ port });
-
-
 
       Object.keys(handlers).forEach(type => {
         handlers[type].type = type;
@@ -195,24 +206,6 @@ const stop = (cb) => {
   }
 }
 
-const withWS = (addr, promiseCreator) => {
-  return new Promise((resolve, reject) => {
-    var ws = new WebSocket(addr);
-    ws.buffer = [];
-    ws.once('open', (event) => {
-      promiseCreator(ws)
-        .then(resolve)
-        .catch(reject)
-        .then(() => {
-          ws.close();
-        })
-    });
-    ws.once('error', reject);
-    ws.on('message', message => {
-      ws.buffer.push(message);
-    });
-  });
-}
 
 const getClients = filter => {
   var members = Array.from(server.clients);
@@ -222,65 +215,11 @@ const getClients = filter => {
 }
 
 
-const test = {
-  waitForAction: (ws, expected) => () => {
-    return new Promise((resolve, reject) => {
-      ws.debug.test("waiting for action %s", expected);
-      const trigger = () => {
-        const action = JSON.parse(ws.buffer.pop());
-        if (expected) {
-          if (action.type == expected) {
-            resolve(action);
-          } else {
-            ws.debug.test("Unexpected action %s", action.type);
-            const err = new SapiError(
-              "Incorrect action: " + action.type + " instead of " + expected + ")",
-              "EUNEXPECTEDACTION");
-            reject(err);
-          }
-        } else {
-          resolve(action);
-        }
-      };
-      if (ws.buffer.length > 0) {
-        trigger();
-      } else {
-        ws.once('message', event => {
-          trigger();
-        });
-      }
-    });
-  },
-
-
-  sendAction: (ws, param1, param2) => () => {
-    var action;
-    if (typeof param1 === 'string') {
-      action = {
-        type: param1,
-        payload: param2
-      }
-    } else if (typeof action === 'function') {
-      action = param1();
-    } else {
-      action = param1;
-    }
-    return new Promise((resolve, reject) => {
-      ws.debug.test("Sending action %s", action.type);
-      ws.send(JSON.stringify(action, null, 2));
-      resolve();
-    })
-  }
-}
-
-
 module.exports = {
   start,
   stop,
   combineHandlers,
   SapiError,
-  withWS,
   getClients,
-  test,
   inject
 }

@@ -53,10 +53,15 @@ const handlers = {
       .then(() => lobbyService.get.byId(db, ws.store.lobbyId))
       .then(ctx.store('lobby'))
       .then(data => check.isLeader(ws, ctx.lobby)(data))
-      .then(() => sapi.inject({type:"APP_TERMINATE_HOOK", payload:action.payload.name}ws, db, action.payload.name, 'TERMINATE'))
-      .then(() => appService
-        .destroyAppdata(db, ws.store.lobbyId, action.payload.name)
-      )
+      .then(() => sapi.inject({
+        type: "APP_TERMINATE_HOOK",
+        payload: { name: action.payload.name }
+      }, ws, db))
+      .then((results) => {
+        console.log(results)
+        return appService
+          .destroyAppdata(db, ws.store.lobbyId, action.payload.name)
+      })
       .then(() => {
         ws.sendAction("APP_TERMINATE_FULFILLED");
         return app2sapi.doAppUpdate(db, ctx.lobby._id);

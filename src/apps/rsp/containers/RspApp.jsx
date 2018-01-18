@@ -8,6 +8,7 @@ import withStyles from 'material-ui/styles/withStyles';
 import MoveSection from '../components/MoveSection';
 import Typography from 'material-ui/Typography/Typography';
 import CompleteSection from '../components/CompleteSection';
+import consts from '../consts.json'
 
 const styles = theme => ({
   root: {
@@ -113,7 +114,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   rspMove: (variant) => dispatch(move(variant)),
-  rspTerminate: (variant) => dispatch(terminate('rsp')),
+  rspTerminate: (variant) => dispatch(terminate(consts.APP_NAME)),
 })
 
 

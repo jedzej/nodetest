@@ -32,6 +32,13 @@ const lobbyNotificationsEpics = [
       ofType(types.LOBBY_LEAVE_REJECTED),
       simpleNotificationError('Lobby leave rejected!')
     ),
+
+  action$ =>
+    action$.pipe(
+      ofType(types.LOBBY_KICK_REJECTED),
+      simpleNotificationError('Lobby kick rejected!')
+    ),
+
   action$ =>
     action$.pipe(
       ofType(types.LOBBY_UPDATE),

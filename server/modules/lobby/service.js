@@ -19,7 +19,7 @@ const get = {
   byQuery: (db, query) => db.collection('lobby')
     .findOne(query)
     .then(lobby =>
-      lobby ? Promise.resolve(lobby) : Promise.reject("Lobby not found")
+      lobby ? Promise.resolve(lobby) : Promise.reject(new Error("Lobby not found"))
     ),
 
   byId: (db, id) => get.byQuery(db, { _id: id }),

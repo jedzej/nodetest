@@ -1,7 +1,9 @@
 const lobbyService = require('./service');
 const userService = require('../user/service');
+const appService = require('../app/service');
 const SapiError = require('../../sapi').SapiError;
 const sapi = require('../../sapi');
+const app2sapi = require('../../app2sapi');
 const tools = require('../tools');
 const check = require('../check');
 const filter = require('../filter');
@@ -103,14 +105,26 @@ const handlers = {
 
 
   'LOBBY_JOIN': (action, ws, db) => {
-    // check input
+    var ctx = new tools.Context();
     return Promise.resolve()
+      // check input
       .then(check.loggedIn(ws))
       .then(check.notInLobby(ws))
-      .then(() => app2sapi.fireHook(ws, db, {
-        type: 'START',
-        payload: action.payload.name
-      }))
+      // call hook
+      .then(() => lobbyService.get.byToken(db, action.payload.token))
+      .then(ctx.store('lobby'))
+      .then(() => {
+        return appService.getExclusive(db, ctx.lobby._id)
+          .then(ctx.store('app'))
+          .catch(err => { })
+      })
+      .then(() => sapi.inject({
+        type: 'LOBBY_JOIN_HOOK',
+        payload: {
+          lobby: ctx.lobby,
+          app: ctx.app
+        }
+      }, ws, db))
       // actually join the lobby
       .then(() =>
         lobbyService.join(db, ws.store.currentUser._id, action.payload.token)
@@ -150,6 +164,21 @@ const handlers = {
       .then(() => ctx.lobby.membersIds.find(id => id.equals(action.payload.id)))
       .then(ctx.store('kickedUserId'))
       .then(check.ifTrue(() => ctx.kickedUserId, "User not in lobby", "EAUTH"))
+      // get app if present
+      .then(() => {
+        return appService.getExclusive(db, ctx.lobby._id)
+          .then(ctx.store('app'))
+          .catch(err => { })
+      })
+      // call hook
+      .then(() => sapi.inject({
+        type: 'LOBBY_KICK_HOOK',
+        payload: {
+          lobby: ctx.lobby,
+          app: ctx.app,
+          kickedUserId: ctx.kickedUserId
+        }
+      }, ws, db))
       // remove kicked user from lobby
       .then(() => lobbyService.leave(db, ctx.kickedUserId))
       // store handle and respond
@@ -176,10 +205,27 @@ const handlers = {
 
   'LOBBY_LEAVE': (action, ws, db) => {
     var ctx = new tools.Context();
-    // verify input
     return Promise.resolve()
+      // verify input
       .then(check.loggedIn(ws))
       .then(check.inLobby(ws))
+      // get lobby
+      .then(() => lobbyService.get.byMemberId(db, ws.store.currentUser._id))
+      .then(ctx.store('lobby'))
+      // get app if present
+      .then(() => {
+        return appService.getExclusive(db, ctx.lobby._id)
+          .then(ctx.store('app'))
+          .catch(err => { })
+      })
+      // call hook
+      .then(() => sapi.inject({
+        type: 'LOBBY_LEAVE_HOOK',
+        payload: {
+          lobby: ctx.lobby,
+          app: ctx.app
+        }
+      }, ws, db))
       // acually leave the lobby
       .then(() => lobbyService.leave(db, ws.store.currentUser._id))
       // delete handle and respond

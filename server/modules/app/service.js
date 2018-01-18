@@ -6,7 +6,6 @@ const ObjectId = require('mongodb').ObjectId;
 var debug = require('debug')('app:service');
 debug.log = console.log.bind(console);
 
-var apps = [];
 
 const dbReset = (db) => {
   return db.dropCollection('appdata')
@@ -65,12 +64,20 @@ const getMap = (db, lobbyId) => getList(db, lobbyId)
       return accum;
     }, {}))
 
+const getExclusive = (db, lobbyId) =>
+  db.collection('appdata')
+    .findOne({ lobbyId: lobbyId, exclusive: true })
+    .then(app =>
+      app ? Promise.resolve(app) : Promise.reject("No exclusive map")
+    );
+
 
 module.exports = {
   dbReset,
   getByLobbyIdAndName,
   getList,
   getMap,
+  getExclusive,
   commitAppdata,
   destroyAppdata
 };

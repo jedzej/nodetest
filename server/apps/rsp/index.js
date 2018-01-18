@@ -32,11 +32,26 @@ const DUEL_TABLE = {
 
 const RSP_APP_HOOKS = {
 
-  'TERMINATE': appContext => {
+  'APP_TERMINATE_HOOK': appContext => {
     console.log('terminate');
   },
 
-  'START': appContext => {
+  'APP_START_HOOK': appContext => {
+    if (appContext.lobby.members.length != 2) {
+      throw new Error("There must be 2 members in the lobby")
+    }
+    const members = appContext.lobby.members;
+    appContext.store.player1._id = members[0]._id;
+    appContext.store.player2._id = members[1]._id;
+    appContext.store.stage = "ongoing";
+    return appContext.commit();
+  }
+}
+
+
+const RSP_APP_HANDLERS = {
+
+  'APP_START_HOOK': (action, appContext) => {
     if (appContext.lobby.members.length != 2) {
       throw new Error("There must be 2 members in the lobby")
     }
@@ -46,35 +61,30 @@ const RSP_APP_HOOKS = {
     appContext.store.stage = "ongoing";
     return appContext.commit();
   },
-}
 
-
-const RSP_APP_HANDLERS = {
-
-  'RSP_START': (action, appContext) => {
-    return Promise.resolve()
-      .then(check.isLeader(appContext.sapi.me, appContext.lobby))
-      .then(check.ifTrue(appContext.lobby.members.length == 2,
-        new Error("There must be 2 members in the lobby"))
-      )
-      .then(() => {
-        const members = appContext.lobby.members;
-        appContext.store.player1._id = members[0]._id;
-        appContext.store.player2._id = members[1]._id;
-        appContext.store.stage = "ongoing";
-        return appContext.commit();
-      })
-      .then(() => {
-        appContext.sapi.me.sendAction("RSP_START_FULFILLED");
-        return appContext.doAppUpdate();
-      })
-      .catch(err => {
-        appContext.sapi.me.sendAction(
-          rejectionAction("RSP_START_REJECTED", err))
-        throw err;
-      });
+  'APP_TERMINATE_HOOK': (action, appContext) => {
+    console.log('terminate');
   },
 
+  'LOBBY_JOIN_HOOK': (action, appContext) => {
+    const appdata = action.payload.app;
+    if (appdata && appdata.name === MANIFEST.name)
+      throw new Error("No hot join allowed!")
+  },
+
+  'LOBBY_LEAVE_HOOK': (action, appContext) => {
+    const appdata = action.payload.app;
+    if (appdata && appdata.name === MANIFEST.name)
+      return appContext.terminate()
+        .then(() => appContext.doAppUpdate());
+  },
+
+  'LOBBY_KICK_HOOK': (action, appContext) => {
+    const appdata = action.payload.app;
+    if (appdata && appdata.name === MANIFEST.name)
+      return appContext.terminate()
+        .then(() => appContext.doAppUpdate());
+  },
 
   'RSP_MOVE': (action, appContext) => {
     var store = appContext.store;
