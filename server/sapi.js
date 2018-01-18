@@ -47,6 +47,26 @@ function combineHandlers(...handlers) {
 }
 
 
+PromiseWhen = (promises, errHandler) => {
+  const results = [];
+  var chain = Promise.resolve();
+  promises.forEach(promise => {
+    chain = chain
+      .then(() =>
+        promise
+          .then(result => {
+            results.push(result);
+          })
+          .catch(err => {
+            errHandler(err);
+            results.push(err);
+          })
+      )
+  });
+  return chain.then(() => results)
+}
+
+
 function sendAction(param1, param2) {
   var action;
   if (typeof param1 === 'string') {
@@ -70,7 +90,19 @@ function sendAction(param1, param2) {
   }
 }
 
-function onConnection(handlers, db) {
+const inject = (action, ws, db) => {
+  ws.debug.actions("<= %s", action.type);
+  const matchedHandlers = handlersList.filter(handler => handler.type === action.type);
+  ws.debug.handlers("Actions handlers for [%s]: %d", action.type, matchedHandlers.length);
+  return PromiseWhen(
+    matchedHandlers.map(
+      handler => handler(action, ws, db)
+    ),
+    err => { ws.debug.handlers(err.stack); }
+  )
+}
+
+function onConnection(db) {
   return (ws, req) => {
     ws.debug = {};
     Object.keys(debug).forEach(key => {
@@ -96,15 +128,8 @@ function onConnection(handlers, db) {
       try {
         if (action.type === undefined) {
           ws.debug.data("Malformed action! No action type!");
-        } else if (handlers[action.type] !== undefined) {
-          ws.debug.actions("<= %s", action.type);
-          ws.debug.handlers("Action handler for [%s] present", action.type);
-          Promise.resolve(handlers[action.type](action, ws, db))
-            .catch(err => {
-              ws.debug.handlers(err.stack);
-            })
         } else {
-          ws.debug.handlers("No action handler for [%s]", action.type);
+          inject(action, ws, db)
         }
       } catch (e) {
         throw e;
@@ -125,16 +150,24 @@ function onConnection(handlers, db) {
   }
 }
 
+var handlersList = [];
 
 const start = (port, handlers, db) => {
   if (server === null) {
     new Promise((resolve, reject) => {
       server = new WebSocket.Server({ port });
-      server.on('connection', onConnection(handlers, db));
+
+
+
+      Object.keys(handlers).forEach(type => {
+        handlers[type].type = type;
+        handlersList.push(handlers[type]);
+        debug.handlers("Registering handler: " + type)
+      })
+
+      server.on('connection', onConnection(db));
       server.on('open', resolve);
       server.on('error', reject);
-
-      Object.keys(handlers).forEach(type => debug.handlers("Registering handler: " + type))
 
 
       // heart beat
@@ -248,5 +281,6 @@ module.exports = {
   SapiError,
   withWS,
   getClients,
-  test
+  test,
+  inject
 }

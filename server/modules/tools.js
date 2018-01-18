@@ -83,3 +83,25 @@ module.exports.objectId = o => {
   }
   return o.__uniqueid;
 };
+
+
+module.exports.PromiseWhen = promises => {
+  const results = [];
+  var chain = Promise.resolve();
+  promises.forEach(promise => {
+    chain = chain
+      .then(() =>
+        promise
+          .then(result => {
+            console.log(chain, promise)
+            console.log('push res', result)
+            results.push(result);
+          })
+          .catch(err => {
+            console.log('push err', err)
+            results.push(err);
+          })
+      )
+  });
+  return chain.then(() => results)
+}

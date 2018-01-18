@@ -107,6 +107,10 @@ const handlers = {
     return Promise.resolve()
       .then(check.loggedIn(ws))
       .then(check.notInLobby(ws))
+      .then(() => app2sapi.fireHook(ws, db, {
+        type: 'START',
+        payload: action.payload.name
+      }))
       // actually join the lobby
       .then(() =>
         lobbyService.join(db, ws.store.currentUser._id, action.payload.token)

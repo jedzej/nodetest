@@ -86,35 +86,43 @@ class AppContext {
   }
 }
 
-const createAppContext = (ws, db, appName) => {
+const createAppContext = (ws, db, lobby, appName) => {
+  console.log(apps, appName)
+  return appService.getByLobbyIdAndName(db, lobby._id, appName)
+    .then(appdata => {
+      console.log("APPDATA", appdata)
+      if (appdata === null) {
+        appdata = {
+          store: apps[appName].defaultStore,
+          lobbyId: lobby._id,
+          name: appName,
+          exclusive: apps[appName].exclusive
+        };
+      }
+      return new AppContext(null, ws, db, lobby, appdata)
+    });
+}
+
+const fireHook = (hookName, ws, db, action) => {
   var ctx = new tools.Context();
+  // get the lobby
   return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
     .then(check
       .ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY")
     )
     .then(ctx.store('lobby'))
-    .then(() =>
-      appService.getByLobbyIdAndName(db, ctx.lobby._id, apps[appName].name))
-    .then(appdata => {
-      if (appdata === null) {
-        appdata = {
-          store: apps[appName].defaultStore,
-          lobbyId: ctx.lobby._id,
-          name: appName,
-          exclusive: apps[appName].exclusive
-        };
-      }
-      return new AppContext(null, ws, db, ctx.lobby, appdata)
-    });
-}
-
-const fireHook = (ws, db, appName, hookName) => {
-  const hook = apps[appName].hooks[hookName];
-  if (hook)
-    return createAppContext(ws, db, appName)
-      .then(appContext => hook(appContext));
-  else
-    return Promise.resolve();
+    // create context and call hooks for all apps
+    .then(() => Promise.all(
+      apps.map(app => {
+        const hook = app.hooks[action.type];
+        if (hook) {
+          return createAppContext(ws, db, ctx.lobby, app.name)
+            .then(appContext => hook(appContext));
+        } else {
+          return Promise.resolve();
+        }
+      })
+    ))
 }
 
 const app2sapi = (appPath) => {
@@ -130,8 +138,14 @@ const app2sapi = (appPath) => {
   var sapiHandlers = {}
   Object.keys(app.handlers).forEach(type => {
     const appHandler = app.handlers[type];
+    var ctx = new tools.Context();
     sapiHandlers[type] = (action, ws, db) =>
-      createAppContext(ws, db, app.name)
+      lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+        .then(check
+          .ifTrue(lobby => lobby !== null, 'Lobby does not exist', "ELOBBY")
+        )
+        .then(ctx.store('lobby'))
+        .then(() => createAppContext(ws, db, ctx.lobby, app.name))
         .then(appContext => appHandler(action, appContext))
   });
   return sapiHandlers;

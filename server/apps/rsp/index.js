@@ -79,6 +79,7 @@ const RSP_APP_HANDLERS = {
   'RSP_MOVE': (action, appContext) => {
     var store = appContext.store;
     var m, o;
+    console.log(appContext.store)
     switch (store.stage) {
       case "ongoing":
         if (store.player1._id.equals(appContext.currentUser._id)) {

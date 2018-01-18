@@ -13,7 +13,7 @@ class InLobbyRoute extends Component {
     const exclusiveApp = Object.values(this.props.app).find(app => app.exclusive);
 
     const app_map = {
-      'rsp': () => <RspApp />
+      'RSP': () => <RspApp />
     }
     return (
       <AppLayout>
