@@ -58,11 +58,13 @@ const PointsTable = props => {
     players: [
       {
         name: props.me.name,
-        moves: movesFill(props.me.moves, props.opponent.moves, roundLimit)
+        moves: movesFill(props.me.moves, props.opponent.moves,
+          roundLimit, props.mutateOffset)
       },
       {
         name: props.opponent.name,
-        moves: movesFill(props.opponent.moves, props.me.moves, roundLimit, true)
+        moves: movesFill(props.opponent.moves, props.me.moves,
+          roundLimit, true)
       }
     ]
   };
@@ -103,7 +105,8 @@ PointsTable.propTypes = {
   classes: PropTypes.object.isRequired,
   me: PropTypes.object.isRequired,
   opponent: PropTypes.object.isRequired,
-  roundLimit: PropTypes.number.isRequired
+  roundLimit: PropTypes.number.isRequired,
+  mutateOffset: PropTypes.bool
 };
 
 export default withStyles(styles)(PointsTable);

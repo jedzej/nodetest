@@ -31,30 +31,52 @@ const styles = theme => ({
 const ResultBox = props => (
   <Grid container>
     <Grid item xs={4} style={{ textAlign: 'right' }}>
-      <props.icon style={{ height: '50px', width: '50px' }}  color={props.color}/>
+      <props.icon
+        style={{ height: '50px', width: '50px' }}
+        color={props.color} />
     </Grid>
     <Grid item xs={4}>
-      <Typography type="headline" color={props.color}> {props.headline} </Typography>
+      <Typography type="headline" color={props.color}>
+        {props.headline}
+      </Typography>
     </Grid>
     <Grid item xs={4} style={{ textAlign: 'left' }}>
-      <props.icon style={{ height: '50px', width: '50px' }}  color={props.color}/>
+      <props.icon
+        style={{ height: '50px', width: '50px' }}
+        color={props.color} />
     </Grid>
   </Grid>
 );
 
-const VictoryBox = props => <ResultBox icon={SentimentVerySatisfied} headline="you won" color="primary" />;
+const VictoryBox = props =>
+  <ResultBox
+    icon={SentimentVerySatisfied}
+    headline="you won"
+    color="primary" />;
 
-const DefeatBox = props => <ResultBox icon={SentimentVeryDissatisfied} headline="you lost" color="accent" />;
+const DefeatBox = props =>
+  <ResultBox
+    icon={SentimentVeryDissatisfied}
+    headline="you lost"
+    color="accent" />;
 
-const TieBox = props => <ResultBox icon={SentimentNeutral} headline="tie" color="inherit" />;
+const TieBox = props =>
+  <ResultBox
+    icon={SentimentNeutral}
+    headline="tie"
+    color="inherit" />;
 
 
-class CompleteSection extends Component {
+class CompleteSectionPlayerImpl extends Component {
   render() {
     const { classes } = this.props;
     return (
       <Paper>
-        <Grid container spacing={18} justify="center" className={classes.root}>
+        <Grid container
+          spacing={18}
+          justify="center"
+          className={classes.root}>
+
           <Grid item xs={12}>
             {(() => {
               switch (this.props.result) {
@@ -66,20 +88,54 @@ class CompleteSection extends Component {
                   return <TieBox />
               }
             })()}
-            <Button disabled={!this.props.terminateable} raised onClick={() => this.props.onTerminate()}>TERMINATE</Button>
+            <Button raised disabled={!this.props.terminateable}
+              onClick={() => this.props.onTerminate()}>
+              TERMINATE
+            </Button>
           </Grid>
+
         </Grid>
       </Paper>
     );
   }
-
 }
 
-CompleteSection.propTypes = {
+
+class CompleteSectionObserverImpl extends Component {
+  render() {
+    const { classes } = this.props;
+    return (
+      <Paper>
+        <Grid container
+          spacing={18}
+          justify="center"
+          className={classes.root}>
+
+          <Grid item xs={12}>
+            <ResultBox
+              icon={SentimentVerySatisfied}
+              headline={this.props.winner.name + ' wins'}
+              color="inherit" />
+          </Grid>
+
+        </Grid>
+      </Paper>
+    );
+  }
+}
+
+CompleteSectionPlayerImpl.propTypes = {
   classes: PropTypes.object.isRequired,
   result: PropTypes.string,
   terminateable: PropTypes.bool,
   onTerminate: PropTypes.func
 };
 
-export default withStyles(styles)(CompleteSection);
+CompleteSectionObserverImpl.propTypes = {
+  classes: PropTypes.object.isRequired,
+  winner: PropTypes.object
+};
+
+export const CompleteSectionPlayer = withStyles(styles)(CompleteSectionPlayerImpl);
+
+export const CompleteSectionObserver = withStyles(styles)(CompleteSectionObserverImpl);

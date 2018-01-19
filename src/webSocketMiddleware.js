@@ -75,13 +75,15 @@ export const createWebSocketMiddleWare = url => store => {
         }
         break;
       case "WEBSOCKET_WRITE":
-        if (ws !== null) {
+        try {
+          if (ws === null)
+            throw new Error("ENOTOPENED");
           ws.send(JSON.stringify(action.payload));
-        } else {
+        } catch (e) {
           store.dispatch({
             type: "WEBSOCKET_ERROR",
-            payload: "ENOTOPENED"
-          })
+            payload: e.message
+          });
         }
         break;
       case "WEBSOCKET_RECEIVED":

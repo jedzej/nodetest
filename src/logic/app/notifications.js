@@ -1,8 +1,5 @@
-import { ofType } from "redux-observable";
-import { pairwise, filter, map } from "rxjs/operators";
-
 import * as types from "./types";
-import { simpleNotificationSuccess, simpleNotificationError, simpleNotificationInfoAction } from "../common/operators";
+import { simpleNotificationError } from "../common/operators";
 
 
 const appNotificationsEpics = [

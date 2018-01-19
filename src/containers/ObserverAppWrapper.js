@@ -8,8 +8,8 @@ class ObserverAppWrapper extends Component {
 
   componentDidMount() {
     if (this.props.websocket === WEBSOCKET_NOT_INITIALIZED){
-      this.props.observerSessionIntent();
-      this.props.webSocketOpen(this.props.token);
+      this.props.observerSessionIntent(this.props.token);
+      this.props.webSocketOpen();
     }
   }
 
@@ -32,7 +32,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     webSocketOpen: () => dispatch(webSocketOpen()),
-    observerSessionIntent: () => dispatch(sessionIntent())
+    observerSessionIntent: (token) => dispatch(sessionIntent(token))
   };
 };
 

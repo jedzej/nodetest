@@ -3,11 +3,11 @@ import { connect } from "react-redux";
 import { move } from '../actions';
 import { terminate } from '../../../logic/app/actions';
 import PointsTable from '../components/PointsTable';
-import { rspMatch } from '../core'
+import { rspMatch, RESULT } from '../core'
 import withStyles from 'material-ui/styles/withStyles';
 import MoveSection from '../components/MoveSection';
 import Typography from 'material-ui/Typography/Typography';
-import CompleteSection from '../components/CompleteSection';
+import { CompleteSectionPlayer, CompleteSectionObserver } from '../components/CompleteSection';
 import consts from '../consts.json'
 
 const styles = theme => ({
@@ -57,13 +57,16 @@ class RspApp extends React.Component {
     const opponentsTurn = me.moves.length > opponent.moves.length;
     return (
       <div>
-        <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        <br />
-        <MoveSection disabled={opponentsTurn} onClick={move => this.props.rspMove(move)}>
-          <Typography type="headline" align="center" gutterBottom className={this.props.classes.headline}>
-            {opponentsTurn ? "waiting for opponent" : "your move"}
-          </Typography>
-        </MoveSection>
+        <PointsTable me={me} opponent={opponent}
+          roundLimit={this.props.rsp.roundLimit}
+          mutateOffset={this.props.user.loggedIn === false} />
+        {this.props.user.loggedIn ?
+          <MoveSection disabled={opponentsTurn} onClick={move => this.props.rspMove(move)}>
+            <Typography type="headline" align="center" gutterBottom className={this.props.classes.headline}>
+              {opponentsTurn ? "waiting for opponent" : "your move"}
+            </Typography>
+          </MoveSection> : null
+        }
       </div>
     );
   }
@@ -71,13 +74,24 @@ class RspApp extends React.Component {
   renderComplete(me, opponent) {
     const result = rspMatch(me, opponent);
     const isLeader = this.props.lobby.leaderId === this.props.user._id;
+    
+    const winner = ({
+      [RESULT.VICTORY]:me,
+      [RESULT.DEFEAT]:opponent,
+      [RESULT.TIE]:null
+    })[result];
+    console.log('winner',winner)
     return (
       <div>
         <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        <CompleteSection
+        {this.props.user.loggedIn ? 
+          <CompleteSectionPlayer
           terminateable={isLeader}
           result={result}
-          onTerminate={() => this.props.rspTerminate()} />
+          onTerminate={() => this.props.rspTerminate()} /> :
+          <CompleteSectionObserver winner={winner} />
+        }
+        
       </div>
     );
   }

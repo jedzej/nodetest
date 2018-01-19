@@ -2,8 +2,20 @@ import React, { Component } from 'react';
 import ObserverAppWrapper from '../containers/ObserverAppWrapper';
 import { join } from '../logic/observer/actions';
 import { connect } from "react-redux";
-import ChatBox from '../containers/ChatBox';
+import InLobbyRoute from './InLobbyRoute';
 
+const LobbyObserveSelector = props => (
+  <ul>
+    {props.lobbiesList.map(lobby =>
+      <li key={lobby.token}>
+        <span>{lobby.members[0].name}</span>
+        <button onClick={() => this.props.join(lobby.token)}>
+          &lt;=
+        </button>
+      </li>
+    )}
+  </ul>
+);
 
 class ObserveRoute extends Component {
 
@@ -11,16 +23,13 @@ class ObserveRoute extends Component {
     console.log(this.props.match.params.token)
     return (
       <ObserverAppWrapper token={this.props.match.params.token}>
-        <div>OBSERVE {this.props.match.params.token}</div>
-        {this.props.lobby.exists ? <ChatBox withFormBox={false} /> :
-          <ul>
-            {this.props.lobby.lobbiesList.map(lobby =>
-              <li key={lobby.token}>
-                <span>{lobby.members[0].name}</span>
-                <button onClick={() => this.props.join(lobby.token)}>&lt;=</button>
-              </li>
-            )}
-          </ul>}
+        {(() => {
+          if (this.props.lobby.exists)
+            return <InLobbyRoute />
+          else
+            return <LobbyObserveSelector
+              lobbiesList={this.props.lobby.lobbiesList} />
+        })()}
       </ObserverAppWrapper>
     );
   }
