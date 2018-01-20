@@ -1,7 +1,8 @@
 import React from 'react';
 import SvgIcon from 'material-ui/SvgIcon/SvgIcon';
-import { MOVE } from '../core';
+import MANIFEST from '../manifest'
 
+const MOVE = MANIFEST.consts.MOVE;
 
 export const RockIcon = props => (
   <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" {...props} >

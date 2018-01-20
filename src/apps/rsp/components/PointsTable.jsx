@@ -4,8 +4,12 @@ import { withStyles } from 'material-ui/styles';
 import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
 import { ScissorsIcon, RockIcon, PaperIcon, RSPMoveIcon } from './RSPIcons';
-import { rspRound, RESULT } from '../core';
+import { rspRound} from '../core';
 import MutatorIcon from './MutatorIcon';
+
+import MANIFEST from '../manifest'
+
+const RESULT = MANIFEST.consts.RESULT;
 
 const styles = theme => ({
   root: {

@@ -3,9 +3,12 @@ import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
 import Paper from 'material-ui/Paper';
 import { RSPMoveIcon } from './RSPIcons';
-import { MOVE } from '../core';
 import Grid from 'material-ui/Grid/Grid';
 import Button from 'material-ui/Button/Button';
+
+import MANIFEST from '../manifest'
+
+const MOVE = MANIFEST.consts.MOVE;
 
 const styles = theme => ({
   root: {

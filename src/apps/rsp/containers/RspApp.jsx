@@ -3,12 +3,14 @@ import { connect } from "react-redux";
 import { move } from '../actions';
 import { terminate } from '../../../logic/app/actions';
 import PointsTable from '../components/PointsTable';
-import { rspMatch, RESULT } from '../core'
+import { rspMatch } from '../core'
 import withStyles from 'material-ui/styles/withStyles';
 import MoveSection from '../components/MoveSection';
 import Typography from 'material-ui/Typography/Typography';
 import { CompleteSectionPlayer, CompleteSectionObserver } from '../components/CompleteSection';
-import consts from '../consts.json'
+import MANIFEST from '../manifest'
+
+const RESULT = MANIFEST.consts.RESULT;
 
 const styles = theme => ({
   root: {
@@ -128,7 +130,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   rspMove: (variant) => dispatch(move(variant)),
-  rspTerminate: (variant) => dispatch(terminate(consts.APP_NAME)),
+  rspTerminate: (variant) => dispatch(terminate(MANIFEST.name)),
 })
 
 

@@ -2,13 +2,16 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from 'material-ui/styles';
 import Paper from 'material-ui/Paper';
-import { RESULT } from '../core';
 import Grid from 'material-ui/Grid/Grid';
 import Button from 'material-ui/Button/Button';
 import Typography from 'material-ui/Typography/Typography';
 import SentimentVerySatisfied from 'material-ui-icons/SentimentVerySatisfied';
 import SentimentVeryDissatisfied from 'material-ui-icons/SentimentVeryDissatisfied';
 import SentimentNeutral from 'material-ui-icons/SentimentNeutral';
+
+import MANIFEST from '../manifest'
+
+const RESULT = MANIFEST.consts.RESULT;
 
 const styles = theme => ({
   root: {

@@ -1,10 +1,12 @@
 import { combineEpics } from 'redux-observable';
 import { webSocketWrite } from '../../webSocketMiddleware'
 
-import * as types from './types'
+import MANIFEST from './manifest'
+
+const type = MANIFEST.consts.action.type;
 
 const wsTransmitEpic = action$ => action$
-  .ofType(types.RSP_MOVE)
+  .ofType(type.RSP_MOVE)
   .let(webSocketWrite)
 
 

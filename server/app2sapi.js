@@ -105,7 +105,7 @@ const createAppContext = (ws, db, lobby, appName) => {
 
 
 const app2sapi = (appPath) => {
-  const manifest = require(appPath + '/manifest.json');
+  const manifest = require(appPath + '/manifest');
   const index = require(appPath + '/index');
   const app = {
     ...manifest,
