@@ -9,7 +9,7 @@ const LobbyObserveSelector = props => (
     {props.lobbiesList.map(lobby =>
       <li key={lobby.token}>
         <span>{lobby.members[0].name}</span>
-        <button onClick={() => this.props.join(lobby.token)}>
+        <button onClick={() => props.onJoin(lobby.token)}>
           &lt;=
         </button>
       </li>
@@ -28,7 +28,8 @@ class ObserveRoute extends Component {
             return <InLobbyRoute />
           else
             return <LobbyObserveSelector
-              lobbiesList={this.props.lobby.lobbiesList} />
+              lobbiesList={this.props.lobby.lobbiesList} 
+              onJoin={(token) => this.props.join(token)}/>
         })()}
       </ObserverAppWrapper>
     );
