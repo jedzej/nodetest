@@ -13,20 +13,16 @@ class AuthenticateRoute extends Component {
   render() {
     return (
       <UserAppWrapper>
-        <Grid container spacing={16}>
-          <Grid item xs={12} sm={6}>
-            <AppBar position="static" color="inherit">
-              <Typography type="title" color="inherit">Create account</Typography>
-            </AppBar>
+        <Grid id="tutaj" container spacing={16}>
+          <Grid  id="tutaj_tez" item xs={12} sm={6}>
             <Paper>
+              <Typography type="title" color="inherit">Create account</Typography>
               <CredentialsForm title="Register" onSubmit={this.props.register} submitValue="Register" />
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <AppBar position="static" color="inherit">
-              <Typography type="title" color="inherit">Log in</Typography>
-            </AppBar>
             <Paper>
+              <Typography type="title" color="inherit">Log in</Typography>
               <CredentialsForm onSubmit={this.props.login} submitValue="Login" />
             </Paper>
           </Grid>
