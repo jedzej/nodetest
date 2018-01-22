@@ -2,6 +2,34 @@ import React, { Component } from 'react';
 import { connect } from "react-redux";
 import { message } from '../logic/chat/actions'
 import dateFormat from 'dateformat'
+import withStyles from 'material-ui/styles/withStyles';
+import Divider from 'material-ui/Divider';
+import TextField from 'material-ui/TextField';
+import Send from 'material-ui-icons/Send';
+import IconButton from 'material-ui/IconButton';
+
+
+const styles = theme => ({
+  container: {
+    width: '100%',
+    height: '100%'
+  },
+  content: {
+    height: 'calc(100% - 50px)',
+    overflowY: 'scroll'
+  },
+  contentBody: {
+    height: 'calc(100% - 50px)',
+    overflowY: 'scroll'
+  },
+  messageInput: {
+    width: 'calc(100% - 50px)'
+  },
+  footer: {
+    height: '50px'
+  }
+});
+
 
 const ChatEntry = (props) => (
   <div className="chat-entry">
@@ -13,17 +41,36 @@ const ChatEntry = (props) => (
     </div>
     <div className="chat-entry-message">{props.message}</div>
   </div>
-)
+);
 
 class ChatBox extends Component {
+  constructor(props) {
+    /*props.chat.messages = Array.apply(null, { length: 25 }).map(Number.call, Number).map(i => ({
+      from: {
+        name: "aaa",
+        _id: "12341234"
+      },
+      message: "msg " + i
+    }))*/
+    super(props);
+    this.state = {
+      'message': ""
+    }
+  }
 
   handleSubmit(event) {
     if (this.messageInput.value.length > 0) {
       this.props.sendMessage(this.messageInput.value);
-      this.messageInput.value = '';
     }
+    this.setState({ 'message': '' })
     this.messageInput.focus();
     event.preventDefault();
+  }
+
+  handleChange(event) {
+    if (this.messageInput === undefined)
+      this.messageInput = event.target;
+    this.setState({ 'message': this.messageInput.value })
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -32,27 +79,43 @@ class ChatBox extends Component {
   }
 
   render() {
+    const { classes, chat } = this.props;
     return (
-      <div className="chat-box">
-        <div className="chat-message-box" ref={element => { this.messageBox = element }}>
-          <hr />
-          {this.props.chat.messages.map(m =>
+      <div className={classes.container}>
+        <section className={classes.content} ref={e => this.messageBox = e}>
+          {chat.messages.map((m, i) =>
             <div key={m.timestamp}>
-              <ChatEntry author={m.from.name} message={m.message} timestamp={m.timestamp} />
-              <hr />
+              <ChatEntry
+                author={m.from.name}
+                message={m.message}
+                timestamp={m.timestamp}
+              />
+              <Divider hidden={i === chat.messages.length - 1} />
             </div>
           )}
-        </div>
+        </section>
         {(this.props.withFormBox ?
-          <div className="chat-form-box">
-            <form onSubmit={event => this.handleSubmit(event)} autoComplete="off">
-              <input type="text" className="chat-input-message" name="message"
-                ref={element => { this.messageInput = element }} />
-              <input className="chat-input-submit" type="submit" value="&#8626;" autoComplete="off" />
+          <footer className={classes.footer}>
+            <form
+              onSubmit={event => this.handleSubmit(event)}
+              autoComplete="off"
+            >
+              <TextField
+                className={classes.messageInput}
+                name="message"
+                onChange={event => this.handleChange(event)}
+                ref={element => { this.messageInput = element }}
+                value={this.state.message}
+                autoComplete="off" />
+              <IconButton
+                dense
+                color={this.state.message.length > 0 ? "primary" : "inherit"}
+              >
+                <Send />
+              </IconButton>
             </form>
-          </div> : ""
+          </footer> : ""
         )}
-
       </div>
     );
   }
@@ -72,4 +135,7 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChatBox);
+
+export default withStyles(styles)(
+  connect(mapStateToProps, mapDispatchToProps)(ChatBox)
+);

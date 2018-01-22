@@ -3,7 +3,6 @@ import { connect } from "react-redux";
 import Grid from 'material-ui/Grid';
 import Paper from 'material-ui/Paper/Paper';
 import Typography from 'material-ui/Typography';
-import AppBar from 'material-ui/AppBar';
 import CredentialsForm from '../components/CredentialsForm';
 import { register, login } from '../logic/user/actions'
 import UserAppWrapper from '../containers/UserAppWrapper';

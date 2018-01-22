@@ -13,7 +13,7 @@ const drawerWidth = 240;
 const styles = theme => ({
   root: {
     width: '100%',
-    height: '100%',
+    height: '100vh',
     zIndex: 1,
     overflow: 'hidden',
   },
@@ -21,7 +21,7 @@ const styles = theme => ({
     position: 'relative',
     display: 'flex',
     width: '100%',
-    height: '100%',
+    height: '100vh',
   },
   appBarWithDrawer: {
     position: 'absolute',
@@ -41,10 +41,10 @@ const styles = theme => ({
   drawerHeader: theme.mixins.toolbar,
   drawerPaper: {
     width: 250,
+    height: '100vh',
     [theme.breakpoints.up('md')]: {
       width: drawerWidth,
       position: 'relative',
-      height: '100%',
     },
   },
   content: {

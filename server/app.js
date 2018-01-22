@@ -4,7 +4,8 @@ const app2sapi = require('./app2sapi')
 const appService = require('./modules/app/service')
 
 const apps = [
-  './apps/rsp'
+  './apps/rsp',
+  './apps/chat'
   //require('./apps/chat/config')
 ]
 
