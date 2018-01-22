@@ -11,7 +11,7 @@ import SentimentNeutral from 'material-ui-icons/SentimentNeutral';
 
 import MANIFEST from '../manifest'
 
-const RESULT = MANIFEST.consts.RESULT;
+const RESULT = MANIFEST.CONSTS.RESULT;
 
 const styles = theme => ({
   root: {

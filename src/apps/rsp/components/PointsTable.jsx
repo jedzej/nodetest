@@ -9,7 +9,7 @@ import MutatorIcon from './MutatorIcon';
 
 import MANIFEST from '../manifest'
 
-const RESULT = MANIFEST.consts.RESULT;
+const RESULT = MANIFEST.CONSTS.RESULT;
 
 const styles = theme => ({
   root: {

@@ -2,10 +2,10 @@ const sapi = require('../../sapi');
 const tools = require('../../modules/tools');
 const check = require('../../modules/check');
 const appService = require('../../modules/app/service');
-const MANIFEST = require('./manifest')
+const MANIFEST = require('../../../src/apps/rsp/manifest')
 const rejectionAction = tools.rejectionAction
 
-const {MOVE, DUEL_TABLE, RESULT} = MANIFEST.consts;
+const {MOVE, DUEL_TABLE, RESULT, STAGE, ACTION} = MANIFEST.CONSTS;
 
 const RSP_APP_HANDLERS = {
 
@@ -14,9 +14,10 @@ const RSP_APP_HANDLERS = {
       throw new Error("There must be 2 members in the lobby")
     }
     const members = appContext.lobby.members;
+    console.log(appContext)
     appContext.store.player1._id = members[0]._id;
     appContext.store.player2._id = members[1]._id;
-    appContext.store.stage = MANIFEST.consts.stage.ONGOING;
+    appContext.store.stage = STAGE.ONGOING;
     return appContext.commit();
   },
 
@@ -26,30 +27,30 @@ const RSP_APP_HANDLERS = {
 
   'LOBBY_JOIN_HOOK': (action, appContext) => {
     const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.name)
+    if (appdata && appdata.name === MANIFEST.NAME)
       throw new Error("No hot join allowed!")
   },
 
   'LOBBY_LEAVE_HOOK': (action, appContext) => {
     const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.name)
+    if (appdata && appdata.name === MANIFEST.NAME)
       return appContext.terminate()
         .then(() => appContext.doAppUpdate());
   },
 
   'LOBBY_KICK_HOOK': (action, appContext) => {
     const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.name)
+    if (appdata && appdata.name === MANIFEST.NAME)
       return appContext.terminate()
         .then(() => appContext.doAppUpdate());
   },
 
-  'RSP_MOVE': (action, appContext) => {
+  [ACTION.RSP_MOVE]: (action, appContext) => {
     var store = appContext.store;
     var m, o;
     console.log(appContext.store)
     switch (store.stage) {
-      case "ongoing":
+      case STAGE.ONGOING:
         if (store.player1._id.equals(appContext.currentUser._id)) {
           m = store.player1;
           o = store.player2;
@@ -69,7 +70,7 @@ const RSP_APP_HANDLERS = {
           }
           var roundsLeft = store.roundLimit - m.moves.length;
           if (Math.abs(m.points - o.points) > roundsLeft || roundsLeft == 0)
-            store.stage = MANIFEST.consts.stage.COMPLETE
+            store.stage = STAGE.COMPLETE
         }
         return appContext.commit()
           .then(() => appContext.doAppUpdate());
@@ -82,5 +83,6 @@ const RSP_APP_HANDLERS = {
 }
 
 module.exports = {
-  handlers: RSP_APP_HANDLERS
+  handlers: RSP_APP_HANDLERS,
+  manifest: MANIFEST
 }

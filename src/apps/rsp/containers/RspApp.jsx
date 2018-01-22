@@ -10,7 +10,7 @@ import Typography from 'material-ui/Typography/Typography';
 import { CompleteSectionPlayer, CompleteSectionObserver } from '../components/CompleteSection';
 import MANIFEST from '../manifest'
 
-const RESULT = MANIFEST.consts.RESULT;
+const RESULT = MANIFEST.CONSTS.RESULT;
 
 const styles = theme => ({
   root: {
@@ -76,24 +76,24 @@ class RspApp extends React.Component {
   renderComplete(me, opponent) {
     const result = rspMatch(me, opponent);
     const isLeader = this.props.lobby.leaderId === this.props.user._id;
-    
+
     const winner = ({
-      [RESULT.VICTORY]:me,
-      [RESULT.DEFEAT]:opponent,
-      [RESULT.TIE]:null
+      [RESULT.VICTORY]: me,
+      [RESULT.DEFEAT]: opponent,
+      [RESULT.TIE]: null
     })[result];
-    console.log('winner',winner)
+    console.log('winner', winner)
     return (
       <div>
         <PointsTable me={me} opponent={opponent} roundLimit={this.props.rsp.roundLimit} />
-        {this.props.user.loggedIn ? 
+        {this.props.user.loggedIn ?
           <CompleteSectionPlayer
-          terminateable={isLeader}
-          result={result}
-          onTerminate={() => this.props.rspTerminate()} /> :
+            terminateable={isLeader}
+            result={result}
+            onTerminate={() => this.props.rspTerminate()} /> :
           <CompleteSectionObserver winner={winner} />
         }
-        
+
       </div>
     );
   }
@@ -130,7 +130,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   rspMove: (variant) => dispatch(move(variant)),
-  rspTerminate: (variant) => dispatch(terminate(MANIFEST.name)),
+  rspTerminate: (variant) => dispatch(terminate(MANIFEST.NAME)),
 })
 
 

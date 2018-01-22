@@ -90,13 +90,12 @@ const createAppContext = (ws, db, lobby, appName) => {
   console.log(apps, appName)
   return appService.getByLobbyIdAndName(db, lobby._id, appName)
     .then(appdata => {
-      console.log("APPDATA", appdata)
       if (appdata === null) {
         appdata = {
-          store: apps[appName].defaultStore,
+          store: apps[appName].DEFAULT_STORE,
           lobbyId: lobby._id,
           name: appName,
-          exclusive: apps[appName].exclusive
+          exclusive: apps[appName].EXCLUSIVE
         };
       }
       return new AppContext(null, ws, db, lobby, appdata)
@@ -105,14 +104,13 @@ const createAppContext = (ws, db, lobby, appName) => {
 
 
 const app2sapi = (appPath) => {
-  const manifest = require(appPath + '/manifest');
   const index = require(appPath + '/index');
   const app = {
-    ...manifest,
+    ...index.manifest,
     handlers: index.handlers
   }
   debug('registering %s', app.name)
-  apps[app.name] = app;
+  apps[app.NAME] = app;
   var sapiHandlers = {}
   Object.keys(app.handlers).forEach(type => {
     const appHandler = app.handlers[type];
@@ -121,7 +119,7 @@ const app2sapi = (appPath) => {
       console.log('sapihandler')
       return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
         .then(ctx.store('lobby'))
-        .then(() => createAppContext(ws, db, ctx.lobby, app.name))
+        .then(() => createAppContext(ws, db, ctx.lobby, app.NAME))
         .then(ctx.store('appContext'))
         .catch(err => { })
         .then(appContext => appHandler(action, ctx.appContext))

@@ -1,7 +1,7 @@
 import MANIFEST from './manifest'
 
-const R = MANIFEST.consts.RESULT;
-const DT = MANIFEST.consts.DUEL_TABLE;
+const R = MANIFEST.CONSTS.RESULT;
+const DT = MANIFEST.CONSTS.DUEL_TABLE;
 
 
 export const rspRound = (moveA, moveB) => {

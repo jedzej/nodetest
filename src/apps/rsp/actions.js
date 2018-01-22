@@ -1,7 +1,7 @@
 import MANIFEST from './manifest'
-const type = MANIFEST.consts.action.type;
+const {ACTION} = MANIFEST.CONSTS;
 
 export const move = variant => ({
-  type: type.RSP_MOVE,
+  type: ACTION.RSP_MOVE,
   payload: variant
 });

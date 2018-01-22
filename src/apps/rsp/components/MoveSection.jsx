@@ -8,7 +8,7 @@ import Button from 'material-ui/Button/Button';
 
 import MANIFEST from '../manifest'
 
-const MOVE = MANIFEST.consts.MOVE;
+const MOVE = MANIFEST.CONSTS.MOVE;
 
 const styles = theme => ({
   root: {

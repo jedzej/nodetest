@@ -3,10 +3,10 @@ import { webSocketWrite } from '../../webSocketMiddleware'
 
 import MANIFEST from './manifest'
 
-const type = MANIFEST.consts.action.type;
+const ACTION = MANIFEST.CONSTS.ACTION;
 
 const wsTransmitEpic = action$ => action$
-  .ofType(type.RSP_MOVE)
+  .ofType(ACTION.RSP_MOVE)
   .let(webSocketWrite)
 
 
