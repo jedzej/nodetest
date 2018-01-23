@@ -1,11 +1,13 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import SvgIcon from 'material-ui/SvgIcon/SvgIcon';
 import MANIFEST from '../manifest'
 
 const MOVE = MANIFEST.CONSTS.MOVE;
 
 export const RockIcon = props => (
-  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" {...props} >
+  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet"
+    {...props} >
     <g transform="translate(0,120) scale(0.1,-0.1)">
       <path d="M338 1107 c-34 -27 -56 -78 -64 -151 -6 -52 -5 -56 14 -56 55 0 92
 -43 92 -106 0 -21 5 -24 35 -24 22 0 43 8 55 20 18 18 20 33 20 164 0 79 -3
@@ -30,7 +32,8 @@ export const RockIcon = props => (
 
 
 export const PaperIcon = props => (
-  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" {...props} >
+  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet"
+    {...props} >
     <g transform="translate(0,120) scale(0.1,-0.1)">
       <path d="M580 1130 c-19 -19 -20 -33 -20 -236 0 -168 -3 -215 -12 -212 -10 4
 -14 53 -18 183 l-5 179 -27 15 c-20 12 -34 13 -55 6 -49 -18 -53 -39 -53 -305
@@ -46,7 +49,8 @@ l-1 -245 -22 30 c-51 69 -84 95 -121 95 -69 0 -98 -69 -59 -143 38 -74 213
 
 
 export const ScissorsIcon = props => (
-  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet" {...props} >
+  <SvgIcon viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet"
+    {...props} >
     <g transform="translate(0,120) scale(0.1,-0.1)">
       <path d="M597 1182 c-15 -16 -17 -49 -18 -238 l-1 -219 -42 196 c-23 108 -48
    204 -55 213 -19 23 -74 20 -96 -4 -17 -19 -17 -30 17 -327 20 -170 34 -310 32
@@ -66,10 +70,19 @@ const iconMap = {
   [MOVE.PAPER]: PaperIcon
 }
 
-export const RSPMoveIcon = (props) => {
-  var IconElement = iconMap[props.move];
-  if (IconElement)
-    return <IconElement {...props} />
-  else
-    return null;
+
+export class RSPMoveIcon extends React.Component {
+
+  render() {
+    var IconElement = iconMap[this.props.move];
+    if (IconElement)
+      return <IconElement {...this.props} />
+    else
+      return null;
+  }
 }
+
+
+RSPMoveIcon.propTypes = {
+  move: PropTypes.string.isRequired
+};

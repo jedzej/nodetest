@@ -17,9 +17,6 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 3,
     overflowX: 'auto',
   },
-  table: {
-    //minWidth: 700,
-  },
   cell: {
     padding: '0 10px;'
   }
@@ -55,7 +52,6 @@ const PointsTable = props => {
     return [...moves, ...Array(len - moves.length).fill()]
       .map((move, i) => [move, rspRound(move, opponentMoves[i])]);
   }
-  console.log(props.me, props.opponent)
 
   const data = {
     rounds: [...Array(roundLimit).keys()].map(e => e + 1),
@@ -112,5 +108,6 @@ PointsTable.propTypes = {
   roundLimit: PropTypes.number.isRequired,
   mutateOffset: PropTypes.bool
 };
+
 
 export default withStyles(styles)(PointsTable);
