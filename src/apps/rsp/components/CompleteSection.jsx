@@ -76,7 +76,6 @@ class CompleteSectionPlayerImpl extends Component {
     return (
       <Paper>
         <Grid container
-          spacing={18}
           justify="center"
           className={classes.root}>
 
@@ -110,7 +109,6 @@ class CompleteSectionObserverImpl extends Component {
     return (
       <Paper>
         <Grid container
-          spacing={18}
           justify="center"
           className={classes.root}>
 

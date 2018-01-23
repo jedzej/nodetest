@@ -104,11 +104,10 @@ class ChatBox extends Component {
                 className={classes.messageInput}
                 name="message"
                 onChange={event => this.handleChange(event)}
-                ref={element => { this.messageInput = element }}
                 value={this.state.message}
                 autoComplete="off" />
               <IconButton
-                dense
+                dense="true"
                 color={this.state.message.length > 0 ? "primary" : "inherit"}
               >
                 <Send />

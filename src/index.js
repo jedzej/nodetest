@@ -16,7 +16,6 @@ import IndexRoute from './routes/IndexRoute';
 import NotificationsProvider from './containers/NotificationsProvider';
 import ConnectingModal from './components/ConnectingModal';
 
-
 const history = createHistory();
 const store = createStore(history);
 

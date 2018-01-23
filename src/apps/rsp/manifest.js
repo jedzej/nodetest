@@ -22,6 +22,8 @@ module.exports = {
   EXCLUSIVE: true,
   HOT_JOIN: false,
   HOT_LEAVE: false,
+  MAIN: 'containers/RspApp.jsx',
+  CARD: 'containers/RspCard.jsx',
   USERS_LIMIT: {
     MAX: 2,
     MIN: 2
