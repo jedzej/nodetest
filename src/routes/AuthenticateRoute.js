@@ -6,21 +6,30 @@ import Typography from 'material-ui/Typography';
 import CredentialsForm from '../components/CredentialsForm';
 import { register, login } from '../logic/user/actions'
 import UserAppWrapper from '../containers/UserAppWrapper';
+import withStyles from 'material-ui/styles/withStyles';
 
+
+const styles = theme => ({
+  formBox: {
+    margin: theme.spacing.unit * 3,
+    padding: theme.spacing.unit * 3
+  }
+});
 
 class AuthenticateRoute extends Component {
   render() {
+    const { classes } = this.props;
     return (
       <UserAppWrapper>
-        <Grid id="tutaj" container spacing={16}>
-          <Grid  id="tutaj_tez" item xs={12} sm={6}>
-            <Paper>
+        <Grid id="tutaj" container spacing={0}>
+          <Grid id="tutaj_tez" item xs={12} md={6}>
+            <Paper className={classes.formBox}>
               <Typography type="title" color="inherit">Create account</Typography>
               <CredentialsForm title="Register" onSubmit={this.props.register} submitValue="Register" />
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Paper>
+          <Grid item sm={12} md={6}>
+            <Paper className={classes.formBox}>
               <Typography type="title" color="inherit">Log in</Typography>
               <CredentialsForm onSubmit={this.props.login} submitValue="Login" />
             </Paper>
@@ -39,4 +48,6 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(AuthenticateRoute);
+export default withStyles(styles)(
+  connect(null, mapDispatchToProps)(AuthenticateRoute)
+);
