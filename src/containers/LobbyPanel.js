@@ -1,37 +1,51 @@
 import React, { Component } from 'react';
-import { connect } from "react-redux";
+import { connect } from 'react-redux';
+import withStyles from 'material-ui/styles/withStyles';
 import ListItemText from 'material-ui/List/ListItemText';
 import List from 'material-ui/List/List';
 import ListItem from 'material-ui/List/ListItem';
 import ListItemAvatar from 'material-ui/List/ListItemAvatar';
 import AccountCircle from 'material-ui-icons/AccountCircle'
+import People from 'material-ui-icons/People'
+import Message from 'material-ui-icons/Message'
 import StarBorder from 'material-ui-icons/StarBorder'
-import Divider from 'material-ui/Divider/Divider';
 import Typography from 'material-ui/Typography/Typography';
 import Avatar from 'material-ui/Avatar/Avatar';
+import Grid from 'material-ui/Grid/Grid';
 
 import { join, leave, kick } from '../logic/lobby/actions'
 import { message } from '../logic/chat/actions'
 import ChatBox from './ChatBox';
-import withStyles from 'material-ui/styles/withStyles';
 
 
+const styles = theme => {
+  console.log(theme);
+  return {
 
-const styles = theme => ({
-  header: {
-    flex: '0 1 auto'
-  },
-  container: {
-    height: '100vh',
-    display: 'flex',
-    flexFlow: 'column',
-    flex: '0 1 auto',
-  },
-  chatContainer: {
-    flex: '1 1 10px',
-    overflowY:'hidden'
+    header: {
+      flex: '0 1 auto'
+    },
+    container: {
+      height: '100vh',
+      display: 'flex',
+      flexFlow: 'column',
+      flex: '0 1 auto',
+    },
+    chatContainer: {
+      flex: '1 1 10px',
+      overflowY: 'hidden'
+    },
+    headline: {
+      backgroundColor: theme.palette.primary[500],
+      color: theme.palette.getContrastText(theme.palette.primary[500]),
+      ...theme.mixins.toolbar
+    },
+    headIcon: {
+      width: '36px',
+      height: '36px'
+    }
   }
-});
+};
 
 const LobbyList = props => (
   <List>
@@ -62,20 +76,36 @@ class LobbyPanel extends Component {
     return (
       <div className={classes.container}>
         <header>
-          <Typography type="headline">
-            lobby members
-          </Typography>
-          <Divider />
+          <div className={classes.headline}>
+            <Grid container spacing={0}>
+              <Grid item>
+                <People className={classes.headIcon} />
+              </Grid>
+              <Grid item>
+                <Typography type='headline' color="inherit">
+                  {"members"}
+                </Typography>
+              </Grid>
+            </Grid>
+          </div>
           <LobbyList
             leaderId={this.props.lobby.leaderId}
             members={this.props.lobby.members}
             onClick={(memberId) => this.props.kick(memberId)}
           />
-          <Divider />
         </header>
-          <Typography type="headline">
-            lobby shoutbox
-            </Typography>
+        <div className={classes.headline}>
+          <Grid container spacing={0}>
+            <Grid item>
+              <Message className={classes.headIcon} />
+            </Grid>
+            <Grid item>
+              <Typography type='headline' color='inherit'>
+                {"shoutbox"}
+              </Typography>
+            </Grid>
+          </Grid>
+        </div>
         <section className={classes.chatContainer}>
           <ChatBox withFormBox />
         </section>

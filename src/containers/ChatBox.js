@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
-import { connect } from "react-redux";
-import { message } from '../logic/chat/actions'
-import dateFormat from 'dateformat'
+import { connect } from 'react-redux';
+import dateFormat from 'dateformat';
 import withStyles from 'material-ui/styles/withStyles';
-import Divider from 'material-ui/Divider';
 import TextField from 'material-ui/TextField';
 import Send from 'material-ui-icons/Send';
 import IconButton from 'material-ui/IconButton';
+import Grid from 'material-ui/Grid/Grid';
+import Typography from 'material-ui/Typography/Typography';
+
+import { message } from '../logic/chat/actions';
 
 
-const styles = theme => ({
+const chatBoxStyles = theme => ({
   container: {
     width: '100%',
     height: '100%'
@@ -26,35 +28,58 @@ const styles = theme => ({
     width: 'calc(100% - 50px)'
   },
   footer: {
-    height: '50px'
+    height: '50px',
+    paddingLeft: theme.spacing.unit,
+    paddingRight: theme.spacing.unit,
   }
 });
 
+const chatEntryStyles = theme => ({
+  root: {
+    padding: theme.spacing.unit
+  },
+});
 
-const ChatEntry = (props) => (
-  <div className="chat-entry">
-    <div className="row">
-      <span className="six columns chat-entry-author"><strong>{props.author}:</strong></span>
-      <span className="six columns chat-entry-timestamp">
-        <em>{dateFormat(props.timestamp, "hh:MM:ss")}</em>
-      </span>
-    </div>
-    <div className="chat-entry-message">{props.message}</div>
-  </div>
-);
+
+class ChatEntry extends React.Component {
+  render() {
+    const { timestamp, author, message, classes } = this.props;
+    return (
+      <Grid container spacing={0} className={classes.root}>
+        <Grid xs={8}>
+          <Typography type='subheading'>
+            {author}:
+          </Typography>
+        </Grid>
+        <Grid xs={4}>
+          <Typography type='caption' align='right'>
+            {dateFormat(timestamp, 'HH:MM:ss')}
+          </Typography>
+        </Grid>
+        <Grid xs={12}>
+          <Typography>
+            {message}
+          </Typography>
+        </Grid>
+      </Grid>
+    );
+  }
+}
+
+ChatEntry = withStyles(chatEntryStyles)(ChatEntry);
 
 class ChatBox extends Component {
   constructor(props) {
     /*props.chat.messages = Array.apply(null, { length: 25 }).map(Number.call, Number).map(i => ({
       from: {
-        name: "aaa",
-        _id: "12341234"
+        name: 'aaa',
+        _id: '12341234'
       },
-      message: "msg " + i
+      message: 'msg ' + i
     }))*/
     super(props);
     this.state = {
-      'message': ""
+      'message': ''
     }
   }
 
@@ -90,7 +115,6 @@ class ChatBox extends Component {
                 message={m.message}
                 timestamp={m.timestamp}
               />
-              <Divider hidden={i === chat.messages.length - 1} />
             </div>
           )}
         </section>
@@ -98,22 +122,22 @@ class ChatBox extends Component {
           <footer className={classes.footer}>
             <form
               onSubmit={event => this.handleSubmit(event)}
-              autoComplete="off"
+              autoComplete='off'
             >
               <TextField
                 className={classes.messageInput}
-                name="message"
+                name='message'
                 onChange={event => this.handleChange(event)}
                 value={this.state.message}
-                autoComplete="off" />
+                autoComplete='off' />
               <IconButton
-                dense="true"
-                color={this.state.message.length > 0 ? "primary" : "inherit"}
+                dense='true'
+                color={this.state.message.length > 0 ? 'primary' : 'inherit'}
               >
                 <Send />
               </IconButton>
             </form>
-          </footer> : ""
+          </footer> : ''
         )}
       </div>
     );
@@ -135,6 +159,6 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 
-export default withStyles(styles)(
+export default withStyles(chatBoxStyles)(
   connect(mapStateToProps, mapDispatchToProps)(ChatBox)
 );
