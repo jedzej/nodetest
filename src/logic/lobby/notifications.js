@@ -53,7 +53,8 @@ const lobbyNotificationsEpics = [
 
       map(mPair => {
         const crossFind = (membersMore, membersFewer) =>
-          membersMore.find(m1 => membersFewer.find(m2 => m1._id !== m2._id))
+          membersMore.find(m1 => membersFewer.every(m2 => m1._id !== m2._id));
+          console.log(mPair)
         if (mPair[1].length > mPair[0].length) {
           return crossFind(mPair[1], mPair[0]).name + " joined"
         } else {
