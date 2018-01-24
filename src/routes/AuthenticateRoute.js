@@ -28,7 +28,7 @@ class AuthenticateRoute extends Component {
               <CredentialsForm title="Register" onSubmit={this.props.register} submitValue="Register" />
             </Paper>
           </Grid>
-          <Grid item sm={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper className={classes.formBox}>
               <Typography type="title" color="inherit">Log in</Typography>
               <CredentialsForm onSubmit={this.props.login} submitValue="Login" />

@@ -16,17 +16,20 @@ import Grid from 'material-ui/Grid/Grid';
 import { join, leave, kick } from '../logic/lobby/actions'
 import { message } from '../logic/chat/actions'
 import ChatBox from './ChatBox';
+import Paper from 'material-ui/Paper/Paper';
+import Menu from 'material-ui/Menu/Menu';
+import MenuItem from 'material-ui/Menu/MenuItem';
+import Hidden from 'material-ui/Hidden/Hidden';
 
 
 const styles = theme => {
   console.log(theme);
   return {
-
     header: {
       flex: '0 1 auto'
     },
     container: {
-      height: '100vh',
+      height: '100%',
       display: 'flex',
       flexFlow: 'column',
       flex: '0 1 auto',
@@ -36,80 +39,125 @@ const styles = theme => {
       overflowY: 'hidden'
     },
     headline: {
-      backgroundColor: theme.palette.primary[500],
-      color: theme.palette.getContrastText(theme.palette.primary[500]),
-      ...theme.mixins.toolbar
+      backgroundColor: theme.palette.primary['300'],
+      color: theme.palette.getContrastText(theme.palette.primary['700'])
     },
     headIcon: {
-      width: '36px',
-      height: '36px'
+      width: '24px',
+      height: '24px',
+      padding: theme.spacing.unit
     }
   }
 };
 
-const LobbyList = props => (
-  <List>
-    {props.members.map(m => {
-      const isLeader = m._id === props.leaderId;
-      return (
-        <ListItem button key={m._id}>
-          <ListItemAvatar>
-            <Avatar>
-              {isLeader ? <StarBorder /> : <AccountCircle />}
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText
-            primary={m.name}
-            secondary={isLeader ? 'Leader' : null}
-            onClick={() => props.onClick(m._id)}
-          />
-        </ListItem>
-      );
-    })}
-  </List>
-);
+class LobbyList extends React.Component {
+
+  state = {
+    anchorEl: null,
+    memberId: null
+  };
+
+  handleClick = (event, memberId) => {
+    this.setState({
+      anchorEl: event.currentTarget,
+      memberId
+    });
+  };
+
+  handleClose = () => {
+    this.setState({
+      memberId: null,
+      anchorEl: null
+    });
+  };
+
+  handleKick = () => {
+    this.props.onKick(this.state.memberId);
+    this.handleClose();
+  }
+
+  render() {
+    const { anchorEl, memberId } = this.state;
+    const { canKick, members, leaderId } = this.props;
+    return (
+      <div>
+        <List spacing={0}>
+          {members.map(m => {
+            const isLeader = m._id === leaderId;
+            return (
+              <ListItem button key={m._id}
+                onClick={(event) => this.handleClick(event, m._id)}
+              >
+                {isLeader ? <StarBorder /> : <AccountCircle />}
+                <ListItemText
+                  primary={m.name}
+                  secondary={isLeader ? 'Leader' : null}
+
+                />
+              </ListItem>
+            );
+          })}
+        </List>
+        <Menu
+          id="simple-menu"
+          anchorEl={anchorEl}
+          open={canKick && memberId !== leaderId && Boolean(anchorEl)}
+          onClose={this.handleClose}
+        >
+          <MenuItem onClick={this.handleKick}>Kick </MenuItem> : null
+        </Menu>
+      </div>
+    );
+  }
+}
 
 class LobbyPanel extends Component {
 
   render() {
-    const { classes } = this.props;
+    const { classes, lobby, user } = this.props;
     return (
       <div className={classes.container}>
         <header>
-          <div className={classes.headline}>
-            <Grid container spacing={0}>
+          <Paper>
+            <Grid container spacing={0}
+              className={classes.headline}
+              alignItems="center"
+            >
               <Grid item>
                 <People className={classes.headIcon} />
               </Grid>
               <Grid item>
-                <Typography type='headline' color="inherit">
+                <Typography type='title' color="inherit">
                   {"members"}
                 </Typography>
               </Grid>
             </Grid>
-          </div>
+          </Paper>
           <LobbyList
-            leaderId={this.props.lobby.leaderId}
-            members={this.props.lobby.members}
-            onClick={(memberId) => this.props.kick(memberId)}
+            leaderId={lobby.leaderId}
+            members={lobby.members}
+            canKick={lobby.leaderId === user._id}
+            onKick={(memberId) => this.props.kick(memberId)}
           />
         </header>
-        <div className={classes.headline}>
-          <Grid container spacing={0}>
+
+        <Paper>
+          <Grid container spacing={0} className={classes.headline}
+            alignItems="center">
             <Grid item>
               <Message className={classes.headIcon} />
             </Grid>
             <Grid item>
-              <Typography type='headline' color='inherit'>
+              <Typography type='title' color='inherit'>
                 {"shoutbox"}
               </Typography>
             </Grid>
           </Grid>
-        </div>
+        </Paper>
         <section className={classes.chatContainer}>
           <ChatBox withFormBox />
         </section>
-      </div>
+      </div >
     );
   }
 }

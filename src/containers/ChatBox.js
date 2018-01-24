@@ -38,6 +38,10 @@ const chatEntryStyles = theme => ({
   root: {
     padding: theme.spacing.unit
   },
+  notification : {
+    fontWeight: 'bold',
+    textAlign:'center'
+  }
 });
 
 
@@ -46,17 +50,17 @@ class ChatEntry extends React.Component {
     const { timestamp, author, message, classes } = this.props;
     return (
       <Grid container spacing={0} className={classes.root}>
-        <Grid xs={8}>
-          <Typography type='subheading'>
+        <Grid item xs={8}>
+          <Typography type='caption'>
             {author}:
           </Typography>
         </Grid>
-        <Grid xs={4}>
+        <Grid item xs={4}>
           <Typography type='caption' align='right'>
             {dateFormat(timestamp, 'HH:MM:ss')}
           </Typography>
         </Grid>
-        <Grid xs={12}>
+        <Grid item xs={12}>
           <Typography>
             {message}
           </Typography>
@@ -67,6 +71,29 @@ class ChatEntry extends React.Component {
 }
 
 ChatEntry = withStyles(chatEntryStyles)(ChatEntry);
+
+
+class NotificationEntry extends React.Component {
+  render() {
+    const { timestamp, message, classes } = this.props;
+    return (
+      <Grid container spacing={0} className={classes.root}>
+        <Grid item xs={8}>
+          <Typography type='caption' className={classes.notification}>
+            {'- ' + message + ' -'}
+          </Typography>
+        </Grid>
+        <Grid item xs={4}>
+          <Typography type='caption' align='right'>
+            {dateFormat(timestamp, 'HH:MM:ss')}
+          </Typography>
+        </Grid>
+      </Grid>
+    );
+  }
+}
+
+NotificationEntry = withStyles(chatEntryStyles)(NotificationEntry);
 
 class ChatBox extends Component {
   constructor(props) {
@@ -110,11 +137,17 @@ class ChatBox extends Component {
         <section className={classes.content} ref={e => this.messageBox = e}>
           {chat.messages.map((m, i) =>
             <div key={m.timestamp}>
-              <ChatEntry
-                author={m.from.name}
-                message={m.message}
-                timestamp={m.timestamp}
-              />
+              {m.from ?
+                <ChatEntry
+                  author={m.from.name}
+                  message={m.message}
+                  timestamp={m.timestamp}
+                /> :
+                <NotificationEntry
+                  message={m.message}
+                  timestamp={m.timestamp}
+                />
+              }
             </div>
           )}
         </section>

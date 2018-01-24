@@ -1,8 +1,10 @@
 import { ofType } from "redux-observable";
-import { pairwise, filter, map } from "rxjs/operators";
+import { pairwise, filter, map, flatMap } from "rxjs/operators";
+import Rx from 'rxjs/Rx';
 
 import * as types from "./types";
 import { simpleNotificationSuccess, simpleNotificationError, simpleNotificationInfoAction } from "../common/operators";
+import { notification } from "../chat/actions";
 
 const lobbyNotificationsEpics = [
   action$ =>
@@ -48,8 +50,20 @@ const lobbyNotificationsEpics = [
         mPair[0].length > 0 &&
         mPair[1].length > 0 &&
         mPair[0].length !== mPair[1].length),
-      map(mPair => mPair[1].length > mPair[0].length ? "Someone joined!" : "Someone left!"),
-      map(message => simpleNotificationInfoAction(message))
+
+      map(mPair => {
+        const crossFind = (membersMore, membersFewer) =>
+          membersMore.find(m1 => membersFewer.find(m2 => m1._id !== m2._id))
+        if (mPair[1].length > mPair[0].length) {
+          return crossFind(mPair[1], mPair[0]).name + " joined"
+        } else {
+          return crossFind(mPair[0], mPair[1]).name + " left"
+        }
+      }),
+      flatMap(message => Rx.Observable.of(
+        simpleNotificationInfoAction(message),
+        notification(message)
+      ))
     )
 ]
 

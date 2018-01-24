@@ -43,8 +43,11 @@ const styles = theme => ({
     width: 250,
     height: '100vh',
     [theme.breakpoints.up('md')]: {
+      height: 'calc(100vh - 64px)',
+      marginTop: '64px',
       width: drawerWidth,
       position: 'relative',
+      zIndex: theme.zIndex.appBar - 1
     },
   },
   content: {
@@ -87,7 +90,7 @@ class AppLayout extends React.Component {
     return (
       <div className={classes.root}>
         <div className={classes.appFrame}>
-          <AppBar className={hasDrawer ? classes.appBarWithDrawer : classes.appBar}>
+          <AppBar className={classes.appBar}>
             <Toolbar>
               {hasDrawer ?
                 <IconButton

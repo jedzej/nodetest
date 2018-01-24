@@ -1,9 +1,16 @@
-import { CHAT_MESSAGE, CHAT_TRUNCATE } from './types'
+import { CHAT_MESSAGE, CHAT_UPDATE, CHAT_TRUNCATE } from './types'
 
 export const message = (msg) => ({
   type: CHAT_MESSAGE,
   payload: {
-    message:msg
+    message: msg
+  }
+});
+
+export const notification = (msg) => ({
+  type: CHAT_UPDATE,
+  payload: {
+    message: msg
   }
 });
 
