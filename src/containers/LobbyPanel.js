@@ -4,22 +4,19 @@ import withStyles from 'material-ui/styles/withStyles';
 import ListItemText from 'material-ui/List/ListItemText';
 import List from 'material-ui/List/List';
 import ListItem from 'material-ui/List/ListItem';
-import ListItemAvatar from 'material-ui/List/ListItemAvatar';
 import AccountCircle from 'material-ui-icons/AccountCircle'
 import People from 'material-ui-icons/People'
 import Message from 'material-ui-icons/Message'
 import StarBorder from 'material-ui-icons/StarBorder'
 import Typography from 'material-ui/Typography/Typography';
-import Avatar from 'material-ui/Avatar/Avatar';
 import Grid from 'material-ui/Grid/Grid';
+import Paper from 'material-ui/Paper/Paper';
+import Menu from 'material-ui/Menu/Menu';
+import MenuItem from 'material-ui/Menu/MenuItem';
 
 import { join, leave, kick } from '../logic/lobby/actions'
 import { message } from '../logic/chat/actions'
 import ChatBox from './ChatBox';
-import Paper from 'material-ui/Paper/Paper';
-import Menu from 'material-ui/Menu/Menu';
-import MenuItem from 'material-ui/Menu/MenuItem';
-import Hidden from 'material-ui/Hidden/Hidden';
 
 
 const styles = theme => {
