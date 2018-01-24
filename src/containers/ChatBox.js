@@ -136,7 +136,7 @@ class ChatBox extends Component {
       <div className={classes.container}>
         <section className={classes.content} ref={e => this.messageBox = e}>
           {chat.messages.map((m, i) =>
-            <div key={m.timestamp}>
+            <div key={i}>
               {m.from ?
                 <ChatEntry
                   author={m.from.name}
