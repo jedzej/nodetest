@@ -6,7 +6,7 @@ const MANIFEST = require('../../../src/apps/paint/manifest')
 const rejectionAction = tools.rejectionAction
 
 const assignColor = store => {
-  const color = Math.floor(store.availableColors.length * Math.random());
+  const color = store.availableColors[Math.floor(store.availableColors.length * Math.random())];
   store.availableColors = store.availableColors.filter(c => c != color);
   return color;
 }
@@ -14,7 +14,7 @@ const assignColor = store => {
 const createUser = (appContext, user) => ({
   _id: user._id,
   name: user.name,
-  color: assignColor(appContext.store),
+  style: assignColor(appContext.store),
   paths: []
 })
 
@@ -46,6 +46,17 @@ const PAINT_APP_HANDLERS = {
 
   'LOBBY_KICK_HOOK': (action, appContext) => {
     console.log('PAINT KICK', appContext.exists);
+  },
+
+  [MANIFEST.CONSTS.ACTION.PAINT_SKETCH]: (action, appContext) => {
+    const currentUser = appContext.currentUser;
+    appContext.store.paths.push({
+      author: currentUser,
+      style: appContext.store.users.find(u => u._id.equals(currentUser._id)).style,
+      path: action.payload.path
+    })
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
   }
 }
 

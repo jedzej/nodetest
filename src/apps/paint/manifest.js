@@ -6,7 +6,8 @@ module.exports = {
   FULLSCREEN: false,
 
   DEFAULT_STORE: {
-    users: []
+    users: [],
+    paths: []
   },
 
   CONSTS: {
@@ -30,7 +31,7 @@ module.exports = {
       '#000000'
     ],
     ACTION: {
-      PAINT_DRAW: "PAINT_DRAW"
+      PAINT_SKETCH: "PAINT_SKETCH"
     }
   }
 };

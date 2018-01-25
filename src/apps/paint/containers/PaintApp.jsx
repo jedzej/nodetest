@@ -2,11 +2,11 @@ import React from 'react';
 import { connect } from "react-redux";
 import { terminate } from '../../../logic/app/actions';
 import withStyles from 'material-ui/styles/withStyles';
-import Typography from 'material-ui/Typography/Typography';
 import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
+import SketchCanvas from '../components/SketchCanvas';
+import { sketch } from '../actions';
 
-const RESULT = MANIFEST.CONSTS.RESULT;
 
 const styles = theme => ({
   root: {
@@ -28,10 +28,12 @@ const styles = theme => ({
 class PaintApp extends React.Component {
 
   render() {
+    const { paint, sketch } = this.props;
     return (
       <div>
         Just paint
-      <Button onClick={() => this.props.paintTerminate()} />
+        <SketchCanvas paths={paint.paths} onSketch={sketch} />
+        <Button onClick={() => this.props.paintTerminate()} >TERMINATE</Button>
       </div>
     );
   }
@@ -49,7 +51,8 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  paintTerminate: (variant) => dispatch(terminate(MANIFEST.NAME)),
+  sketch: path => dispatch(sketch(path)),
+  paintTerminate: variant => dispatch(terminate(MANIFEST.NAME)),
 })
 
 

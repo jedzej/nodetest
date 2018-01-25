@@ -20,6 +20,7 @@ import appReducer from './logic/app/reducers';
 
 // ROCK-SCISSORS-PAPER
 import rspEpics from './apps/rsp/epics';
+import paintEpics from './apps/paint/epics';
 
 import { routerReducer, routerMiddleware } from "react-router-redux";
 
@@ -33,6 +34,7 @@ const rootEpic = combineEpics(
   observerEpics,
   appEpics,
   rspEpics,
+  paintEpics
 );
 
 const rootReducer = combineReducers({

@@ -103,6 +103,7 @@ const createAppContext = (ws, db, lobby, appName) => {
           name: appName,
           exclusive: apps[appName].EXCLUSIVE
         };
+        console.log(apps[appName])
       }
       return new AppContext(null, ws, db, lobby, appdata, exists)
     });
