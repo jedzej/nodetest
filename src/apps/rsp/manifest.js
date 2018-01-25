@@ -22,6 +22,7 @@ module.exports = {
   EXCLUSIVE: true,
   HOT_JOIN: false,
   HOT_LEAVE: false,
+  FULLSCREEN: false,
   MAIN: 'containers/RspApp.jsx',
   CARD: 'containers/RspCard.jsx',
   USERS_LIMIT: {

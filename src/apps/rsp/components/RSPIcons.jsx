@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import SvgIcon from 'material-ui/SvgIcon/SvgIcon';
 import MANIFEST from '../manifest'
 
@@ -81,8 +80,3 @@ export class RSPMoveIcon extends React.Component {
       return null;
   }
 }
-
-
-RSPMoveIcon.propTypes = {
-  move: PropTypes.string.isRequired
-};
