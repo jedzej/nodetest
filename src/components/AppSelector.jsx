@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from "react-redux";
-import { start } from '../logic/app/actions';
+import Grid from 'material-ui/Grid/Grid';
 
+import { start } from '../logic/app/actions';
 import applications from '../applications'
 
 
@@ -11,18 +12,17 @@ class AppSelector extends Component {
     const { props } = this;
     console.log(applications)
     return (
-      <div>
-        {Object.values(applications).map(app => {
-          console.log(app)
-          return (
+      <Grid container>
+        {Object.values(applications).map(app => (
+          <Grid item>
             <app.CARD
               key={app.MANIFEST.NAME}
               lobby={props.lobby}
               user={props.user}
-              onStart={() => props.rspStart(app.MANIFEST.NAME)} />
-          )
-        })}
-      </div>
+              onStart={() => props.start(app.MANIFEST.NAME)} />
+          </Grid>
+        ))}
+      </Grid>
     );
   }
 }
@@ -36,7 +36,7 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  rspStart: (name) => {
+  start: (name) => {
     dispatch(start(name));
   }
 })

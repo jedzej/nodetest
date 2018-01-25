@@ -19,7 +19,8 @@ const get = {
   byQuery: (db, query) => db.collection('lobby')
     .findOne(query)
     .then(lobby =>
-      lobby ? Promise.resolve(lobby) : Promise.reject(new Error("Lobby not found"))
+      lobby ? Promise.resolve(lobby) : Promise.reject(
+        new Error("Lobby " + JSON.stringify(query) + " not found"))
     ),
 
   byId: (db, id) => get.byQuery(db, { _id: id }),
@@ -79,7 +80,7 @@ const leave = (db, userId) => get.byMemberId(db, userId)
     // last member in party is leaving
     if (membersIds.length == 0) {
       return db.collection('lobby').deleteOne({ _id: lobby._id })
-        .then(result => (result.result.ok == 1 && result.deletedCount == 1) ? Promise.resolve() : Promise.reject());
+        .then(result => (result.result.ok == 1 && result.deletedCount == 1) ? Promise.resolve(true) : Promise.reject());
     } else {
       // promote new leader if leader is leaving
       if (lobby.leaderId.equals(userId)) {
@@ -101,7 +102,7 @@ const leave = (db, userId) => get.byMemberId(db, userId)
         .updateOne(...updateQuery)
         .then(result => {
           if (result.result.ok == 1 && result.modifiedCount == 1) {
-            return Promise.resolve();
+            return Promise.resolve(false);
           } else {
             return Promise.reject();
           }

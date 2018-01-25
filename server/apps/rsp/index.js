@@ -5,16 +5,21 @@ const appService = require('../../modules/app/service');
 const MANIFEST = require('../../../src/apps/rsp/manifest')
 const rejectionAction = tools.rejectionAction
 
-const {MOVE, DUEL_TABLE, RESULT, STAGE, ACTION} = MANIFEST.CONSTS;
+const { MOVE, DUEL_TABLE, RESULT, STAGE, ACTION } = MANIFEST.CONSTS;
+
+var debug = require('debug')('rsp');
+debug.log = console.log.bind(console);
 
 const RSP_APP_HANDLERS = {
 
   'APP_START_HOOK': (action, appContext) => {
+    if (action.payload.name !== MANIFEST.NAME)
+      return;
     if (appContext.lobby.members.length != 2) {
       throw new Error("There must be 2 members in the lobby")
     }
+    debug('Starting RSP app');
     const members = appContext.lobby.members;
-    console.log(appContext)
     appContext.store.player1._id = members[0]._id;
     appContext.store.player2._id = members[1]._id;
     appContext.store.stage = STAGE.ONGOING;
@@ -22,33 +27,33 @@ const RSP_APP_HANDLERS = {
   },
 
   'APP_TERMINATE_HOOK': (action, appContext) => {
-    console.log('terminate');
+    debug('terminate');
   },
 
   'LOBBY_JOIN_HOOK': (action, appContext) => {
-    const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.NAME)
+    if (appContext.exists)
       throw new Error("No hot join allowed!")
   },
 
   'LOBBY_LEAVE_HOOK': (action, appContext) => {
-    const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.NAME)
+    if (appContext.exists) {
+      debug('Hot leave not allowed, terminating app!')
       return appContext.terminate()
         .then(() => appContext.doAppUpdate());
+    }
   },
 
   'LOBBY_KICK_HOOK': (action, appContext) => {
-    const appdata = action.payload.app;
-    if (appdata && appdata.name === MANIFEST.NAME)
+    if (appContext.exists){
+      debug('Hot leave not allowed, terminating app!')
       return appContext.terminate()
         .then(() => appContext.doAppUpdate());
+    }
   },
 
   [ACTION.RSP_MOVE]: (action, appContext) => {
     var store = appContext.store;
     var m, o;
-    console.log(appContext.store)
     switch (store.stage) {
       case STAGE.ONGOING:
         if (store.player1._id.equals(appContext.currentUser._id)) {

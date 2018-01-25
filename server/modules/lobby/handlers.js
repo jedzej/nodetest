@@ -228,6 +228,10 @@ const handlers = {
       }, ws, db))
       // acually leave the lobby
       .then(() => lobbyService.leave(db, ws.store.currentUser._id))
+      // destroy app data if not needed anymore
+      .then(destroyed => destroyed ?
+        appService.destroyAppdata(db, ws.store.lobbyId) : null
+      )
       // delete handle and respond
       .then(() => {
         ctx.lobbyId = ws.store.lobbyId;

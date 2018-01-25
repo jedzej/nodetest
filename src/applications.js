@@ -1,7 +1,9 @@
-import appConfig from './apps/rsp/config';
+import rspConfig from './apps/rsp/config';
+import paintConfig from './apps/paint/config';
 
 const applications = {
-  [appConfig.MANIFEST.NAME]: appConfig
+  [rspConfig.MANIFEST.NAME]: rspConfig,
+  [paintConfig.MANIFEST.NAME]: paintConfig
 };
 
 export default applications;

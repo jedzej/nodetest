@@ -5,7 +5,8 @@ const appService = require('./modules/app/service')
 
 const apps = [
   './apps/rsp',
-  './apps/chat'
+  './apps/chat',
+  './apps/paint',
   //require('./apps/chat/config')
 ]
 

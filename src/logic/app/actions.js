@@ -2,7 +2,7 @@ import { APP_UPDATE_REQUEST, APP_TERMINATE, APP_START } from './types'
 
 export const start = (name) => ({
   type: APP_START,
-  payload: {name  }
+  payload: { name }
 })
 
 export const terminate = (name) => ({

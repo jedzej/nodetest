@@ -26,7 +26,7 @@ const doAppUpdate = (db, lobbyId, ws) => {
 }
 
 class AppContext {
-  constructor(lock, ws, db, lobby, appdata) {
+  constructor(lock, ws, db, lobby, appdata, exists) {
     this.ws = ws;
     this.db = db;
     this.currentUser = {
@@ -34,7 +34,7 @@ class AppContext {
       name: ws.store.currentUser.name
     };
     this.appdata = appdata;
-    this.store = this.appdata.store;
+    this.store = this.appdata ? this.appdata.store : null;
     this.sapi = {
       me: ws,
       clients: undefined,
@@ -43,6 +43,7 @@ class AppContext {
     }
     this.lobby = lobby;
     this.isObserver = ws.store.isObserver === true;
+    this.exists = exists;
   }
 
   _sapiFields() {
@@ -87,10 +88,15 @@ class AppContext {
 }
 
 const createAppContext = (ws, db, lobby, appName) => {
-  console.log(apps, appName)
+  if (!lobby) {
+    return Promise.resolve(
+      new AppContext(null, ws, db, null, null, false)
+    );
+  }
   return appService.getByLobbyIdAndName(db, lobby._id, appName)
     .then(appdata => {
-      if (appdata === null) {
+      const exists = appdata !== null;
+      if (exists === false) {
         appdata = {
           store: apps[appName].DEFAULT_STORE,
           lobbyId: lobby._id,
@@ -98,7 +104,7 @@ const createAppContext = (ws, db, lobby, appName) => {
           exclusive: apps[appName].EXCLUSIVE
         };
       }
-      return new AppContext(null, ws, db, lobby, appdata)
+      return new AppContext(null, ws, db, lobby, appdata, exists)
     });
 }
 
@@ -109,19 +115,30 @@ const app2sapi = (appPath) => {
     ...index.manifest,
     handlers: index.handlers
   }
-  debug('registering %s', app.name)
+  debug('registering %s', app.NAME)
   apps[app.NAME] = app;
   var sapiHandlers = {}
   Object.keys(app.handlers).forEach(type => {
     const appHandler = app.handlers[type];
     var ctx = new tools.Context();
     sapiHandlers[type] = (action, ws, db) => {
-      console.log('sapihandler')
-      return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+      return Promise.resolve()
+        .then(() => {
+          if (action.type == "LOBBY_JOIN_HOOK") {
+            return action.payload.lobby
+          } else {
+            return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+          }
+        })
         .then(ctx.store('lobby'))
+        .catch(err => {
+          debug('No lobby for ' + app.NAME + '\n' + err.stack)
+        })
         .then(() => createAppContext(ws, db, ctx.lobby, app.NAME))
         .then(ctx.store('appContext'))
-        .catch(err => { })
+        .catch(err => {
+          debug('No context for ' + app.NAME + '\n' + err.stack)
+        })
         .then(appContext => appHandler(action, ctx.appContext))
     }
   });
@@ -166,6 +183,6 @@ const preverify = {
 
 app2sapi.doAppUpdate = doAppUpdate;
 app2sapi.createAppContext = createAppContext;
-app2sapi.preverify = preverify
+app2sapi.preverify = preverify;
 
 module.exports = app2sapi;

@@ -55,13 +55,19 @@ PromiseWhen = (promises, errHandler) => {
 }
 
 
-function combineHandlers(...handlers) {
-  var resultHandlers = {};
-  for (var handler of handlers) {
-    resultHandlers = {
+function combineHandlers(...args) {
+  var resultHandlers = [];
+  for (var handlers of args) {
+    if ((handlers instanceof Array) === false) {
+      handlers = Object.keys(handlers).map(key => ({
+        action: key,
+        handler: handlers[key]
+      }))
+    }
+    resultHandlers = [
       ...resultHandlers,
-      ...handler
-    };
+      ...handlers
+    ];
   }
   return resultHandlers;
 }
@@ -93,13 +99,13 @@ function sendAction(param1, param2) {
 
 const inject = (action, ws, db) => {
   ws.debug.actions("<= %s", action.type);
-  const matchedHandlers = handlersList.filter(handler => handler.type === action.type);
+  const matchedHandlers = handlersList.filter(handler => handler.action === action.type);
   ws.debug.handlers("Actions handlers for [%s]: %d", action.type, matchedHandlers.length);
   return PromiseWhen(
     matchedHandlers.map(
-      handler => handler(action, ws, db)
+      handler => handler.handler(action, ws, db)
     ),
-    err => { ws.debug.handlers(err.stack);throw err; }
+    err => { ws.debug.handlers(err.stack); throw err; }
   )/*/
   return Promise.all(
     matchedHandlers.map(
@@ -169,11 +175,9 @@ const start = (port, handlers, db) => {
   if (server === null) {
     new Promise((resolve, reject) => {
       server = new WebSocket.Server({ port });
-
-      Object.keys(handlers).forEach(type => {
-        handlers[type].type = type;
-        handlersList.push(handlers[type]);
-        debug.handlers("Registering handler: " + type)
+      handlers.forEach(handler => {
+        handlersList.push(handler);
+        debug.handlers("Registering handler: " + handler.action)
       })
 
       server.on('connection', onConnection(db));

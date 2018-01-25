@@ -24,13 +24,18 @@ const dbReset = (db) => {
 }
 
 
-const destroyAppdata = (db, lobbyId, name) => {
-  debug('Destroy app %s for %s', name, lobbyId);
+const destroyAppdata = (db, lobbyId, name = null) => {
+  var query;
+  if (name) {
+    debug('Destroy app %s for %s', name, lobbyId);
+    query = { lobbyId: lobbyId, name: name };
+  }
+  else {
+    debug('Destroy all apps for %s', lobbyId);
+    query = { lobbyId: lobbyId };
+  }
   return db.collection('appdata')
-    .deleteOne({
-      lobbyId: lobbyId,
-      name: name
-    })
+    .deleteOne(query)
     .then(cmdRes => (cmdRes.result.ok == 1 && cmdRes.result.n == 1) ?
       Promise.resolve() : Promise.reject("Not deleted"));
 }
