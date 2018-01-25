@@ -47,6 +47,7 @@ class SketchCanvas extends Component {
         ]
       })
     }
+    event.preventDefault();
   }
 
   startTracking(event) {
@@ -73,7 +74,9 @@ class SketchCanvas extends Component {
         this.canvas.removeEventListener(eventType,
           this.handlers[eventType], false);
       }, this);
-    this.props.onSketch(sketchBuffer);
+    if (sketchBuffer.length > 0) {
+      this.props.onSketch(sketchBuffer);
+    }
   }
 
   componentDidMount() {
@@ -92,14 +95,16 @@ class SketchCanvas extends Component {
     var ctx = this.canvas.getContext('2d');
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.props.paths.forEach(shape => {
-      ctx.beginPath();
-      ctx.strokeStyle = shape.style;
-      ctx.moveTo(shape.path[0][0], shape.path[0][1]);
-      shape.path.slice(1).forEach(([x, y]) =>
-        ctx.lineTo(x, y)
-        , this);
-      ctx.stroke();
-      ctx.closePath();
+      if (shape.path.length > 0) {
+        ctx.beginPath();
+        ctx.strokeStyle = shape.style;
+        ctx.moveTo(shape.path[0][0], shape.path[0][1]);
+        shape.path.slice(1).forEach(([x, y]) =>
+          ctx.lineTo(x, y)
+          , this);
+        ctx.stroke();
+        ctx.closePath();
+      }
     }, this)
 
     const sketchBuffer = this.state.sketchBuffer;
@@ -117,7 +122,7 @@ class SketchCanvas extends Component {
 
   render() {
     return (
-      <canvas height="400" width="300" style={{ backgroundColor:'#FFFFFF', border: 'black 1px dotted' }}
+      <canvas height="400" width="300" style={{ backgroundColor: '#FFFFFF', border: 'black 1px dotted' }}
         ref={e => this.canvas = e} />
     );
   }
