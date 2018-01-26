@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import withStyles from 'material-ui/styles/withStyles';
 import PropTypes from 'prop-types';
 
 
@@ -97,11 +96,13 @@ class SketchCanvas extends Component {
     this.setState({
       isTracking: false
     });
-    (['mousedown', 'mouseup', 'touchstart', 'touchend'])
-      .forEach(eventType => {
-        this.canvas.addEventListener(eventType,
-          this.handlers[eventType], false);
-      }, this);
+    if (this.props.noSketch !== true) {
+      (['mousedown', 'mouseup', 'touchstart', 'touchend'])
+        .forEach(eventType => {
+          this.canvas.addEventListener(eventType,
+            this.handlers[eventType], false);
+        }, this);
+    }
   }
 
   componentDidUpdate() {
@@ -125,17 +126,19 @@ class SketchCanvas extends Component {
     }, this)
 
     // draw sketch buffer content
-    const sketchBuffer = this.state.sketchBuffer;
-    if (sketchBuffer.length > 0) {
-      ctx.beginPath();
-      if (this.props.styler)
-        this.props.styler(ctx, { path: sketchBuffer, isSketch: true });
-      ctx.moveTo(sketchBuffer[0][0] * xScale, sketchBuffer[0][1] * yScale);
-      sketchBuffer.slice(1).forEach(([x, y]) =>
-        ctx.lineTo(x * xScale, y * yScale)
-        , this);
-      ctx.stroke();
-      ctx.closePath();
+    if (this.props.noSketch !== true) {
+      const sketchBuffer = this.state.sketchBuffer;
+      if (sketchBuffer.length > 0) {
+        ctx.beginPath();
+        if (this.props.styler)
+          this.props.styler(ctx, { path: sketchBuffer, isSketch: true });
+        ctx.moveTo(sketchBuffer[0][0] * xScale, sketchBuffer[0][1] * yScale);
+        sketchBuffer.slice(1).forEach(([x, y]) =>
+          ctx.lineTo(x * xScale, y * yScale)
+          , this);
+        ctx.stroke();
+        ctx.closePath();
+      }
     }
   }
 
@@ -144,7 +147,7 @@ class SketchCanvas extends Component {
       <canvas ref={e => this.canvas = e}
         width={this.props.width}
         height={this.props.height}
-        style={{verticalAlign: 'bottom'}}/>
+        style={{ verticalAlign: 'bottom' }} />
     );
   }
 }
@@ -154,7 +157,7 @@ SketchCanvas.propTypes = {
   onSketch: PropTypes.func,
   width: PropTypes.number.isRequired,
   height: PropTypes.number,
-
+  noSketch: PropTypes.bool
 };
 
 

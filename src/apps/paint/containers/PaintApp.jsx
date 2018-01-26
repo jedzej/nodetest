@@ -1,19 +1,22 @@
 import React from 'react';
 import { connect } from "react-redux";
-import { terminate } from '../../../logic/app/actions';
 import withStyles from 'material-ui/styles/withStyles';
-import MANIFEST from '../manifest'
-import Button from 'material-ui/Button/Button';
+import IconButton from 'material-ui/IconButton/IconButton';
 import Settings from 'material-ui-icons/Settings';
 import Undo from 'material-ui-icons/Undo';
 import Clear from 'material-ui-icons/Clear';
 import Palette from 'material-ui-icons/Palette';
-import SketchCanvas from '../components/SketchCanvas';
+import Menu, { MenuItem } from 'material-ui/Menu';
+
+import { terminate } from '../../../logic/app/actions';
+import { logout } from '../../../logic/user/actions';
+import { leave } from '../../../logic/lobby/actions';
 import { sketch, undo, clear } from '../actions';
-import IconButton from 'material-ui/IconButton/IconButton';
-import { CirclePicker } from 'react-color'
-import Modal from 'material-ui/Modal/Modal';
+
 import ColorPickerModal from '../components/ColorPickerModal';
+import SketchCanvas from '../components/SketchCanvas';
+import MANIFEST from '../manifest'
+
 
 const styles = theme => ({
   root: {
@@ -60,6 +63,7 @@ class PaintApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      anchorEl: null,
       color: '#000000',
       colorPickerOpen: false,
       screen: {
@@ -67,6 +71,14 @@ class PaintApp extends React.Component {
         height: window.innerHeight
       }
     }
+  };
+
+  handleMenuOpen = event => {
+    this.setState({ anchorEl: event.currentTarget });
+  };
+
+  handleMenuClose = () => {
+    this.setState({ anchorEl: null });
   };
 
   handleChangeComplete = color => {
@@ -103,11 +115,11 @@ class PaintApp extends React.Component {
 
   render() {
     const { paint, sketch, classes } = this.props;
+    const loggedIn = this.props.user.loggedIn;
     return (
       <div className={classes.canvasContainer}>
         <SketchCanvas
           styler={(ctx, shape) => {
-            console.log(shape)
             if (shape.isSketch) {
               ctx.strokeStyle = this.state.color;
             }
@@ -115,36 +127,63 @@ class PaintApp extends React.Component {
               ctx.strokeStyle = shape.style;
             }
           }}
+          noSketch={loggedIn === false}
           width={this.state.screen.width}
           height={this.state.screen.height}
           paths={paint.paths}
           onSketch={path => sketch(path, this.state.color)} />
-        <IconButton className={classes.settingsButton}
-          onClick={() => this.props.paintTerminate()}
-        >
-          <Settings />
-        </IconButton>
-        <IconButton className={classes.undoButton}
-          onClick={() => this.props.undo()}
-        >
-          <Undo />
-        </IconButton>
-        <IconButton className={classes.paletteButton}
-          onClick={() => this.handleOpenPicker()}
-        >
-          <Palette />
-        </IconButton>
-        <IconButton className={classes.clearButton}
-          onClick={() => this.props.clear()}
-        >
-          <Clear />
-        </IconButton>
-        <ColorPickerModal
-          open={this.state.colorPickerOpen}
-          color={this.state.color}
-          onClose={this.handleClosePicker}
-          onChangeComplete={this.handleChangeComplete}
-        />
+
+        {loggedIn ? <div>
+          <IconButton className={classes.settingsButton}
+            aria-haspopup="true"
+            onClick={this.handleMenuOpen}
+            color="contrast"
+          >
+            <Settings />
+          </IconButton>
+          <IconButton className={classes.undoButton}
+            onClick={() => this.props.undo()}
+          >
+            <Undo />
+          </IconButton>
+          <IconButton className={classes.paletteButton}
+            onClick={() => this.handleOpenPicker()}
+          >
+            <Palette style={{ color: this.state.color }} />
+          </IconButton>
+          <IconButton className={classes.clearButton}
+            onClick={() => this.props.clear()}
+          >
+            <Clear />
+          </IconButton>
+          <ColorPickerModal
+            open={this.state.colorPickerOpen}
+            color={this.state.color}
+            onClose={this.handleClosePicker}
+            onChangeComplete={this.handleChangeComplete}
+          />
+          <Menu
+            id="menu-appbar"
+            anchorEl={this.state.anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={Boolean(this.state.anchorEl)}
+            onClose={this.handleClose}
+          >
+            {this.props.user.loggedIn ?
+              <MenuItem onClick={this.handleLeaveLobby}>
+                Leave lobby
+              </MenuItem> : null
+            }
+            <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
+          </Menu>
+        </div> : null}
       </div>
     );
   }
@@ -165,10 +204,15 @@ const mapDispatchToProps = (dispatch) => ({
   undo: () => dispatch(undo()),
   clear: () => dispatch(clear()),
   paintTerminate: variant => dispatch(terminate(MANIFEST.NAME)),
+  logout: () => {
+    dispatch(logout());
+  },
+  leave: () => {
+    dispatch(leave())
+  }
 })
 
 
 export default withStyles(styles)(
   connect(mapStateToProps, mapDispatchToProps)(PaintApp)
 );
-

@@ -1,8 +1,5 @@
 import React from 'react';
-import { connect } from "react-redux";
-import Typography from 'material-ui/Typography';
 import Modal from 'material-ui/Modal';
-import SyncProblemIcon from 'material-ui-icons/SyncProblem';
 import PropTypes from 'prop-types';
 import { CirclePicker } from 'react-color';
 
