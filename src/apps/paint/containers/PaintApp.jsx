@@ -18,7 +18,7 @@ import SketchCanvas from '../components/SketchCanvas';
 import MANIFEST from '../manifest'
 
 
-const styles = theme => ({
+const styles = theme => {console.log(theme);return ({
   root: {
     flexGrow: 1,
   },
@@ -42,6 +42,12 @@ const styles = theme => ({
     bottom: '10px',
     right: '50px'
   },
+  undoButtonDisabled: {
+    position: 'absolute',
+    color: '#CCC',
+    bottom: '10px',
+    right: '50px'
+  },
   clearButton: {
     position: 'absolute',
     bottom: '10px',
@@ -55,7 +61,7 @@ const styles = theme => ({
   canvasContainer: {
     backgroundColor: '#fff'
   }
-});
+})};
 
 
 class PaintApp extends React.Component {
@@ -134,6 +140,7 @@ class PaintApp extends React.Component {
   render() {
     const { paint, sketch, classes, user } = this.props;
     const loggedIn = this.props.user.loggedIn;
+    const undoCount = paint.paths.filter(p => p.author._id == user._id).length;
     return (
       <div className={classes.canvasContainer}>
         <SketchCanvas
@@ -151,15 +158,15 @@ class PaintApp extends React.Component {
           paths={paint.paths}
           onSketch={path => sketch(path, this.state.color)} />
 
-        {user.loggedIn && <div>
+        {user.loggedIn && <div onClick={ev => ev.preventDefault()}>
           <IconButton className={classes.settingsButton}
             aria-haspopup="true"
             onClick={this.handleMenuOpen}
           >
             <Settings />
           </IconButton>
-          <IconButton className={classes.undoButton}
-            onClick={() => this.props.undo()}
+          <IconButton className={undoCount > 0 ? classes.undoButton : classes.undoButtonDisabled}
+            onClick={ev => this.props.undo()}
           >
             <Undo />
           </IconButton>
