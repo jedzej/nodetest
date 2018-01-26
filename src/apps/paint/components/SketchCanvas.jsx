@@ -1,12 +1,26 @@
 import React, { Component } from 'react';
+import withStyles from 'material-ui/styles/withStyles';
+import PropTypes from 'prop-types';
 
+
+const captureScale = element => ([
+  1 / element.offsetWidth,
+  1 / element.offsetHeight
+])
+
+const drawScale = element => ([
+  element.width,
+  element.height
+])
 
 const event2pos = event => {
+  console.log("e2p", event)
+  const [xScale, yScale] = captureScale(event.target);
   if (event.touches)
     event = event.touches[0];
   return [
-    event.pageX - event.target.offsetLeft,
-    event.pageY - event.target.offsetTop
+    xScale * (event.pageX - event.target.offsetLeft),
+    yScale * (event.pageY - event.target.offsetTop)
   ];
 }
 
@@ -39,7 +53,7 @@ class SketchCanvas extends Component {
       const [px, py] = sketchBuffer[sketchBuffer.length - 1];
       distance = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
     }
-    if (distance > 5 || sketchBuffer.length === 0) {
+    if (distance > 0.01 || sketchBuffer.length === 0) {
       this.setState({
         sketchBuffer: [
           ...this.state.sketchBuffer,
@@ -91,29 +105,34 @@ class SketchCanvas extends Component {
   }
 
   componentDidUpdate() {
-    console.log('update')
     var ctx = this.canvas.getContext('2d');
+    const [xScale, yScale] = drawScale(this.canvas);
+
+    // draw supplied shapes
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.props.paths.forEach(shape => {
       if (shape.path.length > 0) {
         ctx.beginPath();
-        ctx.strokeStyle = shape.style;
-        ctx.moveTo(shape.path[0][0], shape.path[0][1]);
+        if (this.props.styler)
+          this.props.styler(ctx, shape);
+        ctx.moveTo(shape.path[0][0] * xScale, shape.path[0][1] * yScale);
         shape.path.slice(1).forEach(([x, y]) =>
-          ctx.lineTo(x, y)
+          ctx.lineTo(x * xScale, y * yScale)
           , this);
         ctx.stroke();
         ctx.closePath();
       }
     }, this)
 
+    // draw sketch buffer content
     const sketchBuffer = this.state.sketchBuffer;
     if (sketchBuffer.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = "#000000";
-      ctx.moveTo(sketchBuffer[0][0], sketchBuffer[0][1]);
+      if (this.props.styler)
+        this.props.styler(ctx, { path: sketchBuffer, isSketch: true });
+      ctx.moveTo(sketchBuffer[0][0] * xScale, sketchBuffer[0][1] * yScale);
       sketchBuffer.slice(1).forEach(([x, y]) =>
-        ctx.lineTo(x, y)
+        ctx.lineTo(x * xScale, y * yScale)
         , this);
       ctx.stroke();
       ctx.closePath();
@@ -122,10 +141,21 @@ class SketchCanvas extends Component {
 
   render() {
     return (
-      <canvas height="400" width="300" style={{ backgroundColor: '#FFFFFF', border: 'black 1px dotted' }}
-        ref={e => this.canvas = e} />
+      <canvas ref={e => this.canvas = e}
+        width={this.props.width}
+        height={this.props.height}
+        style={{verticalAlign: 'bottom'}}/>
     );
   }
 }
+
+SketchCanvas.propTypes = {
+  paths: PropTypes.array,
+  onSketch: PropTypes.func,
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number,
+
+};
+
 
 export default SketchCanvas;

@@ -3,7 +3,7 @@ module.exports = {
   EXCLUSIVE: true,
   HOT_JOIN: true,
   HOT_LEAVE: true,
-  FULLSCREEN: false,
+  FULLSCREEN: true,
 
   DEFAULT_STORE: {
     users: [],
@@ -31,7 +31,9 @@ module.exports = {
       '#000000'
     ],
     ACTION: {
-      PAINT_SKETCH: "PAINT_SKETCH"
+      PAINT_SKETCH: "PAINT_SKETCH",
+      PAINT_UNDO: "PAINT_UNDO",
+      PAINT_CLEAR: "PAINT_CLEAR",
     }
   }
 };

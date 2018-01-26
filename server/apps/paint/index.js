@@ -52,9 +52,28 @@ const PAINT_APP_HANDLERS = {
     const currentUser = appContext.currentUser;
     appContext.store.paths.push({
       author: currentUser,
-      style: appContext.store.users.find(u => u._id.equals(currentUser._id)).style,
+      style: action.payload.color,//appContext.store.users.find(u => u._id.equals(currentUser._id)).style,
       path: action.payload.path
     })
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
+  },
+
+  [MANIFEST.CONSTS.ACTION.PAINT_UNDO]: (action, appContext) => {
+    const currentUser = appContext.currentUser;
+    var paths = appContext.store.paths.reverse();
+    const index = paths.findIndex(p => p.author._id.equals(currentUser._id));
+    if(index >=0)
+      paths = paths.filter((_,i) => i != index);
+    paths.reverse();
+    appContext.store.paths = paths;
+
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
+  },
+
+  [MANIFEST.CONSTS.ACTION.PAINT_CLEAR]: (action, appContext) => {
+    appContext.store.paths = [];
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   }
