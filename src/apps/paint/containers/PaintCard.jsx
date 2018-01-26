@@ -17,9 +17,8 @@ const styles = {
 class PaintSelectorCard extends React.Component {
 
   render(){
-    const { classes } = this.props;
-    const isLeader = this.props.user._id === this.props.lobby.leaderId;
-    return (
+    const { classes, user } = this.props;
+        return (
       <div>
         <Card className={classes.card}>
           
@@ -33,7 +32,7 @@ class PaintSelectorCard extends React.Component {
           </CardContent>
           <CardActions>
             <Button dense color="primary"
-              disabled={isLeader === false}
+              disabled={user.isLeader === false}
               onClick={this.props.onStart}>
               START
           </Button>

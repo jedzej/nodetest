@@ -76,6 +76,9 @@ class PaintApp extends React.Component {
   handleMenuOpen = event => {
     this.setState({ anchorEl: event.currentTarget });
   };
+  handleCloseMenu = () => {
+    this.setState({ anchorEl: null });
+  };
 
   handleMenuClose = () => {
     this.setState({ anchorEl: null });
@@ -86,6 +89,21 @@ class PaintApp extends React.Component {
       color: color.hex,
       colorPickerOpen: false
     });
+  };
+
+  handleLeaveLobby = () => {
+    this.handleCloseMenu();
+    this.props.leave();
+  };
+
+  handleLogout = () => {
+    this.handleCloseMenu();
+    this.props.logout();
+  };
+
+  handleTerminate = () => {
+    this.handleCloseMenu();
+    this.props.paintTerminate();
   };
 
   handleOpenPicker = () => {
@@ -114,7 +132,7 @@ class PaintApp extends React.Component {
   }
 
   render() {
-    const { paint, sketch, classes } = this.props;
+    const { paint, sketch, classes, user } = this.props;
     const loggedIn = this.props.user.loggedIn;
     return (
       <div className={classes.canvasContainer}>
@@ -127,17 +145,16 @@ class PaintApp extends React.Component {
               ctx.strokeStyle = shape.style;
             }
           }}
-          noSketch={loggedIn === false}
+          noSketch={user.loggedIn === false}
           width={this.state.screen.width}
           height={this.state.screen.height}
           paths={paint.paths}
           onSketch={path => sketch(path, this.state.color)} />
 
-        {loggedIn ? <div>
+        {user.loggedIn && <div>
           <IconButton className={classes.settingsButton}
             aria-haspopup="true"
             onClick={this.handleMenuOpen}
-            color="contrast"
           >
             <Settings />
           </IconButton>
@@ -174,16 +191,15 @@ class PaintApp extends React.Component {
               horizontal: 'right',
             }}
             open={Boolean(this.state.anchorEl)}
-            onClose={this.handleClose}
+            onClose={this.handleCloseMenu}
           >
-            {this.props.user.loggedIn ?
-              <MenuItem onClick={this.handleLeaveLobby}>
-                Leave lobby
-              </MenuItem> : null
+            {user.isLeader &&
+              <MenuItem onClick={this.handleTerminate}>Terminate</MenuItem>
             }
+            <MenuItem onClick={this.handleLeaveLobby}>Leave lobby</MenuItem>
             <MenuItem onClick={this.handleLogout}>Logout</MenuItem>
           </Menu>
-        </div> : null}
+        </div>}
       </div>
     );
   }

@@ -1,11 +1,13 @@
 import * as types from './types'
+import { LOBBY_UPDATE, LOBBY_UPDATE_REJECTED } from '../lobby/types';
 
 const DEFAULT_STATE = {
   name: undefined,
   token: undefined,
   registrationPending: false,
   loginPending: false,
-  loggedIn: false
+  loggedIn: false,
+  isLeader: false,
 };
 
 
@@ -44,6 +46,18 @@ const reducer = (state = DEFAULT_STATE, action) => {
       state = {
         ...state,
         ...action.payload
+      };
+      break;
+    case LOBBY_UPDATE_REJECTED:
+      state = {
+        ...state,
+        isLeader: false
+      };
+      break;
+    case LOBBY_UPDATE:
+      state = {
+        ...state,
+        isLeader: state._id && state._id === action.payload.leaderId
       };
       break;
     case types.USER_UPDATE_REJECTED:
