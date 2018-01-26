@@ -39,7 +39,10 @@ const listTriggersEpic = (action$, store) =>
     types.LOBBY_JOIN_REJECTED
   ).exhaustMap(_ =>
     Rx.Observable.interval(3000).startWith(1)
-      .takeWhile(() => store.getState().lobby.exists === false)
+      .takeWhile(() => (
+        store.getState().user.loggedIn
+        && store.getState().lobby.exists === false
+      ))
     )
     .mapTo(list());
 
