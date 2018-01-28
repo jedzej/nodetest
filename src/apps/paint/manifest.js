@@ -7,7 +7,7 @@ module.exports = {
 
   DEFAULT_STORE: {
     users: [],
-    paths: []
+    actions: []
   },
 
   CONSTS: {
@@ -31,6 +31,7 @@ module.exports = {
       '#000000'
     ],
     ACTION: {
+      APP_UPDATE_PAINT: "APP_UPDATE_PAINT",
       PAINT_SKETCH: "PAINT_SKETCH",
       PAINT_FILL: "PAINT_FILL",
       PAINT_UNDO: "PAINT_UNDO",

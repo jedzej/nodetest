@@ -141,8 +141,8 @@ class PaintApp extends React.Component {
     const timestamp = new Date().getTime();
     var dontSketch = false;
     if (path.length === 1) {
-      for (var i = this.props.paint.paths.length - 1; i >= 0; i--) {
-        var p = this.props.paint.paths[i];
+      for (var i = this.props.paint.actions.length - 1; i >= 0; i--) {
+        var p = this.props.paint.actions[i];
         if (pointWithinShape(path[0], p.path)) {
           console.log(this.state)
           if (this.state.fillRequest) {
@@ -189,8 +189,10 @@ class PaintApp extends React.Component {
 
   componentWillUpdate() {
     const filteredCache = this.state.sketchCache.filter(
-      ps => this.props.paint.paths.some(pp => pp.timestamp === ps.timestamp)
-    )
+      ps => this.props.paint.actions.some(
+        pp => pp.payload.timestamp === ps.timestamp
+      )
+    );
     if (filteredCache.length < this.state.sketchCache.length)
       this.setState({
         sketchCache: filteredCache
@@ -207,23 +209,37 @@ class PaintApp extends React.Component {
 
   render() {
     const { paint, classes, user } = this.props;
-    const undoCount = paint.paths.filter(p => p.author._id === user._id).length;
+    const undoCount = paint.actions.filter(a =>
+      a.author._id === user._id).length;
+    const paths = [];
+
+    paint.actions.forEach(action => {
+      if (action.type === MANIFEST.CONSTS.ACTION.PAINT_SKETCH) {
+        paths.push(action.type.payload);
+      } else if (action.type === MANIFEST.CONSTS.ACTION.PAINT_FILL) {
+        const index = paths.findIndex(p =>
+          p.timestamp === action.payload.timestamp);
+        paths[index].isFilled = true;
+        paths[index].style = action.payload.style;
+      }
+    });
+
+    const styler = (ctx, shape) => {
+      if (shape.isSketch) {
+        ctx.fillStyle = ctx.strokeStyle = this.state.color;
+      } else {
+        ctx.fillStyle = ctx.strokeStyle = shape.style;
+      }
+    };
 
     return (
       <div className={classes.canvasContainer}>
         <SketchCanvas
-          styler={(ctx, shape) => {
-            if (shape.isSketch) {
-              ctx.fillStyle = ctx.strokeStyle = this.state.color;
-            }
-            else {
-              ctx.fillStyle = ctx.strokeStyle = shape.style;
-            }
-          }}
+          styler={styler}
           noSketch={user.loggedIn === false}
           width={this.state.screen.width}
           height={this.state.screen.height}
-          paths={[...paint.paths, ...this.state.sketchCache]}
+          paths={[]}//{[...paths, ...this.state.sketchCache]}
           onSketch={this.handleSketch} />
 
         {user.loggedIn && <div onClick={ev => ev.preventDefault()}>

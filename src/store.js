@@ -18,6 +18,8 @@ import chatReducer from './logic/chat/reducers';
 import observerReducer from './logic/observer/reducers';
 import appReducer from './logic/app/reducers';
 
+import paintReducer from './apps/paint/reducers';
+
 // ROCK-SCISSORS-PAPER
 import rspEpics from './apps/rsp/epics';
 import paintEpics from './apps/paint/epics';
@@ -46,7 +48,8 @@ const rootReducer = combineReducers({
   'lobby': lobbyReducer,
   'chat': chatReducer,
   'observer': observerReducer,
-  'app': appReducer
+  'app': appReducer,
+  'paint': paintReducer
 });
 
 

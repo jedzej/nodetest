@@ -50,11 +50,28 @@ const PAINT_APP_HANDLERS = {
 
   [MANIFEST.CONSTS.ACTION.PAINT_SKETCH]: (action, appContext) => {
     const currentUser = appContext.currentUser;
-    appContext.store.paths.push({
+    appContext.store.actions.push({
       author: currentUser,
-      isFilled: false,
-      ...action.payload
-    })
+      ...action
+    });
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
+  },
+
+  [MANIFEST.CONSTS.ACTION.PAINT_FILL]: (action, appContext) => {
+    const currentUser = appContext.currentUser;
+    const ownShape = appContext.store.actions.some(a => (
+      a.payload.timestamp === action.payload.timestamp
+      && a.author._id === currentUser._id
+    ));
+
+    if(ownShape) {
+      appContext.store.actions.push({
+        author: currentUser,
+        ...action
+      })
+    }
+
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   },
@@ -67,22 +84,6 @@ const PAINT_APP_HANDLERS = {
       paths = paths.filter((_, i) => i != index);
     paths.reverse();
     appContext.store.paths = paths;
-
-    return appContext.commit()
-      .then(() => appContext.doAppUpdate());
-  },
-
-  [MANIFEST.CONSTS.ACTION.PAINT_FILL]: (action, appContext) => {
-    const currentUser = appContext.currentUser;
-    const index = appContext.store.paths.findIndex(p =>
-      p.timestamp === action.payload.timestamp);
-    if (index >= 0) {
-      appContext.store.paths[index] = {
-        ...appContext.store.paths[index],
-        ...action.payload,
-        isFilled: true
-      };
-    }
 
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
