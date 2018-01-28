@@ -52,8 +52,8 @@ const PAINT_APP_HANDLERS = {
     const currentUser = appContext.currentUser;
     appContext.store.paths.push({
       author: currentUser,
-      style: action.payload.color,//appContext.store.users.find(u => u._id.equals(currentUser._id)).style,
-      path: action.payload.path
+      isFilled: false,
+      ...action.payload
     })
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
@@ -63,10 +63,26 @@ const PAINT_APP_HANDLERS = {
     const currentUser = appContext.currentUser;
     var paths = appContext.store.paths.reverse();
     const index = paths.findIndex(p => p.author._id.equals(currentUser._id));
-    if(index >=0)
-      paths = paths.filter((_,i) => i != index);
+    if (index >= 0)
+      paths = paths.filter((_, i) => i != index);
     paths.reverse();
     appContext.store.paths = paths;
+
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
+  },
+
+  [MANIFEST.CONSTS.ACTION.PAINT_FILL]: (action, appContext) => {
+    const currentUser = appContext.currentUser;
+    const index = appContext.store.paths.findIndex(p =>
+      p.timestamp === action.payload.timestamp);
+    if (index >= 0) {
+      appContext.store.paths[index] = {
+        ...appContext.store.paths[index],
+        ...action.payload,
+        isFilled: true
+      };
+    }
 
     return appContext.commit()
       .then(() => appContext.doAppUpdate());

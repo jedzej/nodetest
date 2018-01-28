@@ -6,7 +6,12 @@ import MANIFEST from './manifest'
 const ACTION = MANIFEST.CONSTS.ACTION;
 
 const wsTransmitEpic = action$ => action$
-  .ofType(ACTION.PAINT_SKETCH, ACTION.PAINT_UNDO, ACTION.PAINT_CLEAR)
+  .ofType(
+  ACTION.PAINT_SKETCH,
+  ACTION.PAINT_UNDO,
+  ACTION.PAINT_CLEAR,
+  ACTION.PAINT_FILL
+  )
   .let(webSocketWrite)
 
 

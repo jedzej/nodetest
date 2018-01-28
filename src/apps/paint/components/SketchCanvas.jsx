@@ -13,7 +13,6 @@ const drawScale = element => ([
 ])
 
 const event2pos = event => {
-  console.log("e2p", event)
   const [xScale, yScale] = captureScale(event.target);
   if (event.touches)
     event = event.touches[0];
@@ -52,7 +51,7 @@ class SketchCanvas extends Component {
       const [px, py] = sketchBuffer[sketchBuffer.length - 1];
       distance = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
     }
-    if (distance > 0.01 || sketchBuffer.length === 0) {
+    if (distance > 0.005 || sketchBuffer.length === 0) {
       this.setState({
         sketchBuffer: [
           ...this.state.sketchBuffer,
@@ -64,8 +63,6 @@ class SketchCanvas extends Component {
   }
 
   startTracking(event) {
-    console.log('start', event)
-
     this.setState({
       isTracking: true,
       sketchBuffer: []
@@ -109,18 +106,36 @@ class SketchCanvas extends Component {
     var ctx = this.canvas.getContext('2d');
     const [xScale, yScale] = drawScale(this.canvas);
 
-    // draw supplied shapes
+    const drawShape = (path, isFilled) => {
+      ctx.moveTo(path[0][0] * xScale, path[0][1] * yScale);
+      path.slice(1).forEach(([x, y]) =>
+        ctx.lineTo(x * xScale, y * yScale)
+        , this);
+      ctx.stroke();
+      if (isFilled) {
+        ctx.fill();
+      }
+    }
+
+    const drawPoint = point => {
+      ctx.rect(point[0] * xScale - 2, point[1] * yScale - 1, 5, 3);
+      ctx.rect(point[0] * xScale - 1, point[1] * yScale - 2, 3, 5);
+      ctx.fill();
+    }
+
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // draw supplied shapes
     this.props.paths.forEach(shape => {
       if (shape.path.length > 0) {
         ctx.beginPath();
         if (this.props.styler)
           this.props.styler(ctx, shape);
-        ctx.moveTo(shape.path[0][0] * xScale, shape.path[0][1] * yScale);
-        shape.path.slice(1).forEach(([x, y]) =>
-          ctx.lineTo(x * xScale, y * yScale)
-          , this);
-        ctx.stroke();
+        if (shape.path.length === 1) {
+          drawPoint(shape.path[0]);
+        } else {
+          drawShape(shape.path, shape.isFilled);
+        }
         ctx.closePath();
       }
     }, this)

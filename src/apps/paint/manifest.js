@@ -32,6 +32,7 @@ module.exports = {
     ],
     ACTION: {
       PAINT_SKETCH: "PAINT_SKETCH",
+      PAINT_FILL: "PAINT_FILL",
       PAINT_UNDO: "PAINT_UNDO",
       PAINT_CLEAR: "PAINT_CLEAR",
     }

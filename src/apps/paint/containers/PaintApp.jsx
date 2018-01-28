@@ -11,57 +11,63 @@ import Menu, { MenuItem } from 'material-ui/Menu';
 import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { sketch, undo, clear } from '../actions';
+import { sketch, undo, clear, fill } from '../actions';
 
 import ColorPickerModal from '../components/ColorPickerModal';
 import SketchCanvas from '../components/SketchCanvas';
 import MANIFEST from '../manifest'
+import { pointWithinShape } from '../raycasting';
 
 
-const styles = theme => {console.log(theme);return ({
-  root: {
-    flexGrow: 1,
-  },
-  paper: {
-    padding: theme.spacing.unit * 2,
-    height: '100%',
-  },
-  control: {
-    padding: theme.spacing.unit * 2,
-  },
-  headline: {
-    paddingBottom: theme.spacing.unit * 2
-  },
-  settingsButton: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px'
-  },
-  undoButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '50px'
-  },
-  undoButtonDisabled: {
-    position: 'absolute',
-    color: '#CCC',
-    bottom: '10px',
-    right: '50px'
-  },
-  clearButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '90px'
-  },
-  paletteButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '10px'
-  },
-  canvasContainer: {
-    backgroundColor: '#fff'
-  }
-})};
+const styles = theme => {
+  console.log(theme); return ({
+    root: {
+      flexGrow: 1,
+    },
+    paper: {
+      padding: theme.spacing.unit * 2,
+      height: '100%',
+    },
+    control: {
+      padding: theme.spacing.unit * 2,
+    },
+    headline: {
+      paddingBottom: theme.spacing.unit * 2
+    },
+    settingsButton: {
+      position: 'absolute',
+      top: '10px',
+      right: '10px'
+    },
+    undoButton: {
+      position: 'absolute',
+      bottom: '10px',
+      right: '50px'
+    },
+    undoButtonDisabled: {
+      position: 'absolute',
+      color: '#CCC',
+      bottom: '10px',
+      right: '50px'
+    },
+    clearButton: {
+      position: 'absolute',
+      bottom: '10px',
+      right: '90px'
+    },
+    paletteButton: {
+      position: 'absolute',
+      bottom: '10px',
+      right: '10px'
+    },
+    canvasContainer: {
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      backgroundColor: '#fff'
+    }
+  })
+};
 
 
 class PaintApp extends React.Component {
@@ -69,6 +75,8 @@ class PaintApp extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      fillRequest: null,
+      sketchCache: [],
       anchorEl: null,
       color: '#000000',
       colorPickerOpen: false,
@@ -129,6 +137,66 @@ class PaintApp extends React.Component {
     });
   }
 
+  handleSketch = (path) => {
+    const timestamp = new Date().getTime();
+    var dontSketch = false;
+    if (path.length === 1) {
+      for (var i = this.props.paint.paths.length - 1; i >= 0; i--) {
+        var p = this.props.paint.paths[i];
+        if (pointWithinShape(path[0], p.path)) {
+          console.log(this.state)
+          if (this.state.fillRequest) {
+            this.props.undo();
+            clearTimeout(this.state.fillRequest.timeout);
+            this.props.fill(this.state.fillRequest.timestamp, this.state.color);
+            this.setState({ fillRequest: null })
+            dontSketch = true;
+          }
+          else {
+            console.log('settimeot')
+            this.setState({
+              fillRequest: {
+                timestamp: p.timestamp,
+                timeout: setTimeout(() => {
+
+                  this.setState({
+                    fillRequest: null
+                  })
+                }, 500)
+              }
+            })
+            break;
+          }
+        }
+      }
+    }
+    if (dontSketch === false) {
+      this.setState({
+        sketchCache: [
+          {
+            path: path,
+            style: this.state.color,
+            author: this.props.user,
+            timestamp: timestamp
+          },
+          ...this.state.sketchCache
+        ]
+      });
+      this.props.sketch(path, this.state.color, timestamp);
+    }
+
+  }
+
+  componentWillUpdate() {
+    const filteredCache = this.state.sketchCache.filter(
+      ps => this.props.paint.paths.some(pp => pp.timestamp === ps.timestamp)
+    )
+    if (filteredCache.length < this.state.sketchCache.length)
+      this.setState({
+        sketchCache: filteredCache
+      });
+  }
+
   componentWillMount() {
     window.addEventListener('resize', this.handleResize, true);
   }
@@ -138,25 +206,25 @@ class PaintApp extends React.Component {
   }
 
   render() {
-    const { paint, sketch, classes, user } = this.props;
-    const loggedIn = this.props.user.loggedIn;
-    const undoCount = paint.paths.filter(p => p.author._id == user._id).length;
+    const { paint, classes, user } = this.props;
+    const undoCount = paint.paths.filter(p => p.author._id === user._id).length;
+
     return (
       <div className={classes.canvasContainer}>
         <SketchCanvas
           styler={(ctx, shape) => {
             if (shape.isSketch) {
-              ctx.strokeStyle = this.state.color;
+              ctx.fillStyle = ctx.strokeStyle = this.state.color;
             }
             else {
-              ctx.strokeStyle = shape.style;
+              ctx.fillStyle = ctx.strokeStyle = shape.style;
             }
           }}
           noSketch={user.loggedIn === false}
           width={this.state.screen.width}
           height={this.state.screen.height}
-          paths={paint.paths}
-          onSketch={path => sketch(path, this.state.color)} />
+          paths={[...paint.paths, ...this.state.sketchCache]}
+          onSketch={this.handleSketch} />
 
         {user.loggedIn && <div onClick={ev => ev.preventDefault()}>
           <IconButton className={classes.settingsButton}
@@ -223,7 +291,8 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  sketch: (path, color) => dispatch(sketch(path, color)),
+  sketch: (path, color, timestamp) => dispatch(sketch(path, color, timestamp)),
+  fill: (timestamp, color) => dispatch(fill(timestamp, color)),
   undo: () => dispatch(undo()),
   clear: () => dispatch(clear()),
   paintTerminate: variant => dispatch(terminate(MANIFEST.NAME)),
