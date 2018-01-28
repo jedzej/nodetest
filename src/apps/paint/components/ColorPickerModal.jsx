@@ -67,7 +67,7 @@ ColorPickerModal.propTypes = {
   open: PropTypes.bool,
   onChangeComplete: PropTypes.func,
   onClose: PropTypes.func,
-  color: PropTypes.object,
+  color: PropTypes.string,
 };
 
 export default ColorPickerModal;

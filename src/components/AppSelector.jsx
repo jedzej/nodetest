@@ -14,9 +14,8 @@ class AppSelector extends Component {
     return (
       <Grid container>
         {Object.values(applications).map(app => (
-          <Grid item>
+          <Grid item key={app.MANIFEST.NAME}>
             <app.CARD
-              key={app.MANIFEST.NAME}
               lobby={props.lobby}
               user={props.user}
               onStart={() => props.start(app.MANIFEST.NAME)} />
