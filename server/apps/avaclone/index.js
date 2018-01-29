@@ -188,84 +188,23 @@ const AVACLONE_APP_HANDLERS = {
 
     if (commanderId.equals(appContext.currentUser._id))
       throw new Error("Not a commander");
+
     const qNum = action.payload.questNumber;
+    const playersCount = appContext.lobby.members.length;
+    const squadCount = store.quest[qNum].squad.length;
+    const requiredSquadCount = QUEST_MAP[playersCount].squadCount[qNum];
+
+    if(squadCount !== requiredSquadCount)
+      throw new Error("Required " + squadCount + " players for this mission!");
+
     store.quest[qNum].squad = action.payload;
 
-    
+    QUEST_MAP[qNum].
 
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   },
 
-
-  [MANIFEST.CONSTS.ACTION.PAINT_SKETCH]: (action, appContext) => {
-    const store = appContext.store;
-    const currentUser = appContext.currentUser;
-
-    store.actions.push({
-      type: action.type,
-      payload: {
-        ...action.payload,
-        author: currentUser
-      }
-    });
-    store.users[currentUser._id].undoCount++;
-    return appContext.commit()
-      .then(() => appContext.doAppUpdate());
-  },
-
-
-  [MANIFEST.CONSTS.ACTION.PAINT_FILL]: (action, appContext) => {
-    const currentUser = appContext.currentUser;
-    const store = appContext.store;
-    const ownShape = appContext.store.actions.some(a => (
-      a.payload.timestamp === action.payload.timestamp
-      && a.payload.author._id.equals(currentUser._id)
-    ));
-    if (ownShape) {
-      store.actions.push({
-        type: action.type,
-        payload: {
-          ...action.payload,
-          author: currentUser
-        }
-      })
-      store.users[currentUser._id].undoCount++;
-      return appContext.commit()
-        .then(() => appContext.doAppUpdate());
-    }
-  },
-
-
-  [MANIFEST.CONSTS.ACTION.PAINT_UNDO]: (action, appContext) => {
-
-    const currentUser = appContext.currentUser;
-    const store = appContext.store;
-
-    if (store.users[currentUser._id].undoCount > 0) {
-      let actions = store.actions.reverse();
-      const index = actions.findIndex(
-        p => p.payload.author._id.equals(currentUser._id));
-
-      if (index >= 0)
-        actions = actions.filter((_, i) => i != index);
-      actions.reverse();
-      appContext.store.actions = actions;
-      store.users[currentUser._id].undoCount--;
-
-      return appContext.commit()
-        .then(() => appContext.doAppUpdate());
-    }
-  },
-
-  [MANIFEST.CONSTS.ACTION.PAINT_CLEAR]: (action, appContext) => {
-    appContext.store.actions = [];
-    Object.values(appContext.store.users).forEach(appUser => {
-      appUser.undoCount = 0;
-    });
-    return appContext.commit()
-      .then(() => appContext.doAppUpdate());
-  }
 }
 
 module.exports = {
