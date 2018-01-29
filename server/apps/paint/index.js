@@ -5,92 +5,122 @@ const appService = require('../../modules/app/service');
 const MANIFEST = require('../../../src/apps/paint/manifest')
 const rejectionAction = tools.rejectionAction
 
-const assignColor = store => {
-  const color = store.availableColors[Math.floor(store.availableColors.length * Math.random())];
-  store.availableColors = store.availableColors.filter(c => c != color);
-  return color;
-}
 
 const createUser = (appContext, user) => ({
   _id: user._id,
   name: user.name,
-  style: assignColor(appContext.store),
-  paths: []
+  undoCount: 0
 })
+
 
 
 const PAINT_APP_HANDLERS = {
 
+
   'APP_START_HOOK': (action, appContext) => {
-    console.log('PAINT START', action)
     if (action.payload.name !== MANIFEST.NAME)
       return;
     const members = appContext.lobby.members;
-    appContext.store.availableColors = MANIFEST.CONSTS.COLORS;
 
-    appContext.store.users = members.map(m => createUser(appContext, m));
+    appContext.store.users = members.reduce((map, member) => {
+      map[member._id] = createUser(appContext, member);
+      return map;
+    }, {});
     return appContext.commit();
   },
+
 
   'APP_TERMINATE_HOOK': (action, appContext) => {
     console.log('PAINT TERMINATE', appContext.exists);
   },
 
+
   'LOBBY_JOIN_HOOK': (action, appContext) => {
     console.log('PAINT JOIN', appContext.exists);
+    const { store, currentUser } = appContext;
+    if (store.users[currentUser._id] === undefined) {
+      store.users[currentUser._id] = createUser(appContext, currentUser);
+      appContext.commit()
+        .then(() => appContext.doAppUpdate());
+    }
   },
+
 
   'LOBBY_LEAVE_HOOK': (action, appContext) => {
     console.log('PAINT LEAVE', appContext.exists);
   },
 
+
   'LOBBY_KICK_HOOK': (action, appContext) => {
     console.log('PAINT KICK', appContext.exists);
   },
 
+
   [MANIFEST.CONSTS.ACTION.PAINT_SKETCH]: (action, appContext) => {
+    const store = appContext.store;
     const currentUser = appContext.currentUser;
-    appContext.store.actions.push({
-      author: currentUser,
-      ...action
+
+    store.actions.push({
+      type: action.type,
+      payload: {
+        ...action.payload,
+        author: currentUser
+      }
     });
+    store.users[currentUser._id].undoCount++;
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   },
+
 
   [MANIFEST.CONSTS.ACTION.PAINT_FILL]: (action, appContext) => {
     const currentUser = appContext.currentUser;
+    const store = appContext.store;
     const ownShape = appContext.store.actions.some(a => (
       a.payload.timestamp === action.payload.timestamp
-      && a.author._id === currentUser._id
+      && a.payload.author._id.equals(currentUser._id)
     ));
-
-    if(ownShape) {
-      appContext.store.actions.push({
-        author: currentUser,
-        ...action
+    if (ownShape) {
+      store.actions.push({
+        type: action.type,
+        payload: {
+          ...action.payload,
+          author: currentUser
+        }
       })
+      store.users[currentUser._id].undoCount++;
+      return appContext.commit()
+        .then(() => appContext.doAppUpdate());
     }
-
-    return appContext.commit()
-      .then(() => appContext.doAppUpdate());
   },
 
-  [MANIFEST.CONSTS.ACTION.PAINT_UNDO]: (action, appContext) => {
-    const currentUser = appContext.currentUser;
-    var paths = appContext.store.paths.reverse();
-    const index = paths.findIndex(p => p.author._id.equals(currentUser._id));
-    if (index >= 0)
-      paths = paths.filter((_, i) => i != index);
-    paths.reverse();
-    appContext.store.paths = paths;
 
-    return appContext.commit()
-      .then(() => appContext.doAppUpdate());
+  [MANIFEST.CONSTS.ACTION.PAINT_UNDO]: (action, appContext) => {
+
+    const currentUser = appContext.currentUser;
+    const store = appContext.store;
+
+    if (store.users[currentUser._id].undoCount > 0) {
+      let actions = store.actions.reverse();
+      const index = actions.findIndex(
+        p => p.payload.author._id.equals(currentUser._id));
+
+      if (index >= 0)
+        actions = actions.filter((_, i) => i != index);
+      actions.reverse();
+      appContext.store.actions = actions;
+      store.users[currentUser._id].undoCount--;
+
+      return appContext.commit()
+        .then(() => appContext.doAppUpdate());
+    }
   },
 
   [MANIFEST.CONSTS.ACTION.PAINT_CLEAR]: (action, appContext) => {
-    appContext.store.paths = [];
+    appContext.store.actions = [];
+    Object.values(appContext.store.users).forEach(appUser => {
+      appUser.undoCount = 0;
+    });
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   }

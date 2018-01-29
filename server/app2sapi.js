@@ -5,11 +5,13 @@ const tools = require('./modules/tools');
 const check = require('./modules/check');
 const filter = require('./modules/filter');
 const sapi = require('./sapi');
+const AsyncLock = require('async-lock');
 const SapiError = sapi.SapiError;
 var debug = require('debug')('sapi:app');
 debug.log = console.log.bind(console);
 
 var apps = {};
+var lock = new AsyncLock();
 
 const doAppUpdate = (db, lobbyId, ws) => {
   var _this = this;
@@ -122,26 +124,32 @@ const app2sapi = (appPath) => {
   Object.keys(app.handlers).forEach(type => {
     const appHandler = app.handlers[type];
     var ctx = new tools.Context();
-    sapiHandlers[type] = (action, ws, db) => {
-      return Promise.resolve()
-        .then(() => {
-          if (action.type == "LOBBY_JOIN_HOOK") {
-            return action.payload.lobby
-          } else {
-            return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
-          }
-        })
-        .then(ctx.store('lobby'))
-        .catch(err => {
-          debug('No lobby for ' + app.NAME + '\n' + err.stack)
-        })
-        .then(() => createAppContext(ws, db, ctx.lobby, app.NAME))
-        .then(ctx.store('appContext'))
-        .catch(err => {
-          debug('No context for ' + app.NAME + '\n' + err.stack)
-        })
-        .then(appContext => appHandler(action, ctx.appContext))
-    }
+    sapiHandlers[type] = (action, ws, db) => Promise.resolve()
+      // special case of lobby join hook where lobby is not
+      .then(() => {
+        if (action.type == "LOBBY_JOIN_HOOK") {
+          return action.payload.lobby
+        } else {
+          return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+        }
+      })
+      .then(ctx.store('lobby'))
+      .catch(err => {
+        debug('No lobby for ' + app.NAME + '\n' + err.stack)
+      })
+      .then(() => {
+        const impl = () => createAppContext(ws, db, ctx.lobby, app.NAME)
+          .then(ctx.store('appContext'))
+          .catch(err => {
+            debug('No context for ' + app.NAME + '\n' + err.stack)
+          })
+          .then(appContext => appHandler(action, ctx.appContext));
+
+        if (ws.store.lobbyId)
+          return lock.acquire(ws.store.lobbyId, impl);
+        else
+          return impl();
+      });
   });
   return sapiHandlers;
 }

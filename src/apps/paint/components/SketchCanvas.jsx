@@ -126,7 +126,7 @@ class SketchCanvas extends Component {
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // draw supplied shapes
-    this.props.paths.forEach(shape => {
+    this.props.shapes.forEach(shape => {
       if (shape.path.length > 0) {
         ctx.beginPath();
         if (this.props.styler)
@@ -168,7 +168,7 @@ class SketchCanvas extends Component {
 }
 
 SketchCanvas.propTypes = {
-  paths: PropTypes.array,
+  shapes: PropTypes.array,
   onSketch: PropTypes.func,
   width: PropTypes.number.isRequired,
   height: PropTypes.number,
