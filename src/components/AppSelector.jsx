@@ -12,9 +12,9 @@ class AppSelector extends Component {
     const { props } = this;
     console.log(applications)
     return (
-      <Grid container>
+      <Grid container spacing={0}>
         {Object.values(applications).map(app => (
-          <Grid item key={app.MANIFEST.NAME}>
+          <Grid item key={app.MANIFEST.NAME} style={{padding:12}}>
             <app.CARD
               lobby={props.lobby}
               user={props.user}

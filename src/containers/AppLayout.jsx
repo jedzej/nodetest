@@ -53,7 +53,7 @@ const styles = theme => ({
   content: {
     backgroundColor: theme.palette.background.backgroundColor,
     width: '100%',
-    padding: theme.spacing.unit * 3,
+    overflowY: 'auto',
     height: 'calc(100% - 56px)',
     marginTop: 56,
     [theme.breakpoints.up('sm')]: {

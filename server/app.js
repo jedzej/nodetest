@@ -7,6 +7,7 @@ const apps = [
   './apps/rsp',
   './apps/chat',
   './apps/paint',
+  './apps/avaclone',
   //require('./apps/chat/config')
 ]
 
