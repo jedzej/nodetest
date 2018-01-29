@@ -168,10 +168,10 @@ class SketchCanvas extends Component {
 }
 
 SketchCanvas.propTypes = {
-  shapes: PropTypes.array,
+  shapes: PropTypes.array.isRequired,
   onSketch: PropTypes.func,
   width: PropTypes.number.isRequired,
-  height: PropTypes.number,
+  height: PropTypes.number.isRequired,
   noSketch: PropTypes.bool
 };
 

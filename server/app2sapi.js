@@ -19,11 +19,11 @@ const doAppUpdate = (db, lobbyId, ws) => {
     .then(appdataMap => {
       const sendUpdate = (client) => client.sendAction(
         "APP_UPDATE", appdataMap
-      )
+      );
       if (ws)
         sendUpdate(ws);
       else
-        sapi.getClients(filter.ws.byLobbyId(lobbyId)).forEach(sendUpdate)
+        sapi.getClients(filter.ws.byLobbyId(lobbyId)).forEach(sendUpdate);
     })
 }
 
@@ -42,7 +42,7 @@ class AppContext {
       clients: undefined,
       lobbyMembers: undefined,
       lobbyObservers: undefined
-    }
+    };
     this.lobby = lobby;
     this.isObserver = ws.store.isObserver === true;
     this.exists = exists;
@@ -105,9 +105,8 @@ const createAppContext = (ws, db, lobby, appName) => {
           name: appName,
           exclusive: apps[appName].EXCLUSIVE
         };
-        console.log(apps[appName])
       }
-      return new AppContext(null, ws, db, lobby, appdata, exists)
+      return new AppContext(null, ws, db, lobby, appdata, exists);
     });
 }
 
@@ -117,81 +116,52 @@ const app2sapi = (appPath) => {
   const app = {
     ...index.manifest,
     handlers: index.handlers
-  }
-  debug('registering %s', app.NAME)
+  };
+  const actionTypes = Object.keys(app.handlers);
+  const sapiHandlers = {};
+
+  debug('registering %s', app.NAME);
   apps[app.NAME] = app;
-  var sapiHandlers = {}
-  Object.keys(app.handlers).forEach(type => {
+
+  actionTypes.forEach(type => {
     const appHandler = app.handlers[type];
-    var ctx = new tools.Context();
+    const ctx = new tools.Context();
+
     sapiHandlers[type] = (action, ws, db) => Promise.resolve()
-      // special case of lobby join hook where lobby is not
+      // special case of lobby join hook where lobby is not available yet
       .then(() => {
         if (action.type == "LOBBY_JOIN_HOOK") {
-          return action.payload.lobby
+          return action.payload.lobby;
         } else {
-          return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId)
+          return lobbyService.get.byIdWithMembers(db, ws.store.lobbyId);
         }
       })
+      // acquire lobby
       .then(ctx.store('lobby'))
       .catch(err => {
-        debug('No lobby for ' + app.NAME + '\n' + err.stack)
+        debug('No lobby for ' + app.NAME + '\n' + err.stack);
       })
+      // create app context and run handler
       .then(() => {
-        const impl = () => createAppContext(ws, db, ctx.lobby, app.NAME)
+        // procedure implementation
+        const procedure = () => createAppContext(ws, db, ctx.lobby, app.NAME)
           .then(ctx.store('appContext'))
           .catch(err => {
             debug('No context for ' + app.NAME + '\n' + err.stack)
           })
           .then(appContext => appHandler(action, ctx.appContext));
 
+        // lock context
         if (ws.store.lobbyId)
-          return lock.acquire(ws.store.lobbyId, impl);
+          return lock.acquire(ws.store.lobbyId, procedure);
         else
-          return impl();
+          return procedure();
       });
   });
   return sapiHandlers;
 }
 
-const preverify = {
-
-  start: (db, lobby, appName) => {
-    const app = apps[appName];
-    // check members count
-    if (lobby.members.length > app.usersLimit.max) {
-      throw new Error('Too many lobby members!');
-    }
-    if (lobby.members.length < app.usersLimit.min) {
-      throw new Error('Too few lobby members!');
-    }
-  },
-
-  join: (db, lobby, appName) => {
-    const app = apps[appName];
-    if (app.hotJoin === false) {
-      throw new Error('Unable to join during app operation');
-    }
-    // check members count
-    if (lobby.members.length > app.usersLimit.max) {
-      throw new Error('Lobby full!');
-    }
-  },
-
-  leave: (db, lobby, appName) => {
-    const app = apps[appName];
-    if (app.hotLeave === false) {
-      throw new Error('Unable to join during app operation');
-    }
-    // check members count
-    if (lobby.members.length < app.usersLimit.min) {
-      throw new Error('Too few lobby members!');
-    }
-  }
-}
-
 app2sapi.doAppUpdate = doAppUpdate;
-app2sapi.createAppContext = createAppContext;
-app2sapi.preverify = preverify;
+
 
 module.exports = app2sapi;
