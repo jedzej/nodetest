@@ -2,6 +2,7 @@ import { createStore, combineReducers, applyMiddleware } from "redux";
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { reducer as notificationsReducer } from 'react-notification-system-redux';
 import { createWebSocketMiddleWare, webSocketReducer } from './webSocketMiddleware';
+import applications from './applications'
 
 import commonEpics from './logic/common/epics';
 import helloEpics from './logic/hello/epics';
@@ -18,12 +19,6 @@ import chatReducer from './logic/chat/reducers';
 import observerReducer from './logic/observer/reducers';
 import appReducer from './logic/app/reducers';
 
-import paintReducer from './apps/paint/reducers';
-
-// ROCK-SCISSORS-PAPER
-import rspEpics from './apps/rsp/epics';
-import paintEpics from './apps/paint/epics';
-
 import { routerReducer, routerMiddleware } from "react-router-redux";
 
 
@@ -35,8 +30,9 @@ const rootEpic = combineEpics(
   chatEpics,
   observerEpics,
   appEpics,
-  rspEpics,
-  paintEpics
+  ...Object.values(applications)
+    .map(app => app.epic)
+    .filter(epic => epic !== undefined)
 );
 
 const rootReducer = combineReducers({
@@ -49,7 +45,13 @@ const rootReducer = combineReducers({
   'chat': chatReducer,
   'observer': observerReducer,
   'app': appReducer,
-  'paint': paintReducer
+  ...Object.values(applications)
+    .filter(app => app.reducer !== undefined)
+    .reduce((map, app) => {
+      map[app.MANIFEST.NAME.toLowerCase()] = app.reducer;
+      return map;
+    }, {})
+
 });
 
 
