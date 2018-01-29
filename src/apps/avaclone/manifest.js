@@ -118,6 +118,7 @@ const QUEST_MAP = {
 const questData = {
   stage: QUEST_STAGE.NOT_TAKEN,
   squad: null,
+  votingHistory: null,
   squadVotes: null,
   questVotes: null
 }
@@ -135,6 +136,7 @@ module.exports = {
     playersOrder: [],
     charactersMap: {},
     configuration: {
+      squadVotingFailLimit: 3,
       squadProposalLimit: 0,
       questVotingLimit: 0,
       squadProposalVotingLimit: 0,
