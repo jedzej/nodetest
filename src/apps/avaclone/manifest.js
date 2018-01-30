@@ -137,7 +137,7 @@ module.exports = {
     playersOrder: [],
     charactersMap: {},
     configuration: {
-      squadVotingFailLimit: 3,
+      squadVotingLimit: 3,
       squadProposalLimit: 0,
       questVotingLimit: 0,
       squadProposalVotingLimit: 0,

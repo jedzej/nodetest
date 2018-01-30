@@ -24,10 +24,10 @@ class PaintSelectorCard extends React.Component {
           
           <CardContent>
             <Typography type="headline" component="h2">
-              Paint APP
+              Avaclone
           </Typography>
             <Typography component="p">
-              Paint if you can
+              
           </Typography>
           </CardContent>
           <CardActions>
