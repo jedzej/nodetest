@@ -116,6 +116,7 @@ const QUEST_MAP = {
 };
 
 const questData = {
+  number: 0,
   stage: QUEST_STAGE.NOT_TAKEN,
   squad: null,
   votingHistory: null,
@@ -143,11 +144,26 @@ module.exports = {
       specialChars: []
     },
     quests: {
-      1: { ...questData },
-      2: { ...questData },
-      3: { ...questData },
-      4: { ...questData },
-      5: { ...questData }
+      1: {
+        ...questData,
+        number: 1
+      },
+      2: {
+        ...questData,
+        number: 2
+      },
+      3: {
+        ...questData,
+        number: 3
+      },
+      4: {
+        ...questData,
+        number: 4
+      },
+      5: {
+        ...questData,
+        number: 5
+      }
     }
   },
 

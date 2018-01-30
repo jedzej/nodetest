@@ -19,6 +19,79 @@ function shuffle(array) {
   return array;
 }
 
+const countIf = (arr, cond) => arr.reduce((s, e) => cond(e) ? s : s + 1, 0);
+
+const includesObjectId = (arr, objectId) => arr.some(id => objectId.equals(id));
+
+const getPlayersCount = appContext => appContext.lobby.members.length;
+
+const getCurrentQuest = store => Object.values(store.quest).find(
+  quest => quest.stage === QUEST_STAGE.ONGOING);
+
+const getQuestVoters = quest => Object.keys(quest.questVotes);
+
+const getSquadVoters = quest => Object.keys(quest.squadVotes);
+
+const calcSquadVotes = quest => countIf(Object.values(quest.squadVotes.votes), v => v);
+
+const calcQuestFailVotes = quest => countIf(Object.values(quest.questVotes.votes), v => !v);
+
+const getSquadCount = quest => Object.keys(quest.squad).length;
+
+const getReqSquadCount = (appContext, quest) => QUEST_MAP[getPlayersCount(appContext)].squadCount[quest.number];
+
+const getReqFailCount = (appContext, quest) => QUEST_MAP[getPlayersCount(appContext)].failsRequired[quest.number];
+
+const isSquadFull = quest => getSquadCount(quest) === getReqSquadCount(quest);
+
+const isSquadMember = (quest, user) => includesObjectId(quest.squad, user._id);
+
+const hasVotedForSquad = (quest, user) => includesObjectId(
+  getSquadVoters(quest), user._id);
+
+const hasVotedForQuest = (quest, user) => includesObjectId(
+  getQuestVoters(quest), user._id);
+
+const allVotedForSquad = (appContext) =>
+  (getCurrentQuest(guest).squadVotes.length === getPlayersCount(appContext));
+
+const allVotedForQuest = (quest) =>
+  (quest.questVotes.length === getSquadCount(quest));
+
+const isLobbyLeader = appContext =>
+  (appContext.lobby.leaderId !== appContext.currentUser._id);
+
+const getCommanderId = store =>
+  store.playersOrder[store.roundNumber % store.playersOrder.length];
+
+const isCommander = appContext => appContext.currentUser._id.equals(
+  getCommanderId(appContext.store));
+
+const bumpRound = store => store.roundNumber++;
+
+const inStage = (appContext, stage) => (appContext.store.stage === stage);
+
+const notInStage = (appContext, stage) => (appContext.store.stage !== stage);
+
+const squadVotingSuccess = (appContext, quest) =>
+  (calcSquadVotes(quest) > getPlayersCount(appContext) / 2);
+
+const squadVotingFailLimitExceeded = (store, quest) =>
+  (quest.votingHistory.length >= store.configuration.squadVotingFailLimit)
+
+const questVotingSuccess = (appContext, quest) =>
+  (calcQuestFailVotes(quest) < getReqFailCount(appContext, quest));
+
+const getFailQuestsCount = store => countIf(store.quest,
+  q => q.stage === QUEST_STAGE.FAILURE);
+
+const getSuccessQuestsCount = store => countIf(store.quest,
+  q => q.stage === QUEST_STAGE.SUCCESS);
+
+const completeConditionFulfilled = store =>
+  (getSuccessQuestsCount(store) >= 3 || getFailQuestsCount(store) >= 3);
+
+
 
 const AVACLONE_APP_HANDLERS = {
 
@@ -64,9 +137,9 @@ const AVACLONE_APP_HANDLERS = {
 
 
   [ACTION.AVACLONE_CONFIGURE]: (action, appContext) => {
-    if (appContext.lobby.leaderId !== appContext.currentUser._id)
+    if (isLobbyLeader(appContext) === false)
       return;
-    if (appContext.store.stage !== STAGE.CONFIGURATION)
+    if (notInStage(appContext, STAGE.CONFIGURATION))
       return;
 
     appContext.store.configuration = action.payload.configuration;
@@ -77,12 +150,12 @@ const AVACLONE_APP_HANDLERS = {
 
 
   [ACTION.AVACLONE_START]: (action, appContext) => {
-    if (appContext.store.stage !== STAGE.CONFIGURATION)
-      throw new Error("Invalid stage");
-    if (appContext.lobby.leaderId.equals(appContext.currentUser._id))
+    if (isLobbyLeader(appContext) === false)
       throw new Error("Not a leader");
+    if (notInStage(appContext, STAGE.CONFIGURATION))
+      throw new Error("Invalid stage");
 
-    const playersCount = appContext.lobby.members.length;
+    const playersCount = getPlayersCount(appContext);
     const loyalityMap = LOYALITY_MAP[playersCount];
 
     if (playersCount < 5 || playersCount > 10)
@@ -120,7 +193,7 @@ const AVACLONE_APP_HANDLERS = {
 
     // set players order
     store.playersOrder = members.map(m => m._id);
-    shuffle(playersOrder);
+    shuffle(store.playersOrder);
 
     // set stage
     store.stage = STAGE.QUEST_SELECTION;
@@ -132,13 +205,10 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SELECT_QUEST]: (action, appContext) => {
     const store = appContext.store;
-    if (store.stage !== STAGE.QUEST_SELECTION)
+    if (inStage(appContext, STAGE.QUEST_SELECTION))
       throw new Error("Invalid stage");
 
-    const order = store.playersOrder;
-    const commanderId = order[store.roundNumber % order.length];
-
-    if (commanderId.equals(appContext.currentUser._id))
+    if (isCommander(appContext))
       throw new Error("Not a commander");
 
     const qNum = action.payload.questNumber;
@@ -159,17 +229,13 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_PROPOSE]: (action, appContext) => {
     const store = appContext.store;
-    if (store.stage !== STAGE.SQUAD_PROPOSAL)
+    if (inStage(appContext, STAGE.SQUAD_PROPOSAL))
       throw new Error("Invalid stage");
 
-    const order = store.playersOrder;
-    const commanderId = order[store.roundNumber % order.length];
-    if (commanderId.equals(appContext.currentUser._id))
+    if (isCommander(appContext))
       throw new Error("Not a commander");
 
-    let quest = Object.values(store.quest).find(
-      quest => quest.stage = QUEST_STAGE.ONGOING
-    );
+    let quest = getCurrentQuest(store);
     quest.squad = action.payload;
 
     return appContext.commit()
@@ -179,18 +245,15 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_CONFIRM]: (action, appContext) => {
     const store = appContext.store;
-    if (store.stage !== STAGE.SQUAD_PROPOSAL)
+    if (inStage(appContext, STAGE.SQUAD_PROPOSAL))
       throw new Error("Invalid stage");
 
-    const order = store.playersOrder;
-    const commanderId = order[store.roundNumber % order.length];
-    if (commanderId.equals(appContext.currentUser._id))
+    if (isCommander(appContext))
       throw new Error("Not a commander");
 
-    let qNum = Object.keys(store.quest).find(
-      qNum => store.quest[qNum].stage = QUEST_STAGE.ONGOING
-    );
-    if (store.quest[qNum].squad.length !== QUEST_MAP[qNum].squadCount)
+    let quest = getCurrentQuest(store);
+
+    if (isSquadFull(quest) === false)
       throw new Error("Invalid quest squad count");
 
     store.stage = STAGE.SQUAD_PROPOSAL_VOTING;
@@ -202,34 +265,26 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_VOTE]: (action, appContext) => {
     const store = appContext.store;
-    const membersCount = appContext.lobby.members.length;
-    if (store.stage !== STAGE.SQUAD_PROPOSAL_VOTING)
+    if (inStage(appContext, STAGE.SQUAD_PROPOSAL_VOTING))
       throw new Error("Invalid stage");
 
-    const quest = Object.values(store.quest).find(
-      quest => store.stage = QUEST_STAGE.ONGOING
-    );
-    const voters = Object.keys(quest.squadVotes);
+    const quest = getCurrentQuest(store);
 
-    if (voters.includes(appContext.currentUser._id))
+    if (hasVotedForSquad(quest, appContext.currentUser))
       throw new Error("Already voted");
 
     quest.squadVotes[appContext.currentUser._id] = action.payload.vote;
 
-    if (quest.squadVotes === membersCount) {
-      const votes = Object.values(quest.squadVotes);
-      const proCount = votes.reduce((s, vote) => vote ? s : s + 1, 0);
+    if (allVotedForSquad(appContext)) {
+      // update voting history
       quest.votingHistory.push({
         squad: quest.squad,
         squadVotes: quest.squadVotes
       });
-      quest.squadVotes = [];
-      const votingsCount = quest.votingHistory.length;
-      const failLimit = store.configuration.squadVotingFailLimit;
-      if (proCount > membersCount / 2) {
+      if (squadVotingSuccess(appContext, quest)) {
         // squad accepted
-        store.stage = STAGE.SQUAD_PROPOSAL_VOTING;
-      } else if (votingsCount >= failLimit) {
+        store.stage = STAGE.QUEST_VOTING;
+      } else if (squadVotingFailLimitExceeded(store, quest)) {
         // limit reached, auto-failure
         store.roundNumber++;
         quest.stage = QUEST_STAGE.FAILURE;
@@ -239,15 +294,53 @@ const AVACLONE_APP_HANDLERS = {
         store.roundNumber++;
         store.stage = STAGE.SQUAD_PROPOSAL;
       }
+      // clean squad votes buffer
+      quest.squadVotes = [];
+    }
+
+    if (completeConditionFulfilled(store)) {
+      store.stage = STAGE.COMPLETE;
     }
 
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
   },
 
-}
+
+  [ACTION.AVACLONE_QUEST_VOTE]: (action, appContext) => {
+    const store = appContext.store;
+    if (inStage(appContext, STAGE.QUEST_VOTING))
+      throw new Error("Invalid stage");
+
+    const quest = getCurrentQuest(store);
+
+    if (isSquadMember(quest, appContext.currentUser))
+      throw new Error("Not a squad member");
+    if (hasVotedForQuest(quest, appContext.currentUser))
+      throw new Error("Already voted");
+
+    quest.questVotes[appContext.currentUser._id] = action.payload.vote;
+
+    if (allVotedForQuest(quest)) {
+      if (questVotingSuccess(appContext, quest)) {
+        quest.stage = QUEST_STAGE.SUCCESS;
+      } else {
+        quest.stage = QUEST_STAGE.FAILURE;
+      }
+      store.roundNumber++;
+      store.stage = STAGE.QUEST_SELECTION;
+    }
+
+    if (completeConditionFulfilled(store)) {
+      store.stage = STAGE.COMPLETE;
+    }
+
+    return appContext.commit()
+      .then(() => appContext.doAppUpdate());
+  },
+};
 
 module.exports = {
   handlers: AVACLONE_APP_HANDLERS,
   manifest: MANIFEST
-}
+};
