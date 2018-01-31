@@ -9,7 +9,12 @@ import { configure } from '../actions';
 
 import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
+import Checkbox from 'material-ui/Checkbox';
+import FormControlLabel from 'material-ui/Form/FormControlLabel';
+import FormGroup from 'material-ui/Form/FormGroup';
+import _ from 'lodash';
 
+const { CHAR } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
@@ -67,19 +72,46 @@ class ConfigurationSection extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      configuration: {}
+      configuration: _.cloneDeep(this.props.avaclone.store.configuration)
     };
   };
+
+  handleCheckboxChange = (char) => {
+    console.log(char)
+  }
 
   handleConfigure = () => {
     this.props.configure({});
   }
 
+
   render() {
+    const { avaclone } = this.props;
+    const configuration = this.state.configuration;
+    console.log(configuration)
+    const specialCharacters = Object.values(CHAR).filter(
+      char => (char !== CHAR.GOOD && char !== CHAR.EVIL)
+    );
+    const config = avaclone.configurationPending ?
+      this.state.configuration : avaclone.store.configuration
+
     return (
-      <div>
+      <FormGroup row>
+        {specialCharacters.map(char => (
+          <FormControlLabel
+            key={char}
+            control={
+              <Checkbox
+                checked={configuration.specialChars.includes(char)}
+                //onChange={this.handleCheckboxChange}
+                value={char}
+              />
+            }
+            label={char}
+          />
+        ))}
         <Button onClick={this.handleConfigure}>configure</Button>
-      </div>
+      </FormGroup>
     );
   }
 }
@@ -88,12 +120,13 @@ class ConfigurationSection extends React.Component {
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
+    localConfiguration: state.avaclone.localConfiguration,
     user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  configure: (configuration) => dispatch(configure(configuration)),
+  configure: configuration => dispatch(configure(configuration)),
   terminate: variant => dispatch(terminate(MANIFEST.NAME)),
   logout: () => {
     dispatch(logout());

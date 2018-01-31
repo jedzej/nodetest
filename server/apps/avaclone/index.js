@@ -80,15 +80,19 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_CONFIGURE]: (action, appContext) => {
     const { store } = appContext;
-    if (isLobbyLeader(appContext) === false)
+    if (isLobbyLeader(appContext) === false ||
+      ac.is.notInStage(store, STAGE.CONFIGURATION)
+    ) {
+      appContext.sapi.me.sendAction(ACTION.AVACLONE_CONFIGURE_REJECTED);
       return;
-    if (ac.is.notInStage(store, STAGE.CONFIGURATION))
-      return;
+    }
 
     appContext.store.configuration = action.payload.configuration;
-
     return appContext.commit()
-      .then(() => appContext.doAppUpdate());
+      .then(() => {
+        appContext.sapi.me.sendAction(ACTION.AVACLONE_CONFIGURE_FULFILLED);
+        appContext.doAppUpdate()
+      });
   },
 
 
