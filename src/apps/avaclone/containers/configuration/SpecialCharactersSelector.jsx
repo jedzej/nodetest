@@ -2,21 +2,17 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
-import { terminate } from '../../../logic/app/actions';
-import { logout } from '../../../logic/user/actions';
-import { leave } from '../../../logic/lobby/actions';
-import { configure, start } from '../actions';
+import { configure } from '../../actions';
 
-import MANIFEST from '../manifest'
+import MANIFEST from '../../manifest'
 import Button from 'material-ui/Button/Button';
 import Checkbox from 'material-ui/Checkbox';
 import FormControlLabel from 'material-ui/Form/FormControlLabel';
 import FormGroup from 'material-ui/Form/FormGroup';
-import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
 import _ from 'lodash';
-import Paper from 'material-ui/Paper/Paper';
+import Grid from 'material-ui/Grid/Grid';
 
-const { CHAR } = MANIFEST.CONSTS;
+const { CHAR, TEAM } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
@@ -68,41 +64,66 @@ const styles = theme => {
   })
 };
 
+class SpecialCharactersSelector extends React.Component {
 
-class ConfigurationSection extends React.Component {
+  handleCheckboxChange = char => event => {
+    let config = _.cloneDeep(this.props.avaclone.localConfiguration);
+    config.specialChars[char] = event.target.checked;
+    this.props.configure(config);
+  }
 
   render() {
+    const localConfig = this.props.avaclone.localConfiguration;
+    const specialChars = Object.keys(localConfig.specialChars);
+
+    const charCheckbox = char => (
+      <FormControlLabel
+        key={char}
+        control={
+          <Checkbox
+            checked={localConfig.specialChars[char]}
+            onChange={this.handleCheckboxChange(char)}
+            value={char}
+          />
+        }
+        label={char}
+      />
+    );
+
     return (
-      <Paper>
-        <SpecialCharactersSelector />
-        <Button
-          onClick={() => this.props.start()}
-        >START</Button>
-      </Paper>
+      <Grid container>
+        <Grid item>
+          <FormGroup>
+            {specialChars
+              .filter(char => TEAM.EVIL.includes(char))
+              .map(charCheckbox)}
+          </FormGroup>
+        </Grid>
+        <Grid item>
+          <FormGroup>
+            {specialChars
+              .filter(char => TEAM.GOOD.includes(char))
+              .map(charCheckbox)}
+          </FormGroup>
+        </Grid>
+      </Grid>
+
     );
   }
 }
 
-
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
-    user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  start: () => dispatch(start()),
-  terminate: variant => dispatch(terminate(MANIFEST.NAME)),
-  logout: () => {
-    dispatch(logout());
-  },
-  leave: () => {
-    dispatch(leave())
-  }
+  configure: configuration => dispatch(configure(configuration))
 })
 
 
+
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(ConfigurationSection)
+  connect(mapStateToProps, mapDispatchToProps)(SpecialCharactersSelector)
 );

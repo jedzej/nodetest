@@ -4,6 +4,7 @@ const CHAR = {
   MERLIN: "MERLIN",
   PERCIVAL: "PERCIVAL",
   ASSASSIN: "ASSASSIN",
+  OBERON: "OBERON",
   GOOD: "GOOD",
   EVIL: "EVIL"
 };
@@ -29,7 +30,7 @@ const STAGE = {
   COMPLETE: "COMPLETE",
   QUEST_SELECTION: "QUEST_SELECTION",
   SQUAD_PROPOSAL: "SQUAD_PROPOSAL",
-  SQUAD_PROPOSAL_VOTING: "SQUAD_PROPOSAL_VOTING",
+  SQUAD_VOTING: "SQUAD_VOTING",
   QUEST_VOTING: "QUEST_VOTING"
 };
 
@@ -129,7 +130,7 @@ module.exports = {
   EXCLUSIVE: true,
   HOT_JOIN: true,
   HOT_LEAVE: true,
-  FULLSCREEN: true,
+  FULLSCREEN: false,
 
   DEFAULT_STORE: {
     stage: STAGE.NOT_INITIALIZED,
@@ -141,7 +142,14 @@ module.exports = {
       squadProposalLimit: 0,
       questVotingLimit: 0,
       squadProposalVotingLimit: 0,
-      specialChars: []
+      specialChars: {
+        [CHAR.ASSASSIN]:false,
+        [CHAR.MORGANA]:false,
+        [CHAR.MERLIN]:false,
+        [CHAR.MORDRED]:false,
+        [CHAR.PERCIVAL]:false,
+        [CHAR.OBERON]:false,
+      }
     },
     quests: {
       1: {
@@ -181,7 +189,7 @@ module.exports = {
       AVACLONE_CONFIGURE: "AVACLONE_CONFIGURE",
       AVACLONE_CONFIGURE_FULFILLED: "AVACLONE_CONFIGURE_FULFILLED",
       AVACLONE_CONFIGURE_REJECTED: "AVACLONE_CONFIGURE_REJECTED",
-      AVACLONE_SELECT_QUEST: "AVACLONE_SELECT_QUEST",
+      AVACLONE_QUEST_SELECT: "AVACLONE_QUEST_SELECT",
       AVACLONE_SQUAD_PROPOSE: "AVACLONE_SQUAD_PROPOSE",
       AVACLONE_SQUAD_CONFIRM: "AVACLONE_SQUAD_CONFIRM",
       AVACLONE_SQUAD_VOTE: "AVACLONE_SQUAD_VOTE",

@@ -5,7 +5,7 @@ import withStyles from 'material-ui/styles/withStyles';
 import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { configure, start } from '../actions';
+import { configure, start, questSelect, squadConfirm, squadPropose, questVote, squadVote } from '../actions';
 
 import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
@@ -15,8 +15,12 @@ import FormGroup from 'material-ui/Form/FormGroup';
 import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
 import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
+import Grid from 'material-ui/Grid/Grid';
+import Typography from 'material-ui/Typography/Typography';
 
-const { CHAR } = MANIFEST.CONSTS;
+const ac = require('../acutils');
+
+const { CHAR, QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
@@ -69,15 +73,35 @@ const styles = theme => {
 };
 
 
-class ConfigurationSection extends React.Component {
+class SquadVotingSection extends React.Component {
 
   render() {
+    const { store } = this.props.avaclone;
+    const lobbyMembers = this.props.lobby.members;
+    const currentUser = this.props.user;
+    const quest = ac.get.currentQuest(store);
+
+    const isMember = ac.is.squadMember(quest,currentUser._id),
+      alreadyVoted = ac.is.squadVoting.doneFor(quest,currentUser._id);
+
+
     return (
       <Paper>
-        <SpecialCharactersSelector />
-        <Button
-          onClick={() => this.props.start()}
-        >START</Button>
+        <Grid container spacing={0}>
+          <Grid item xs={6}>
+            <Button
+              disabled={isMember === false || alreadyVoted}
+              onClick={() => this.props.questVote(true)}
+            >SUCCESS</Button>
+          </Grid>
+          <Grid item xs={6}>
+            <Button
+              disabled={isMember === false || alreadyVoted}
+              onClick={() => this.props.squadVote(false)}
+            >FAIL</Button>
+          </Grid>
+        </Grid>
+
       </Paper>
     );
   }
@@ -87,13 +111,13 @@ class ConfigurationSection extends React.Component {
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
+    lobby: state.lobby,
     user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  start: () => dispatch(start()),
-  terminate: variant => dispatch(terminate(MANIFEST.NAME)),
+  squadVote: (vote) => dispatch(squadVote(vote)),
   logout: () => {
     dispatch(logout());
   },
@@ -104,5 +128,5 @@ const mapDispatchToProps = (dispatch) => ({
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(ConfigurationSection)
+  connect(mapStateToProps, mapDispatchToProps)(SquadVotingSection)
 );

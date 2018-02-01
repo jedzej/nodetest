@@ -31,6 +31,7 @@ const RSP_APP_HANDLERS = {
   },
 
   'LOBBY_JOIN_HOOK': (action, appContext) => {
+    console.log("RSP JOIN")
     if (appContext.exists)
       throw new Error("No hot join allowed!")
   },

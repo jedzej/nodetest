@@ -149,7 +149,19 @@ const app2sapi = (appPath) => {
           .catch(err => {
             debug('No context for ' + app.NAME + '\n' + err.stack)
           })
-          .then(appContext => appHandler(action, ctx.appContext));
+          .then(() => {
+            //console.log("APPDATA:", ctx.appContext)
+            if (ctx.appContext.exists || action.type === "APP_START_HOOK")
+              return appHandler(action, ctx.appContext)
+          })
+          .catch(err => {
+            debug(err.stack);
+            debug(JSON.stringify(ctx.appContext.store, null, 2));
+            ctx.appContext.sapi.me.sendAction('APP_ERROR', {
+              message: err.message,
+              stack: err.stack
+            })
+          });
 
         // lock context
         if (ws.store.lobbyId)

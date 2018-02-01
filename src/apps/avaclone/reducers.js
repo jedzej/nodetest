@@ -13,23 +13,23 @@ const DEFAULT_STATE = {
 
 const reducer = (state = DEFAULT_STATE, action) => {
   switch (action.type) {
+    case ACTION.AVACLONE_CONFIGURE:
+      state = {
+        ...state,
+        localConfiguration: _.cloneDeep(action.payload.configuration),
+        configurationPending: true,
+      };
+      break;
     case ACTION.AVACLONE_CONFIGURE_FULFILLED:
       state = {
         ...state,
-        configurationPending: false,
-        localConfiguration: _.cloneDeep(state.store.configuration)
+        configurationPending: false
       };
       break;
     case ACTION.AVACLONE_CONFIGURE_REJECTED:
       state = {
         ...state,
-        configurationPending: false,
-      };
-      break;
-    case ACTION.AVACLONE_CONFIGURE:
-      state = {
-        ...state,
-        configurationPending: true,
+        configurationPending: false
       };
       break;
     case ACTION.APP_UPDATE_AVACLONE:
@@ -37,7 +37,7 @@ const reducer = (state = DEFAULT_STATE, action) => {
         ...state,
         store: action.payload.store,
         localConfiguration: state.configurationPending ?
-          action.payload.configuration : state.localConfiguration
+          state.localConfiguration : action.payload.store.configuration
       };
       break;
     case APP_UPDATE_REJECTED:

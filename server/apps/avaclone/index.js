@@ -1,12 +1,13 @@
+const _ = require('lodash');
 const sapi = require('../../sapi');
 const tools = require('../../modules/tools');
 const check = require('../../modules/check');
 const appService = require('../../modules/app/service');
-const MANIFEST = require('../../../src/apps/avaclone/manifest')
-const ac = require('../../../src/apps/avaclone/acutils')
+const MANIFEST = require('../../../src/apps/avaclone/manifest');
+const ac = require('../../../src/apps/avaclone/acutils');
 const rejectionAction = tools.rejectionAction
 
-const { STAGE, CHAR, ACTION, TEAM, QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
+const { STAGE, CHAR, ACTION, TEAM, QUEST_STAGE, QUEST_MAP, LOYALITY_MAP } = MANIFEST.CONSTS;
 
 function shuffle(array) {
   let counter = array.length;
@@ -62,9 +63,11 @@ const AVACLONE_APP_HANDLERS = {
 
 
   'LOBBY_JOIN_HOOK': (action, appContext) => {
+
     const { store } = appContext;
+    console.log("AVACLONE JOIN")
     if (ac.is.notInStage(store, STAGE.CONFIGURATION))
-      throw new Error("Cannot leave after the game was started");
+      throw new Error("Cannot join after the game was started");
   },
 
 
@@ -110,12 +113,16 @@ const AVACLONE_APP_HANDLERS = {
       throw new Error("There must be 5 to 10 members in the lobby");
 
     // create characters pool
-    const goodPool = store.configuration.specialChars.filter(
-      char => TEAM.GOOD.includes(char)
-    );
-    const evilPool = store.configuration.specialChars.filter(
-      char => TEAM.GOOD.includes(char)
-    );
+    const goodPool = [];
+    const evilPool = [];
+    _.forIn(store.configuration.specialChars, (present, char) => {
+      if (present) {
+        if (TEAM.GOOD.includes(char))
+          goodPool.push(char);
+        else
+          evilPool.push(char);
+      }
+    });
 
     if (goodPool.length > loyalityMap.good)
       throw new Error("To many good special characters");
@@ -149,15 +156,14 @@ const AVACLONE_APP_HANDLERS = {
   },
 
 
-  [ACTION.AVACLONE_SELECT_QUEST]: (action, appContext) => {
+  [ACTION.AVACLONE_QUEST_SELECT]: (action, appContext) => {
     const { store, currentUser } = appContext;
     if (ac.is.notInStage(store, STAGE.QUEST_SELECTION))
       throw new Error("Invalid stage");
-
-    if (ac.is.commander(store, currentUser._id))
+    if (ac.is.commander(store, currentUser._id) === false)
       throw new Error("Not a commander");
 
-    const quest = store.quest[action.payload.questNumber];
+    const quest = store.quests[action.payload.questNumber];
     if (ac.is.notInStage(quest, QUEST_STAGE.NOT_TAKEN))
       throw new Error("Quest already taken");
     store.stage = STAGE.SQUAD_PROPOSAL;
@@ -175,9 +181,9 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_PROPOSE]: (action, appContext) => {
     const { store, currentUser } = appContext;
-    if (ac.is.inStage(store, STAGE.SQUAD_PROPOSAL))
+    if (ac.is.notInStage(store, STAGE.SQUAD_PROPOSAL))
       throw new Error("Invalid stage");
-    if (ac.is.commander(store, currentUser._id))
+    if (ac.is.commander(store, currentUser._id) === false)
       throw new Error("Not a commander");
 
     let quest = ac.get.currentQuest(store);
@@ -190,9 +196,9 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_CONFIRM]: (action, appContext) => {
     const { store, currentUser } = appContext;
-    if (ac.is.inStage(store, STAGE.SQUAD_PROPOSAL))
+    if (ac.is.notInStage(store, STAGE.SQUAD_PROPOSAL))
       throw new Error("Invalid stage");
-    if (ac.is.commander(store, currentUser._id))
+    if (ac.is.commander(store, currentUser._id) === false)
       throw new Error("Not a commander");
 
     let quest = ac.get.currentQuest(store);
@@ -200,7 +206,7 @@ const AVACLONE_APP_HANDLERS = {
     if (ac.is.squadFull(store, quest) === false)
       throw new Error("Invalid quest squad count");
 
-    store.stage = STAGE.SQUAD_PROPOSAL_VOTING;
+    store.stage = STAGE.SQUAD_VOTING;
 
     return appContext.commit()
       .then(() => appContext.doAppUpdate());
@@ -209,7 +215,7 @@ const AVACLONE_APP_HANDLERS = {
 
   [ACTION.AVACLONE_SQUAD_VOTE]: (action, appContext) => {
     const { store, currentUser } = appContext;
-    if (ac.is.notInStage(store, STAGE.SQUAD_PROPOSAL))
+    if (ac.is.notInStage(store, STAGE.SQUAD_VOTING))
       throw new Error("Invalid stage");
 
     const quest = ac.get.currentQuest(store);

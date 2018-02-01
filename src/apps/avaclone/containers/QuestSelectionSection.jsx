@@ -2,16 +2,23 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
+import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
+import { configure, start, questSelect } from '../actions';
 
 import MANIFEST from '../manifest'
-import ConfigurationSection from '../containers/ConfigurationSection';
-import QuestSelectionSection from './QuestSelectionSection';
-import SquadProposalSection from './SquadProposalSection';
-import SquadVotingSection from './SquadVotingSection';
+import Button from 'material-ui/Button/Button';
+import Checkbox from 'material-ui/Checkbox';
+import FormControlLabel from 'material-ui/Form/FormControlLabel';
+import FormGroup from 'material-ui/Form/FormGroup';
+import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
+import _ from 'lodash';
+import Paper from 'material-ui/Paper/Paper';
 
-const { STAGE } = MANIFEST.CONSTS;
+const ac = require('../acutils');
+
+const { CHAR, QUEST_STAGE } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
@@ -64,36 +71,42 @@ const styles = theme => {
 };
 
 
-class PaintApp extends React.Component {
+class QuestSelectionSection extends React.Component {
+
   render() {
-    switch (this.props.avaclone.store.stage) {
-      case STAGE.CONFIGURATION:
-        return <ConfigurationSection />;
-      case STAGE.QUEST_SELECTION:
-        return <QuestSelectionSection />;
-      case STAGE.SQUAD_PROPOSAL:
-        return <SquadProposalSection />;
-        case STAGE.SQUAD_VOTING:
-          return <SquadVotingSection />;
-      default:
-        return <div>UPS</div>;
-    }
+    const { quests } = this.props.avaclone.store;
+    return (
+      <Paper>
+        {Object.values(quests).map(quest => (
+          <Button
+            disabled={ac.is.quest.taken(quest)}
+            onClick={() => this.props.questSelect(quest.number)}
+          >{quest.number}</Button>
+        ))}
+      </Paper>
+    );
   }
 }
 
 
 const mapStateToProps = (state) => {
   return {
-    avaclone: state.avaclone
+    avaclone: state.avaclone,
+    user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  logout: () => dispatch(logout()),
-  leave: () => dispatch(leave())
+  questSelect: (number) => dispatch(questSelect(number)),
+  logout: () => {
+    dispatch(logout());
+  },
+  leave: () => {
+    dispatch(leave())
+  }
 })
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(PaintApp)
+  connect(mapStateToProps, mapDispatchToProps)(QuestSelectionSection)
 );

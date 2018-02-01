@@ -10,10 +10,11 @@ const keys = Object.keys;
 const clone = (obj) => {
   if (obj === null || typeof (obj) !== 'object' || 'isActiveClone' in obj)
     return obj;
+  let temp;
   if (obj instanceof Date) {
-    let temp = new obj.constructor();
+    temp = new obj.constructor();
   } else {
-    let temp = obj.constructor();
+    temp = obj.constructor();
   }
 
   for (var key in obj) {
@@ -32,7 +33,7 @@ const ac = {
 
   get: {
     default: () => MANIFEST.DEFAULT_STORE,
-    currentQuest: store => vals(store.quest).find(
+    currentQuest: store => vals(store.quests).find(
       quest => quest.stage === QUEST_STAGE.ONGOING),
     squadVoters: quest => vals(quest.squadVotes),
     playersCount: store => store.playersOrder.length,
@@ -49,9 +50,9 @@ const ac = {
     successQuestVotes: quest => countIf(vals(quest.questVotes), v => v === true),
     failureQuestVotes: quest => countIf(vals(quest.questVotes), v => v === false),
     failedQuests: store =>
-      countIf(store.quest, q => q.stage === QUEST_STAGE.SUCCESS),
+      countIf(store.quests, q => q.stage === QUEST_STAGE.SUCCESS),
     succeededQuests: store =>
-      countIf(store.quest, q => q.stage === QUEST_STAGE.FAILURE),
+      countIf(store.quests, q => q.stage === QUEST_STAGE.FAILURE),
   },
 
   is: {
@@ -68,6 +69,11 @@ const ac = {
       ),
     completeConditionFulfilled: store =>
       (ac.sum.failedQuests(store) >= 3 || ac.sum.succeededQuests(store) >= 3),
+
+    quest: {
+      taken: (quest) =>
+        ac.is.notInStage(quest, QUEST_STAGE.NOT_TAKEN)
+    },
 
     squadVoting: {
       doneFor: (quest, userId) =>
@@ -94,7 +100,7 @@ const ac = {
     },
   },
   completeConditionFulfilled: store =>
-    (getSuccessQuestsCount(store) >= 3 || getFailQuestsCount(store) >= 3),
+    (ac.sum.succeededQuests(store) >= 3 || ac.sum.failedQuests(store) >= 3),
 
 }
 
