@@ -2,17 +2,11 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
-import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { configure, start, questSelect, squadConfirm, squadPropose } from '../actions';
+import { questSelect, squadConfirm, squadPropose } from '../actions';
 
-import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
-import Checkbox from 'material-ui/Checkbox';
-import FormControlLabel from 'material-ui/Form/FormControlLabel';
-import FormGroup from 'material-ui/Form/FormGroup';
-import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
 import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
@@ -20,7 +14,6 @@ import Typography from 'material-ui/Typography/Typography';
 
 const ac = require('../acutils');
 
-const { CHAR, QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({

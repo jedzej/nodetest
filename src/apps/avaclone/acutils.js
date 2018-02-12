@@ -2,7 +2,7 @@ const MANIFEST = require('./manifest');
 
 const { QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
 
-const countIf = (arr, cond) => arr.reduce((s, e) => cond(e) ? s : s + 1, 0);
+const countIf = (arr, cond) => arr.reduce((s, e) => cond(e) ? s + 1 : s, 0);
 
 const vals = Object.values;
 const keys = Object.keys;
@@ -35,7 +35,8 @@ const ac = {
     default: () => MANIFEST.DEFAULT_STORE,
     currentQuest: store => vals(store.quests).find(
       quest => quest.stage === QUEST_STAGE.ONGOING),
-    squadVoters: quest => vals(quest.squadVotes),
+    squadVoters: quest => keys(quest.squadVotes),
+    questVoters: quest => keys(quest.questVotes),
     playersCount: store => store.playersOrder.length,
     squadCount: quest => keys(quest.squad).length,
     squadCountRequired: (store, quest) =>
@@ -45,14 +46,18 @@ const ac = {
   },
 
   sum: {
-    successSquadVotes: quest => countIf(vals(quest.squadVotes), v => v === true),
-    failureSquadVotes: quest => countIf(vals(quest.squadVotes), v => v === false),
-    successQuestVotes: quest => countIf(vals(quest.questVotes), v => v === true),
-    failureQuestVotes: quest => countIf(vals(quest.questVotes), v => v === false),
+    successSquadVotes: quest =>
+      countIf(vals(quest.squadVotes), v => v === true),
+    failureSquadVotes: quest =>
+      countIf(vals(quest.squadVotes), v => v === false),
+    successQuestVotes: quest =>
+      countIf(vals(quest.questVotes), v => v === true),
+    failureQuestVotes: quest =>
+      countIf(vals(quest.questVotes), v => v === false),
     failedQuests: store =>
-      countIf(store.quests, q => q.stage === QUEST_STAGE.SUCCESS),
+      countIf(vals(store.quests), q => q.stage === QUEST_STAGE.SUCCESS),
     succeededQuests: store =>
-      countIf(store.quests, q => q.stage === QUEST_STAGE.FAILURE),
+      countIf(vals(store.quests), q => q.stage === QUEST_STAGE.FAILURE),
   },
 
   is: {
@@ -67,21 +72,20 @@ const ac = {
         store.playersOrder[store.roundNumber % store.playersOrder.length],
         userId
       ),
-    completeConditionFulfilled: store =>
+    completeConditionFulfilled: store => 
       (ac.sum.failedQuests(store) >= 3 || ac.sum.succeededQuests(store) >= 3),
-
     quest: {
       taken: (quest) =>
         ac.is.notInStage(quest, QUEST_STAGE.NOT_TAKEN)
     },
 
     squadVoting: {
-      doneFor: (quest, userId) =>
-        ac.get.squadVoters(quest).find(voterId => idsEqual(voterId, userId)),
+      doneFor: (quest, userId) => Boolean(
+        ac.get.squadVoters(quest).find(voterId => idsEqual(voterId, userId))),
       done: (store, quest) =>
-        (quest.squadVotes.length === ac.get.playersCount(store)),
+        (ac.get.squadVoters(quest).length === ac.get.playersCount(store)),
       success: (store, quest) =>
-        (ac.sum.successQuestVotes(quest) > ac.get.playersCount(store) / 2),
+        (ac.sum.successSquadVotes(quest) > ac.get.playersCount(store) / 2),
       failure: (store, quest) =>
         (ac.is.squadVoting.success(store, quest) === false),
       limitExceeded: (store, quest) =>
@@ -92,7 +96,7 @@ const ac = {
       doneFor: (quest, userId) =>
         ac.get.questVoters(quest).find(voterId => idsEqual(voterId, userId)),
       done: (store, quest) =>
-        (quest.questVotes.length === ac.get.squadCountRequired(store, quest)),
+        (ac.get.questVoters(quest).length === ac.get.squadCountRequired(store, quest)),
       success: (store, quest) =>
         (ac.sum.failureQuestVotes(quest) < ac.get.failureCountRequired(store, quest)),
       failure: (store, quest) =>

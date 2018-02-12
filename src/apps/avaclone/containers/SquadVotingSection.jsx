@@ -2,25 +2,16 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
-import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { configure, start, questSelect, squadConfirm, squadPropose, questVote, squadVote } from '../actions';
+import { squadVote } from '../actions';
 
-import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
-import Checkbox from 'material-ui/Checkbox';
-import FormControlLabel from 'material-ui/Form/FormControlLabel';
-import FormGroup from 'material-ui/Form/FormGroup';
-import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
-import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
-import Typography from 'material-ui/Typography/Typography';
 
 const ac = require('../acutils');
 
-const { CHAR, QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
@@ -77,26 +68,24 @@ class SquadVotingSection extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
-    const lobbyMembers = this.props.lobby.members;
     const currentUser = this.props.user;
     const quest = ac.get.currentQuest(store);
 
-    const isMember = ac.is.squadMember(quest,currentUser._id),
-      alreadyVoted = ac.is.squadVoting.doneFor(quest,currentUser._id);
-
+    const alreadyVoted = ac.is.squadVoting.doneFor(quest, currentUser._id);
+    console.log('already voted:', alreadyVoted)
 
     return (
       <Paper>
         <Grid container spacing={0}>
           <Grid item xs={6}>
             <Button
-              disabled={isMember === false || alreadyVoted}
-              onClick={() => this.props.questVote(true)}
+              disabled={alreadyVoted}
+              onClick={() => this.props.squadVote(true)}
             >SUCCESS</Button>
           </Grid>
           <Grid item xs={6}>
             <Button
-              disabled={isMember === false || alreadyVoted}
+              disabled={alreadyVoted}
               onClick={() => this.props.squadVote(false)}
             >FAIL</Button>
           </Grid>

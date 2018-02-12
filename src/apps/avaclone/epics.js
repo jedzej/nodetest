@@ -12,6 +12,7 @@ const wsTransmitEpic = action$ => action$
   ACTION.AVACLONE_SQUAD_PROPOSE,
   ACTION.AVACLONE_SQUAD_CONFIRM,
   ACTION.AVACLONE_QUEST_VOTE,
+  ACTION.AVACLONE_SQUAD_VOTE
   )
   .let(webSocketWrite)
 

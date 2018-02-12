@@ -10,6 +10,8 @@ import ConfigurationSection from '../containers/ConfigurationSection';
 import QuestSelectionSection from './QuestSelectionSection';
 import SquadProposalSection from './SquadProposalSection';
 import SquadVotingSection from './SquadVotingSection';
+import QuestVotingSection from './QuestVotingSection';
+import CompleteView from './CompleteView';
 
 const { STAGE } = MANIFEST.CONSTS;
 
@@ -73,8 +75,12 @@ class PaintApp extends React.Component {
         return <QuestSelectionSection />;
       case STAGE.SQUAD_PROPOSAL:
         return <SquadProposalSection />;
-        case STAGE.SQUAD_VOTING:
-          return <SquadVotingSection />;
+      case STAGE.SQUAD_VOTING:
+        return <SquadVotingSection />;
+      case STAGE.QUEST_VOTING:
+        return <QuestVotingSection />;
+      case STAGE.COMPLETE:
+        return <CompleteView />;
       default:
         return <div>UPS</div>;
     }

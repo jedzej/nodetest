@@ -5,14 +5,13 @@ import withStyles from 'material-ui/styles/withStyles';
 import { configure } from '../../actions';
 
 import MANIFEST from '../../manifest'
-import Button from 'material-ui/Button/Button';
 import Checkbox from 'material-ui/Checkbox';
 import FormControlLabel from 'material-ui/Form/FormControlLabel';
 import FormGroup from 'material-ui/Form/FormGroup';
 import _ from 'lodash';
 import Grid from 'material-ui/Grid/Grid';
 
-const { CHAR, TEAM } = MANIFEST.CONSTS;
+const { TEAM } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({

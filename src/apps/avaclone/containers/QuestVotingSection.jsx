@@ -4,13 +4,13 @@ import withStyles from 'material-ui/styles/withStyles';
 
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { questSelect } from '../actions';
+import { questVote } from '../actions';
 
 import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
+import Grid from 'material-ui/Grid/Grid';
 
 const ac = require('../acutils');
-
 
 const styles = theme => {
   console.log(theme); return ({
@@ -63,21 +63,32 @@ const styles = theme => {
 };
 
 
-class QuestSelectionSection extends React.Component {
+class QuestVotingSection extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
     const currentUser = this.props.user;
-    const isCommander = ac.is.commander(store,currentUser._id);
+    const quest = ac.get.currentQuest(store);
+
+    const isMember = ac.is.squadMember(quest, currentUser._id);
+    const alreadyVoted = ac.is.questVoting.doneFor(quest, currentUser._id);
+
     return (
       <Paper>
-        {Object.values(store.quests).map(quest => (
-          <Button
-            key={quest.number}
-            disabled={ac.is.quest.taken(quest) || isCommander === false}
-            onClick={() => this.props.questSelect(quest.number)}
-          >{quest.number}</Button>
-        ))}
+        <Grid container spacing={0}>
+          <Grid item xs={6}>
+            <Button
+              disabled={isMember === false || alreadyVoted}
+              onClick={() => this.props.questVote(true)}
+            >SUCCESS</Button>
+          </Grid>
+          <Grid item xs={6}>
+            <Button
+              disabled={isMember === false || alreadyVoted}
+              onClick={() => this.props.questVote(false)}
+            >FAIL</Button>
+          </Grid>
+        </Grid>
       </Paper>
     );
   }
@@ -87,12 +98,13 @@ class QuestSelectionSection extends React.Component {
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
+    lobby: state.lobby,
     user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  questSelect: (number) => dispatch(questSelect(number)),
+  questVote: (vote) => dispatch(questVote(vote)),
   logout: () => {
     dispatch(logout());
   },
@@ -103,5 +115,5 @@ const mapDispatchToProps = (dispatch) => ({
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(QuestSelectionSection)
+  connect(mapStateToProps, mapDispatchToProps)(QuestVotingSection)
 );

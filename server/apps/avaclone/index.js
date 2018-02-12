@@ -225,6 +225,7 @@ const AVACLONE_APP_HANDLERS = {
 
     quest.squadVotes[currentUser._id] = action.payload.vote;
 
+    console.log("votes",ac.sum.successSquadVotes(quest), ac.get.playersCount(store))
     if (ac.is.squadVoting.done(store, quest)) {
       // update voting history
       quest.votingHistory.push({
@@ -241,11 +242,12 @@ const AVACLONE_APP_HANDLERS = {
         store.stage = STAGE.QUEST_SELECTION;
       } else {
         // squad denied
+        quest.squad = [];
         store.roundNumber++;
         store.stage = STAGE.SQUAD_PROPOSAL;
       }
       // clean squad votes buffer
-      quest.squadVotes = [];
+      quest.squadVotes = {};
     }
 
     if (ac.is.completeConditionFulfilled(store)) {
@@ -271,8 +273,8 @@ const AVACLONE_APP_HANDLERS = {
 
     quest.questVotes[currentUser._id] = action.payload.vote;
 
-    if (ac.is.squadVoting.done(store, quest)) {
-      if (ac.is.squadVoting.success(store, quest)) {
+    if (ac.is.questVoting.done(store, quest)) {
+      if (ac.is.questVoting.success(store, quest)) {
         quest.stage = QUEST_STAGE.SUCCESS;
       } else {
         quest.stage = QUEST_STAGE.FAILURE;

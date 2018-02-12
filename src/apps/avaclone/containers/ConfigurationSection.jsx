@@ -5,18 +5,13 @@ import withStyles from 'material-ui/styles/withStyles';
 import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { configure, start } from '../actions';
+import { start } from '../actions';
 
 import MANIFEST from '../manifest'
 import Button from 'material-ui/Button/Button';
-import Checkbox from 'material-ui/Checkbox';
-import FormControlLabel from 'material-ui/Form/FormControlLabel';
-import FormGroup from 'material-ui/Form/FormGroup';
 import SpecialCharactersSelector from './configuration/SpecialCharactersSelector'
-import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
 
-const { CHAR } = MANIFEST.CONSTS;
 
 const styles = theme => {
   console.log(theme); return ({
