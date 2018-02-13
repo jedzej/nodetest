@@ -1,86 +1,33 @@
 import React from 'react';
 import { connect } from "react-redux";
-import withStyles from 'material-ui/styles/withStyles';
 
-import { logout } from '../../../logic/user/actions';
-import { leave } from '../../../logic/lobby/actions';
-
+import StageConfigurationView from './StageConfigurationView';
+import StageQuestSelectionView from './StageQuestSelectionView';
+import StageSquadProposalView from './StageSquadProposalView';
+import StageSquadVotingView from './StageSquadVotingView';
+import StageQuestVotingView from './StageQuestVotingView';
+import StageCompleteView from './StageCompleteView';
 import MANIFEST from '../manifest'
-import ConfigurationSection from '../containers/ConfigurationSection';
-import QuestSelectionSection from './QuestSelectionSection';
-import SquadProposalSection from './SquadProposalSection';
-import SquadVotingSection from './SquadVotingSection';
-import QuestVotingSection from './QuestVotingSection';
-import CompleteView from './CompleteView';
+
 
 const { STAGE } = MANIFEST.CONSTS;
 
-const styles = theme => {
-  console.log(theme); return ({
-    root: {
-      flexGrow: 1,
-    },
-    paper: {
-      padding: theme.spacing.unit * 2,
-      height: '100%',
-    },
-    control: {
-      padding: theme.spacing.unit * 2,
-    },
-    headline: {
-      paddingBottom: theme.spacing.unit * 2
-    },
-    settingsButton: {
-      position: 'absolute',
-      top: '10px',
-      right: '10px'
-    },
-    undoButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '50px'
-    },
-    undoButtonDisabled: {
-      position: 'absolute',
-      color: '#CCC',
-      bottom: '10px',
-      right: '50px'
-    },
-    clearButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '90px'
-    },
-    paletteButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '10px'
-    },
-    canvasContainer: {
-      width: '100%',
-      height: '100%',
-      overflow: 'hidden',
-      backgroundColor: '#fff'
-    }
-  })
-};
 
-
-class PaintApp extends React.Component {
+class AvacloneApp extends React.Component {
   render() {
     switch (this.props.avaclone.store.stage) {
       case STAGE.CONFIGURATION:
-        return <ConfigurationSection />;
+        return <StageConfigurationView />;
       case STAGE.QUEST_SELECTION:
-        return <QuestSelectionSection />;
+        return <StageQuestSelectionView />;
       case STAGE.SQUAD_PROPOSAL:
-        return <SquadProposalSection />;
+        return <StageSquadProposalView />;
       case STAGE.SQUAD_VOTING:
-        return <SquadVotingSection />;
+        return <StageSquadVotingView />;
       case STAGE.QUEST_VOTING:
-        return <QuestVotingSection />;
+        return <StageQuestVotingView />;
       case STAGE.COMPLETE:
-        return <CompleteView />;
+        return <StageCompleteView />;
       default:
         return <div>UPS</div>;
     }
@@ -94,12 +41,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  logout: () => dispatch(logout()),
-  leave: () => dispatch(leave())
-})
-
-
-export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(PaintApp)
-);
+export default connect(mapStateToProps, null)(AvacloneApp);

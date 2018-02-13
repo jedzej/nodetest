@@ -2,12 +2,13 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
+import { terminate } from '../../../logic/app/actions';
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { questSelect } from '../actions';
 
 import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
+import Typography from 'material-ui/Typography/Typography';
 
 const ac = require('../acutils');
 
@@ -63,21 +64,26 @@ const styles = theme => {
 };
 
 
-class QuestSelectionSection extends React.Component {
+class StageCompleteView extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
     const currentUser = this.props.user;
-    const isCommander = ac.is.commander(store,currentUser._id);
+
+    const failedCount = ac.sum.failedQuests(store);
+    const succeededCount = ac.sum.succeededQuests(store);
+
     return (
       <Paper>
-        {Object.values(store.quests).map(quest => (
-          <Button
-            key={quest.number}
-            disabled={ac.is.quest.taken(quest) || isCommander === false}
-            onClick={() => this.props.questSelect(quest.number)}
-          >{quest.number}</Button>
-        ))}
+        {failedCount > succeededCount ?
+          <Typography>Good win</Typography> :
+          <Typography>Evil win</Typography>
+        }
+        <Button
+          disabled={currentUser.isLeader === false}
+          onClick={() => this.props.terminate()}>
+          Terminate
+        </Button>
       </Paper>
     );
   }
@@ -87,12 +93,15 @@ class QuestSelectionSection extends React.Component {
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
+    lobby: state.lobby,
     user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  questSelect: (number) => dispatch(questSelect(number)),
+  terminate: () => {
+    dispatch(terminate());
+  },
   logout: () => {
     dispatch(logout());
   },
@@ -103,5 +112,5 @@ const mapDispatchToProps = (dispatch) => ({
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(QuestSelectionSection)
+  connect(mapStateToProps, mapDispatchToProps)(StageCompleteView)
 );

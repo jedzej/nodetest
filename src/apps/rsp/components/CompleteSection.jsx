@@ -115,7 +115,8 @@ class CompleteSectionObserverImpl extends Component {
           <Grid item xs={12}>
             <ResultBox
               icon={SentimentVerySatisfied}
-              headline={this.props.winner.name + ' wins'}
+              headline={this.props.winner ? 
+                this.props.winner.name + ' wins': 'tie'}
               color="inherit" />
           </Grid>
 

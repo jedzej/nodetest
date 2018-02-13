@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
+import PropTypes from 'prop-types';
 
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
@@ -11,6 +12,12 @@ import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
 import Typography from 'material-ui/Typography/Typography';
+import QuestInfo from './quest/QuestInfo';
+import QuestDetails from './quest/QuestDetails';
+import Home from 'material-ui-icons/Home';
+import DriveEta from 'material-ui-icons/DriveEta';
+import IconButton from 'material-ui/IconButton';
+import Send from 'material-ui-icons/Send';
 
 const ac = require('../acutils');
 
@@ -66,7 +73,7 @@ const styles = theme => {
 };
 
 
-class SquadProposalSection extends React.Component {
+class StageSquadProposalView extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
@@ -87,49 +94,44 @@ class SquadProposalSection extends React.Component {
 
     return (
       <Paper>
-        <Grid container spacing={0}>
-          <Grid item xs={6}>
-            <Grid item xs={12}>
-              <Typography>Stay home</Typography>
-            </Grid>
-            {noMembers.map(m => (
-              <Grid item xs={12}>
+        <QuestInfo questNumber={quest.number} />
+        <QuestDetails
+          actions={[(memberId) =>
+            ac.is.squadMember(quest, memberId) ?
+              isCommander === false ? <DriveEta color="primary" /> :
                 <Button
+                  raised
+                  color="primary"
+                  mini
+                  onClick={() => {
+                    this.props.squadPropose(
+                      quest.squad.filter(id => id !== memberId)
+                    );
+                  }}><DriveEta /></Button> :
+              isCommander === false ? <Home color="disabled" /> :
+                <Button
+                  raised
+                  color="inherit"
+                  mini
                   disabled={squadFull || isCommander === false}
                   onClick={() => {
                     this.props.squadPropose([
                       ...quest.squad,
-                      m._id
+                      memberId
                     ]);
-                  }}
-                >{m.name} =&gt;</Button>
-              </Grid>
-            ))}
-          </Grid>
-          <Grid item xs={6}>
-            <Grid item xs={12}>
-              <Typography>Squad ({squadCount}/{squadCountRequired})</Typography>
-            </Grid>
-            {members.map(m => (
-              <Grid item xs={12}>
-                <Button
-                  disabled={isCommander === false}
-                  onClick={() => {
-                    this.props.squadPropose(
-                      quest.squad.filter(id => id !== m._id)
-                    );
-                  }}
-                >&lt;= {m.name}</Button>
-              </Grid>
-            ))}
-          </Grid>
+                  }}><Home /></Button>
+          ]}
+        />
+        <Grid container spacing={0}>
           <Grid item xs={12}>
             <Button
+              raised
+              color="accent"
               disabled={squadFull === false || isCommander === false}
               onClick={() => {
                 this.props.squadConfirm();
               }}
-            >CONFIRM</Button>
+            ><Send /></Button>
           </Grid>
         </Grid>
 
@@ -159,7 +161,14 @@ const mapDispatchToProps = (dispatch) => ({
   }
 })
 
+StageSquadProposalView.propTypes = {
+  open: PropTypes.bool,
+  onChangeComplete: PropTypes.func,
+  onClose: PropTypes.func,
+  color: PropTypes.string,
+};
+
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(SquadProposalSection)
+  connect(mapStateToProps, mapDispatchToProps)(StageSquadProposalView)
 );

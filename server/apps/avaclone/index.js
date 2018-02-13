@@ -229,6 +229,7 @@ const AVACLONE_APP_HANDLERS = {
     if (ac.is.squadVoting.done(store, quest)) {
       // update voting history
       quest.votingHistory.push({
+        commanderId: ac.get.commanderId(store),
         squad: quest.squad,
         squadVotes: quest.squadVotes
       });

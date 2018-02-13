@@ -40,9 +40,11 @@ const ac = {
     playersCount: store => store.playersOrder.length,
     squadCount: quest => keys(quest.squad).length,
     squadCountRequired: (store, quest) =>
-      QUEST_MAP[ac.get.playersCount(store)].squadCount[quest.number],
+      QUEST_MAP[ac.get.playersCount(store)].squadCount[quest.number - 1],
     failureCountRequired: (store, quest) =>
-      QUEST_MAP[ac.get.playersCount(store)].failsRequired[quest.number],
+      QUEST_MAP[ac.get.playersCount(store)].failsRequired[quest.number - 1],
+    commanderId: (store) =>
+      store.playersOrder[store.roundNumber % store.playersOrder.length]
   },
 
   sum: {
@@ -67,12 +69,8 @@ const ac = {
       (quest.squad.some(id => idsEqual(id, userId))),
     squadFull: (store, quest) =>
       (ac.get.squadCount(quest) === ac.get.squadCountRequired(store, quest)),
-    commander: (store, userId) =>
-      idsEqual(
-        store.playersOrder[store.roundNumber % store.playersOrder.length],
-        userId
-      ),
-    completeConditionFulfilled: store => 
+    commander: (store, userId) => idsEqual(ac.get.commanderId(store), userId),
+    completeConditionFulfilled: store =>
       (ac.sum.failedQuests(store) >= 3 || ac.sum.succeededQuests(store) >= 3),
     quest: {
       taken: (quest) =>
@@ -93,8 +91,8 @@ const ac = {
     },
 
     questVoting: {
-      doneFor: (quest, userId) =>
-        ac.get.questVoters(quest).find(voterId => idsEqual(voterId, userId)),
+      doneFor: (quest, userId) => Boolean(
+        ac.get.questVoters(quest).find(voterId => idsEqual(voterId, userId))),
       done: (store, quest) =>
         (ac.get.questVoters(quest).length === ac.get.squadCountRequired(store, quest)),
       success: (store, quest) =>

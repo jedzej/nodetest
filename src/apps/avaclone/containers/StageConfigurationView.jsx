@@ -64,7 +64,7 @@ const styles = theme => {
 };
 
 
-class ConfigurationSection extends React.Component {
+class StageConfigurationView extends React.Component {
 
   render() {
     return (
@@ -89,15 +89,11 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => ({
   start: () => dispatch(start()),
   terminate: variant => dispatch(terminate(MANIFEST.NAME)),
-  logout: () => {
-    dispatch(logout());
-  },
-  leave: () => {
-    dispatch(leave())
-  }
+  logout: () => dispatch(logout()),
+  leave: () => dispatch(leave())
 })
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(ConfigurationSection)
+  connect(mapStateToProps, mapDispatchToProps)(StageConfigurationView)
 );

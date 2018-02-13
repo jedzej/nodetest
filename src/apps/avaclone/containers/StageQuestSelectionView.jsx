@@ -4,11 +4,11 @@ import withStyles from 'material-ui/styles/withStyles';
 
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
-import { squadVote } from '../actions';
+import { questSelect } from '../actions';
 
 import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
-import Grid from 'material-ui/Grid/Grid';
+import ProgressTable from './progress/ProgressTable';
 
 const ac = require('../acutils');
 
@@ -64,33 +64,22 @@ const styles = theme => {
 };
 
 
-class SquadVotingSection extends React.Component {
+class StageQuestSelectionView extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
     const currentUser = this.props.user;
-    const quest = ac.get.currentQuest(store);
-
-    const alreadyVoted = ac.is.squadVoting.doneFor(quest, currentUser._id);
-    console.log('already voted:', alreadyVoted)
-
+    const isCommander = ac.is.commander(store,currentUser._id);
     return (
       <Paper>
-        <Grid container spacing={0}>
-          <Grid item xs={6}>
-            <Button
-              disabled={alreadyVoted}
-              onClick={() => this.props.squadVote(true)}
-            >SUCCESS</Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button
-              disabled={alreadyVoted}
-              onClick={() => this.props.squadVote(false)}
-            >FAIL</Button>
-          </Grid>
-        </Grid>
-
+        <ProgressTable/>
+        {Object.values(store.quests).map(quest => (
+          <Button
+            key={quest.number}
+            disabled={ac.is.quest.taken(quest) || isCommander === false}
+            onClick={() => this.props.questSelect(quest.number)}
+          >{quest.number}</Button>
+        ))}
       </Paper>
     );
   }
@@ -100,13 +89,12 @@ class SquadVotingSection extends React.Component {
 const mapStateToProps = (state) => {
   return {
     avaclone: state.avaclone,
-    lobby: state.lobby,
     user: state.user
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  squadVote: (vote) => dispatch(squadVote(vote)),
+  questSelect: (number) => dispatch(questSelect(number)),
   logout: () => {
     dispatch(logout());
   },
@@ -117,5 +105,5 @@ const mapDispatchToProps = (dispatch) => ({
 
 
 export default withStyles(styles)(
-  connect(mapStateToProps, mapDispatchToProps)(SquadVotingSection)
+  connect(mapStateToProps, mapDispatchToProps)(StageQuestSelectionView)
 );
