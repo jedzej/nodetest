@@ -37,7 +37,7 @@ class QuestsList extends React.Component {
                 <QuestIcon stage={quest.stage} />
               </Grid>
               <Grid item>
-                <QuestInfo questNumber={quest.number} />
+                <QuestInfo questNumber={quest.number} align="left"/>
               </Grid>
               <Grid item>
                 {actions && actions.map(action => action(quest))}

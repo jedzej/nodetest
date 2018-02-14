@@ -16,6 +16,7 @@ import Grid from 'material-ui/Grid/Grid';
 import ProgressTable from './progress/ProgressTable';
 import QuestInfo from './quest/QuestInfo';
 import QuestDetails from './quest/QuestDetails';
+import ActionTip from './common/ActionTip';
 
 const ac = require('../acutils');
 
@@ -84,7 +85,8 @@ class StageSquadVotingView extends React.Component {
     return (
       <Paper>
         <ProgressTable />
-        <QuestInfo questNumber={quest.number} />
+        <QuestInfo strong align="center"  questNumber={quest.number} />
+        <ActionTip />
         <QuestDetails
           actions={[
             (memberId) =>

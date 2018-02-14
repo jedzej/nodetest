@@ -15,6 +15,7 @@ import ProgressTable from './progress/ProgressTable';
 import QuestInfo from './quest/QuestInfo';
 import VotingPanel from './common/VotingPanel';
 import QuestDetails from './quest/QuestDetails';
+import ActionTip from './common/ActionTip';
 
 const ac = require('../acutils');
 
@@ -80,7 +81,8 @@ class StageQuestVotingView extends React.Component {
     return (
       <Paper>
         <ProgressTable />
-        <QuestInfo questNumber={quest.number} />
+        <ActionTip/>
+        <QuestInfo align="center" questNumber={quest.number} />
         <QuestDetails
           actions={[
             (memberId) =>

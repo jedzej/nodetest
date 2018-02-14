@@ -33,7 +33,7 @@ class ProgressTable extends React.Component {
   render() {
     const { store } = this.props.avaclone;
     return (
-      <Grid container spacing={0}>
+      <Grid container spacing={0} justify="center">
         {Object.values(store.quests).map(quest =>
           <Grid item>
             <QuestIcon stage={quest.stage} />

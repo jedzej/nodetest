@@ -56,17 +56,18 @@ class QuestInfo extends React.Component {
     const failuresRequired = ac.get.failureCountRequired(store, quest);
     return (
       <Grid container spacing={0}>
-        <Grid item xs={12}>
+        <Grid item xs={12} >
           <QuestStage
-            type="subheading"
+            type={this.props.strong ? "headline" : "subheading"}
             number={quest.number}
             questStage={quest.stage}
             stage={store.stage}
+            align={this.props.align}
           />
-          <Typography type="caption">
+          <Typography type="caption" align={this.props.align}>
             {ac.get.squadCountRequired(store, quest)} members required
           </Typography>
-          <Typography type="caption">
+          <Typography type="caption" align={this.props.align}>
             {failuresRequired} failure{failuresRequired > 1 && 's'} to lose
           </Typography>
         </Grid>

@@ -16,6 +16,8 @@ import Home from 'material-ui-icons/Home';
 import DriveEta from 'material-ui-icons/DriveEta';
 import Send from 'material-ui-icons/Send';
 import ProgressTable from './progress/ProgressTable';
+import ActionTip from './common/ActionTip';
+import Divider from 'material-ui/Divider';
 
 const ac = require('../acutils');
 
@@ -83,7 +85,9 @@ class StageSquadProposalView extends React.Component {
     return (
       <Paper>
         <ProgressTable />
-        <QuestInfo questNumber={quest.number} />
+        <QuestInfo strong align="center" questNumber={quest.number} />
+        <Divider/>
+        <ActionTip/>
         <QuestDetails
           actions={[(memberId) =>
             ac.is.squadMember(quest, memberId) ?
@@ -111,19 +115,20 @@ class StageSquadProposalView extends React.Component {
                   }}><Home /></Button>
           ]}
         />
-        <Grid container spacing={0}>
-          <Grid item xs={12}>
-            <Button
-              raised
-              color="accent"
-              disabled={squadFull === false || isCommander === false}
-              onClick={() => {
-                this.props.squadConfirm();
-              }}
-            ><Send /></Button>
+        {isCommander &&
+          <Grid container spacing={0}>
+            <Grid item xs={12}>
+              <Button
+                raised
+                color="accent"
+                disabled={squadFull === false}
+                onClick={() => {
+                  this.props.squadConfirm();
+                }}
+              ><Send /></Button>
+            </Grid>
           </Grid>
-        </Grid>
-
+        }
       </Paper>
     );
   }

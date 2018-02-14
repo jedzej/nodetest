@@ -12,6 +12,8 @@ import ProgressTable from './progress/ProgressTable';
 import QuestsList from './quest/QuestsList';
 
 import Map from 'material-ui-icons/Map';
+import ActionTip from './common/ActionTip';
+import Grid from 'material-ui/Grid';
 
 const ac = require('../acutils');
 
@@ -76,6 +78,7 @@ class StageQuestSelectionView extends React.Component {
     return (
       <Paper>
         <ProgressTable />
+        <ActionTip />
         <QuestsList actions={[quest => (
           ac.is.quest.taken(quest) === false && isCommander &&
           <Button
@@ -84,7 +87,7 @@ class StageQuestSelectionView extends React.Component {
             mini
             key={quest.number}
             onClick={() => this.props.questSelect(quest.number)}
-          ><Map/></Button>
+          ><Map /></Button>
         )]} />
       </Paper>
     );
