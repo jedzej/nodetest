@@ -3,7 +3,7 @@ var debug = require('debug')('chat:handlers');
 debug.log = console.log.bind(console);
 
 const MANIFEST = require('./manifest')
-const {ACTION} = MANIFEST.CONSTS;
+const { ACTION } = MANIFEST.CONSTS;
 
 const CHAT_APP_HANDLERS = {
 

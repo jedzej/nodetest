@@ -1,6 +1,7 @@
 module.exports = {
   NAME: "CHAT",
   EXCLUSIVE: false,
+  ALWAYS_ON: true,
 
   CONSTS: {
     ACTION: {

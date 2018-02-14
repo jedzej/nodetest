@@ -151,7 +151,7 @@ const app2sapi = (appPath) => {
           })
           .then(() => {
             //console.log("APPDATA:", ctx.appContext)
-            if (ctx.appContext.exists || action.type === "APP_START_HOOK")
+            if (ctx.appContext.exists || action.type === "APP_START_HOOK" || app.ALWAYS_ON)
               return appHandler(action, ctx.appContext)
           })
           .catch(err => {
