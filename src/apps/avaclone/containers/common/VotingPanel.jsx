@@ -1,11 +1,8 @@
 import React from 'react';
-import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 
 import Button from 'material-ui/Button/Button';
-import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
-
 
 
 const styles = theme => ({

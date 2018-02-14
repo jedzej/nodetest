@@ -8,16 +8,14 @@ import { leave } from '../../../logic/lobby/actions';
 import { questSelect, squadConfirm, squadPropose } from '../actions';
 
 import Button from 'material-ui/Button/Button';
-import _ from 'lodash';
 import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
-import Typography from 'material-ui/Typography/Typography';
 import QuestInfo from './quest/QuestInfo';
 import QuestDetails from './quest/QuestDetails';
 import Home from 'material-ui-icons/Home';
 import DriveEta from 'material-ui-icons/DriveEta';
-import IconButton from 'material-ui/IconButton';
 import Send from 'material-ui-icons/Send';
+import ProgressTable from './progress/ProgressTable';
 
 const ac = require('../acutils');
 
@@ -77,23 +75,14 @@ class StageSquadProposalView extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
-    const lobbyMembers = this.props.lobby.members;
     const currentUser = this.props.user;
     const quest = ac.get.currentQuest(store);
-
-    const squadCountRequired = ac.get.squadCountRequired(store, quest),
-      squadCount = ac.get.squadCount(quest),
-      squadFull = ac.is.squadFull(store, quest),
-      isCommander = ac.is.commander(store, currentUser._id)
-
-    console.log("squad full", squadFull, isCommander)
-    const [members, noMembers] = _.partition(
-      lobbyMembers,
-      m => ac.is.squadMember(quest, m._id)
-    );
+    const squadFull = ac.is.squadFull(store, quest);
+    const isCommander = ac.is.commander(store, currentUser._id);
 
     return (
       <Paper>
+        <ProgressTable />
         <QuestInfo questNumber={quest.number} />
         <QuestDetails
           actions={[(memberId) =>

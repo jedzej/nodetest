@@ -3,6 +3,8 @@ import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 import ThumbDown from 'material-ui-icons/ThumbDown';
 import ThumbUp from 'material-ui-icons/ThumbUp';
+import DriveEta from 'material-ui-icons/DriveEta';
+import Done from 'material-ui-icons/Done';
 
 import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
@@ -13,7 +15,7 @@ import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
 import ProgressTable from './progress/ProgressTable';
 import QuestInfo from './quest/QuestInfo';
-import MembersTable from './members/MembersTable';
+import QuestDetails from './quest/QuestDetails';
 
 const ac = require('../acutils');
 
@@ -83,7 +85,14 @@ class StageSquadVotingView extends React.Component {
       <Paper>
         <ProgressTable />
         <QuestInfo questNumber={quest.number} />
-        <MembersTable />
+        <QuestDetails
+          actions={[
+            (memberId) =>
+              ac.is.squadMember(quest, memberId) && <DriveEta />,
+            (memberId) =>
+              ac.is.squadVoting.doneFor(quest, memberId) && <Done />
+          ]}
+        />
         <Grid container spacing={0} justify="center">
           <Grid item xs={6}>
             <Button

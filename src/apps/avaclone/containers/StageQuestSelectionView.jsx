@@ -9,6 +9,9 @@ import { questSelect } from '../actions';
 import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
 import ProgressTable from './progress/ProgressTable';
+import QuestsList from './quest/QuestsList';
+
+import Map from 'material-ui-icons/Map';
 
 const ac = require('../acutils');
 
@@ -69,17 +72,20 @@ class StageQuestSelectionView extends React.Component {
   render() {
     const { store } = this.props.avaclone;
     const currentUser = this.props.user;
-    const isCommander = ac.is.commander(store,currentUser._id);
+    const isCommander = ac.is.commander(store, currentUser._id);
     return (
       <Paper>
-        <ProgressTable/>
-        {Object.values(store.quests).map(quest => (
+        <ProgressTable />
+        <QuestsList actions={[quest => (
+          ac.is.quest.taken(quest) === false && isCommander &&
           <Button
+            raised
+            dense
+            mini
             key={quest.number}
-            disabled={ac.is.quest.taken(quest) || isCommander === false}
             onClick={() => this.props.questSelect(quest.number)}
-          >{quest.number}</Button>
-        ))}
+          ><Map/></Button>
+        )]} />
       </Paper>
     );
   }

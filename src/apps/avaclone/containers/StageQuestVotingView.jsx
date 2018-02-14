@@ -6,15 +6,15 @@ import { logout } from '../../../logic/user/actions';
 import { leave } from '../../../logic/lobby/actions';
 import { questVote } from '../actions';
 
-import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
-import Grid from 'material-ui/Grid/Grid';
 import ThumbUp from 'material-ui-icons/ThumbUp';
 import ThumbDown from 'material-ui-icons/ThumbDown';
+import DriveEta from 'material-ui-icons/DriveEta';
+import Done from 'material-ui-icons/Done';
 import ProgressTable from './progress/ProgressTable';
 import QuestInfo from './quest/QuestInfo';
-import MembersTable from './members/MembersTable';
 import VotingPanel from './common/VotingPanel';
+import QuestDetails from './quest/QuestDetails';
 
 const ac = require('../acutils');
 
@@ -81,7 +81,20 @@ class StageQuestVotingView extends React.Component {
       <Paper>
         <ProgressTable />
         <QuestInfo questNumber={quest.number} />
-        <MembersTable />
+        <QuestDetails
+          actions={[
+            (memberId) =>
+              ac.is.squadMember(quest, memberId) && <DriveEta />,
+
+            (memberId) => {
+              const hasVoted = ac.is.squadMember(quest, memberId)
+                && ac.is.questVoting.doneFor(quest, memberId);
+              return (
+                hasVoted && <Done />
+              );
+            }
+          ]}
+        />
         <VotingPanel
           disabled={isSquadMember === false || alreadyVoted}
           conIcon={<ThumbDown />}

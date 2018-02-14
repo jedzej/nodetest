@@ -35,8 +35,8 @@ const ac = {
     default: () => MANIFEST.DEFAULT_STORE,
     currentQuest: store => vals(store.quests).find(
       quest => quest.stage === QUEST_STAGE.ONGOING),
-    squadVoters: quest => keys(quest.squadVotes),
-    questVoters: quest => keys(quest.questVotes),
+    squadVoters: quest => keys(quest.squadVotes || []),
+    questVoters: quest => keys(quest.questVotes || []),
     playersCount: store => store.playersOrder.length,
     squadCount: quest => keys(quest.squad).length,
     squadCountRequired: (store, quest) =>

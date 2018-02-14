@@ -5,8 +5,6 @@ import withStyles from 'material-ui/styles/withStyles';
 import Typography from 'material-ui/Typography/Typography';
 import MANIFEST from '../../manifest'
 import Grid from 'material-ui/Grid/Grid';
-import List, { ListItem } from 'material-ui/List';
-import ListItemText from 'material-ui/List/ListItemText';
 
 const ac = require('../../acutils');
 
@@ -36,7 +34,7 @@ const styles = theme => ({
 const QuestStage = props => (
   <Typography {...props}>
     Quest {props.number} - {
-      props.stage === QUEST_STAGE.ONGOING ?
+      props.questStage !== QUEST_STAGE.ONGOING ?
         ({
           [QUEST_STAGE.NOT_TAKEN]: "not taken",
           [QUEST_STAGE.SUCCESS]: "succeeded",
@@ -55,22 +53,20 @@ class QuestInfo extends React.Component {
   render() {
     const { store } = this.props.avaclone;
     const quest = store.quests[this.props.questNumber];
-    const squad = quest.squad.map(_id =>
-      this.props.lobby.members.find(m => m._id === _id));
-    const voters = ac.get.questVoters(quest);
     const failuresRequired = ac.get.failureCountRequired(store, quest);
     return (
       <Grid container spacing={0}>
         <Grid item xs={12}>
           <QuestStage
+            type="subheading"
             number={quest.number}
             questStage={quest.stage}
             stage={store.stage}
           />
-          <Typography>
-            {ac.get.squadCountRequired(store, quest)} members required,
+          <Typography type="caption">
+            {ac.get.squadCountRequired(store, quest)} members required
           </Typography>
-          <Typography>
+          <Typography type="caption">
             {failuresRequired} failure{failuresRequired > 1 && 's'} to lose
           </Typography>
         </Grid>
