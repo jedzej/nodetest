@@ -38,9 +38,9 @@ const chatEntryStyles = theme => ({
   root: {
     padding: theme.spacing.unit
   },
-  notification : {
+  notification: {
     fontWeight: 'bold',
-    textAlign:'center'
+    textAlign: 'center'
   }
 });
 
@@ -166,6 +166,7 @@ class ChatBox extends Component {
               <IconButton
                 dense='true'
                 color={this.state.message.length > 0 ? 'primary' : 'inherit'}
+                onClick={event => this.handleSubmit(event)}
               >
                 <Send />
               </IconButton>
