@@ -33,20 +33,22 @@ class StageWrapper extends React.Component {
     const quest = ac.get.currentQuest(store);
 
     return (
-      <div>
-        {quest &&
+      <div style={{ margin: 0, height: '100%' }}>
+        <div style={{ margin: 0, overflow: 'auto' }}>
+          {quest &&
+            <Paper className={classes.paper}>
+              <QuestInfo strong align="center" questNumber={quest.number} />
+            </Paper>
+          }
           <Paper className={classes.paper}>
-            <QuestInfo strong align="center" questNumber={quest.number} />
+            <ActionTip />
+            <Divider className={classes.divider} />
+            {this.props.children}
           </Paper>
-        }
-        <Paper className={classes.paper}>
-          <ActionTip />
-          <Divider className={classes.divider} />
-          {this.props.children}
-        </Paper>
-        <Paper className={classes.paper}>
-          <ProgressTable />
-        </Paper>
+          <Paper className={classes.paper}>
+            <ProgressTable />
+          </Paper>
+        </div>
       </div>
     );
   }
