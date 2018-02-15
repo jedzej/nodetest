@@ -1,21 +1,17 @@
 import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
-
-import { logout } from '../../../logic/user/actions';
-import { leave } from '../../../logic/lobby/actions';
-import { questVote } from '../actions';
-
-import Paper from 'material-ui/Paper/Paper';
 import ThumbUp from 'material-ui-icons/ThumbUp';
 import ThumbDown from 'material-ui-icons/ThumbDown';
 import DriveEta from 'material-ui-icons/DriveEta';
 import Done from 'material-ui-icons/Done';
-import ProgressTable from './progress/ProgressTable';
-import QuestInfo from './quest/QuestInfo';
+import HourglassEmpty from 'material-ui-icons/HourglassEmpty';
+
 import VotingPanel from './common/VotingPanel';
 import QuestDetails from './quest/QuestDetails';
-import ActionTip from './common/ActionTip';
+import StageWrapper from './StageWrapper';
+
+import { questVote } from '../actions';
 
 const ac = require('../acutils');
 
@@ -48,22 +44,6 @@ const styles = theme => ({
     color: '#CCC',
     bottom: '10px',
     right: '50px'
-  },
-  clearButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '90px'
-  },
-  paletteButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '10px'
-  },
-  canvasContainer: {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-    backgroundColor: '#fff'
   }
 });
 
@@ -78,23 +58,24 @@ class StageQuestVotingView extends React.Component {
     const isSquadMember = ac.is.squadMember(quest, currentUser._id);
     const alreadyVoted = ac.is.questVoting.doneFor(quest, currentUser._id);
 
+    const showSquadMember = (memberId) =>
+      ac.is.squadMember(quest, memberId) && <DriveEta />;
+
+    const showVotingComplete = (memberId) => {
+      const isMember = ac.is.squadMember(quest, memberId)
+      const hasVoted = ac.is.squadMember(quest, memberId)
+        && ac.is.questVoting.doneFor(quest, memberId);
+      return (
+        hasVoted ? <Done /> : isMember && <HourglassEmpty />
+      );
+    }
+
     return (
-      <Paper>
-        <ProgressTable />
-        <ActionTip/>
-        <QuestInfo align="center" questNumber={quest.number} />
+      <StageWrapper>
         <QuestDetails
           actions={[
-            (memberId) =>
-              ac.is.squadMember(quest, memberId) && <DriveEta />,
-
-            (memberId) => {
-              const hasVoted = ac.is.squadMember(quest, memberId)
-                && ac.is.questVoting.doneFor(quest, memberId);
-              return (
-                hasVoted && <Done />
-              );
-            }
+            showSquadMember,
+            showVotingComplete
           ]}
         />
         <VotingPanel
@@ -103,28 +84,19 @@ class StageQuestVotingView extends React.Component {
           proIcon={<ThumbUp />}
           onVote={this.props.questVote}
         />
-      </Paper>
+      </StageWrapper>
     );
   }
 }
 
 
-const mapStateToProps = (state) => {
-  return {
-    avaclone: state.avaclone,
-    lobby: state.lobby,
-    user: state.user
-  };
-};
+const mapStateToProps = (state) => ({
+  avaclone: state.avaclone,
+  user: state.user
+});
 
 const mapDispatchToProps = (dispatch) => ({
-  questVote: (vote) => dispatch(questVote(vote)),
-  logout: () => {
-    dispatch(logout());
-  },
-  leave: () => {
-    dispatch(leave())
-  }
+  questVote: (vote) => dispatch(questVote(vote))
 })
 
 

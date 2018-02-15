@@ -31,8 +31,12 @@ const styles = theme => ({
   }
 });
 
-const QuestStage = props => (
-  <Typography {...props}>
+const QuestStage = props => {
+  const newProps = {...props};
+  delete newProps.questStage;
+  delete newProps.stage;
+  return (
+  <Typography {...newProps}>
     Quest {props.number} - {
       props.questStage !== QUEST_STAGE.ONGOING ?
         ({
@@ -46,7 +50,7 @@ const QuestStage = props => (
           [STAGE.QUEST_VOTING]: "execution"
         })[props.stage]}
   </Typography>
-);
+)};
 
 class QuestInfo extends React.Component {
 

@@ -2,50 +2,46 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from "react-redux";
 import { withStyles } from 'material-ui/styles';
+import Table, { TableBody, TableRow, TableCell } from 'material-ui/Table';
+
 import QuestInfo from './QuestInfo';
-import Grid from 'material-ui/Grid';
 import QuestIcon from './QuestIcon';
-import List, { ListItem } from 'material-ui/List';
+
 
 const styles = theme => ({
-  root: {
-    width: '90%',
+  actionCell: {
+    textAlign: 'right'
   },
-  button: {
-    marginTop: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-  },
-  actionsContainer: {
-    marginBottom: theme.spacing.unit * 2,
-  },
-  resetContainer: {
-    padding: theme.spacing.unit * 3,
-  },
+  iconCell: {
+    textAlign: 'right',
+    padding: theme.spacing.unit,
+    width: '25px'
+  }
 });
 
 class QuestsList extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
-    const { actions } = this.props;
+    const { actions, classes } = this.props;
     return (
-      <List>
-        {Object.values(store.quests).map(quest =>
-          <ListItem >
-            <Grid container>
-              <Grid item>
+      <Table>
+        <TableBody>
+          {Object.values(store.quests).map(quest => (
+            <TableRow key={quest.number}>
+              <TableCell className={classes.iconCell} padding="none">
                 <QuestIcon stage={quest.stage} />
-              </Grid>
-              <Grid item>
-                <QuestInfo questNumber={quest.number} align="left"/>
-              </Grid>
-              <Grid item>
+              </TableCell>
+              <TableCell padding="none">
+                <QuestInfo questNumber={quest.number} />
+              </TableCell>
+              <TableCell className={classes.actionCell} padding="none">
                 {actions && actions.map(action => action(quest))}
-              </Grid>
-            </Grid>
-          </ListItem>
-        )}
-      </List>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     );
   }
 }
@@ -54,13 +50,10 @@ QuestsList.propTypes = {
   classes: PropTypes.object,
 };
 
-const mapStateToProps = (state) => {
-  return {
-    avaclone: state.avaclone,
-    lobby: state.lobby
-  };
-};
-
+const mapStateToProps = (state) => ({
+  avaclone: state.avaclone,
+  lobby: state.lobby
+});
 
 
 export default withStyles(styles)(

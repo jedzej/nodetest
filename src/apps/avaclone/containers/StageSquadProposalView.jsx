@@ -1,81 +1,46 @@
 import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
-import PropTypes from 'prop-types';
-
-import { logout } from '../../../logic/user/actions';
-import { leave } from '../../../logic/lobby/actions';
-import { questSelect, squadConfirm, squadPropose } from '../actions';
-
 import Button from 'material-ui/Button/Button';
 import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
-import QuestInfo from './quest/QuestInfo';
-import QuestDetails from './quest/QuestDetails';
 import Home from 'material-ui-icons/Home';
 import DriveEta from 'material-ui-icons/DriveEta';
 import Send from 'material-ui-icons/Send';
-import ProgressTable from './progress/ProgressTable';
-import ActionTip from './common/ActionTip';
 import Divider from 'material-ui/Divider';
+
+import ActionTip from './common/ActionTip';
+import ProgressTable from './progress/ProgressTable';
+import QuestInfo from './quest/QuestInfo';
+import QuestDetails from './quest/QuestDetails';
+
+import { squadConfirm, squadPropose } from '../actions';
+
 
 const ac = require('../acutils');
 
 
-const styles = theme => {
-  console.log(theme); return ({
-    root: {
-      flexGrow: 1,
-    },
-    paper: {
-      padding: theme.spacing.unit * 2,
-      height: '100%',
-    },
-    control: {
-      padding: theme.spacing.unit * 2,
-    },
-    headline: {
-      paddingBottom: theme.spacing.unit * 2
-    },
-    settingsButton: {
-      position: 'absolute',
-      top: '10px',
-      right: '10px'
-    },
-    undoButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '50px'
-    },
-    undoButtonDisabled: {
-      position: 'absolute',
-      color: '#CCC',
-      bottom: '10px',
-      right: '50px'
-    },
-    clearButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '90px'
-    },
-    paletteButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '10px'
-    },
-    canvasContainer: {
-      width: '100%',
-      height: '100%',
-      overflow: 'hidden',
-      backgroundColor: '#fff'
-    }
-  })
-};
+const styles = theme => ({
+  paper: {
+    padding: theme.spacing.unit * 2,
+    margin: theme.spacing.unit * 2,
+    height: '100%',
+  },
+  divider: {
+    marginTop: theme.spacing.unit,
+    marginBottom: theme.spacing.unit
+  },
+  buttonContainer: {
+    paddingTop: theme.spacing.unit * 3,
+    textAlign: 'center'
+  }
+});
 
 
 class StageSquadProposalView extends React.Component {
 
   render() {
+    const { classes } = this.props;
     const { store } = this.props.avaclone;
     const currentUser = this.props.user;
     const quest = ac.get.currentQuest(store);
@@ -83,84 +48,74 @@ class StageSquadProposalView extends React.Component {
     const isCommander = ac.is.commander(store, currentUser._id);
 
     return (
-      <Paper>
-        <ProgressTable />
-        <QuestInfo strong align="center" questNumber={quest.number} />
-        <Divider/>
-        <ActionTip/>
-        <QuestDetails
-          actions={[(memberId) =>
-            ac.is.squadMember(quest, memberId) ?
-              isCommander === false ? <DriveEta color="primary" /> :
+      <div>
+        <Paper className={classes.paper}>
+          <QuestInfo strong align="center" questNumber={quest.number} />
+        </Paper>
+        <Paper className={classes.paper}>
+          <ActionTip />
+          <Divider className={classes.divider} />
+          <QuestDetails
+            actions={[(memberId) =>
+              ac.is.squadMember(quest, memberId) ?
+                isCommander === false ? <DriveEta color="primary" /> :
+                  <Button
+                    raised
+                    color="primary"
+                    mini
+                    onClick={() => {
+                      this.props.squadPropose(
+                        quest.squad.filter(id => id !== memberId)
+                      );
+                    }}><DriveEta /></Button> :
+                isCommander === false ? <Home color="disabled" /> :
+                  <Button
+                    raised
+                    color="inherit"
+                    mini
+                    disabled={squadFull || isCommander === false}
+                    onClick={() => {
+                      this.props.squadPropose([
+                        ...quest.squad,
+                        memberId
+                      ]);
+                    }}><Home /></Button>
+            ]}
+          />
+          {isCommander &&
+            <Grid container spacing={0}>
+              <Grid item xs={12} className={classes.buttonContainer}>
                 <Button
                   raised
-                  color="primary"
-                  mini
+                  color="accent"
+                  disabled={squadFull === false}
                   onClick={() => {
-                    this.props.squadPropose(
-                      quest.squad.filter(id => id !== memberId)
-                    );
-                  }}><DriveEta /></Button> :
-              isCommander === false ? <Home color="disabled" /> :
-                <Button
-                  raised
-                  color="inherit"
-                  mini
-                  disabled={squadFull || isCommander === false}
-                  onClick={() => {
-                    this.props.squadPropose([
-                      ...quest.squad,
-                      memberId
-                    ]);
-                  }}><Home /></Button>
-          ]}
-        />
-        {isCommander &&
-          <Grid container spacing={0}>
-            <Grid item xs={12}>
-              <Button
-                raised
-                color="accent"
-                disabled={squadFull === false}
-                onClick={() => {
-                  this.props.squadConfirm();
-                }}
-              ><Send /></Button>
+                    this.props.squadConfirm();
+                  }}
+                ><Send /></Button>
+              </Grid>
             </Grid>
-          </Grid>
-        }
-      </Paper>
+          }
+        </Paper>
+        <Paper className={classes.paper}>
+          <ProgressTable />
+        </Paper>
+      </div>
     );
   }
 }
 
 
-const mapStateToProps = (state) => {
-  return {
-    avaclone: state.avaclone,
-    lobby: state.lobby,
-    user: state.user
-  };
-};
+const mapStateToProps = (state) => ({
+  avaclone: state.avaclone,
+  lobby: state.lobby,
+  user: state.user
+});
 
 const mapDispatchToProps = (dispatch) => ({
-  questSelect: (number) => dispatch(questSelect(number)),
   squadPropose: (squad) => dispatch(squadPropose(squad)),
-  squadConfirm: () => dispatch(squadConfirm()),
-  logout: () => {
-    dispatch(logout());
-  },
-  leave: () => {
-    dispatch(leave())
-  }
+  squadConfirm: () => dispatch(squadConfirm())
 })
-
-StageSquadProposalView.propTypes = {
-  open: PropTypes.bool,
-  onChangeComplete: PropTypes.func,
-  onClose: PropTypes.func,
-  color: PropTypes.string,
-};
 
 
 export default withStyles(styles)(

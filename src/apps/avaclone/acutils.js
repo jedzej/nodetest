@@ -44,7 +44,10 @@ const ac = {
     failureCountRequired: (store, quest) =>
       QUEST_MAP[ac.get.playersCount(store)].failsRequired[quest.number - 1],
     commanderId: (store) =>
-      store.playersOrder[store.roundNumber % store.playersOrder.length]
+      store.playersOrder[store.roundNumber % store.playersOrder.length],
+    squadAttemptsCount: (quest) =>
+      quest.votingHistory ? quest.votingHistory.length : 0,
+    squadAttemptsLimit: (store) => store.configuration.squadVotingLimit
   },
 
   sum: {

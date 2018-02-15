@@ -13,7 +13,6 @@ class InLobbyRoute extends Component {
   render() {
     const exclusiveApp = Object.values(this.props.app).find(app => app.exclusive);
     const app = exclusiveApp ? applications[exclusiveApp.name] : null;
-    console.log(app)
 
     if (app && app.MANIFEST.FULLSCREEN === true) {
       return <app.MAIN />

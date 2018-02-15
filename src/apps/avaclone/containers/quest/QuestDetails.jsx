@@ -11,8 +11,11 @@ const ac = require('../../acutils');
 
 const styles = theme => ({
   tableContainer: {
-    padding: '30px',
-    margin: '20px'
+    //padding: '30px',
+    //margin: '20px'
+  },
+  actionCell: {
+    textAlign: 'right'
   },
   root: {
     flexGrow: 1,
@@ -60,9 +63,12 @@ class QuestDetails extends React.Component {
                     <Typography type="subheading">{member.name}</Typography>
                     <Typography type="caption">{roles.join(', ')}</Typography>
                   </TableCell>
-                  {actions && actions.map(action => (
-                    <TableCell padding="none">{action(member._id)}</TableCell>
-                  ))}
+                  <TableCell className={classes.actionCell} padding="none">
+                    {actions && actions.map((action, i) =>
+                      <span key={i}>
+                        {action(member._id)}
+                      </span>)}
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -74,7 +80,6 @@ class QuestDetails extends React.Component {
 }
 
 QuestDetails.propTypes = {
-  onVote: PropTypes.func.required,
   actions: PropTypes.array
 };
 

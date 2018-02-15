@@ -35,7 +35,7 @@ class ProgressTable extends React.Component {
     return (
       <Grid container spacing={0} justify="center">
         {Object.values(store.quests).map(quest =>
-          <Grid item>
+          <Grid item key={quest.number}>
             <QuestIcon stage={quest.stage} />
           </Grid>
         )}

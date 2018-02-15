@@ -6,50 +6,11 @@ import Grid from 'material-ui/Grid/Grid';
 
 
 const styles = theme => ({
-  root: {
-    flexGrow: 1,
+  buttonContainer: {
+    textAlign: 'center'
   },
-  paper: {
-    padding: theme.spacing.unit * 2,
-    height: '100%',
-  },
-  control: {
-    padding: theme.spacing.unit * 2,
-  },
-  headline: {
-    paddingBottom: theme.spacing.unit * 2
-  },
-  settingsButton: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px'
-  },
-  undoButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '50px'
-  },
-  undoButtonDisabled: {
-    position: 'absolute',
-    color: '#CCC',
-    bottom: '10px',
-    right: '50px'
-  },
-  clearButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '90px'
-  },
-  paletteButton: {
-    position: 'absolute',
-    bottom: '10px',
-    right: '10px'
-  },
-  canvasContainer: {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-    backgroundColor: '#fff'
+  button: {
+    margin: theme.spacing.unit,
   }
 });
 
@@ -57,26 +18,27 @@ const styles = theme => ({
 class VotingPanel extends React.Component {
 
   render() {
+    const {classes} = this.props;
     return (
       <Grid container spacing={0} justify="center">
-        <Grid item xs={6}>
+        <Grid item xs={12} className={classes.buttonContainer}>
           <Button
             fab
             color="primary"
             aria-label="pro"
             disabled={this.props.disabled}
             onClick={() => this.props.onVote(true)}
+            className={classes.button}
           >
             {this.props.proIcon}
           </Button>
-        </Grid>
-        <Grid item xs={6}>
           <Button
             fab
             color="primary"
             aria-label="con"
             disabled={this.props.disabled}
             onClick={() => this.props.onVote(false)}
+            className={classes.button}
           >
             {this.props.conIcon}
           </Button>
