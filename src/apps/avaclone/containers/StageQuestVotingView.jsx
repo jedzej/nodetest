@@ -1,8 +1,8 @@
 import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
-import ThumbUp from 'material-ui-icons/ThumbUp';
-import ThumbDown from 'material-ui-icons/ThumbDown';
+import Flag from 'material-ui-icons/Flag';
+import Whatshot from 'material-ui-icons/Whatshot';
 import DriveEta from 'material-ui-icons/DriveEta';
 import Done from 'material-ui-icons/Done';
 import HourglassEmpty from 'material-ui-icons/HourglassEmpty';
@@ -44,6 +44,12 @@ const styles = theme => ({
     color: '#CCC',
     bottom: '10px',
     right: '50px'
+  },
+  conButton: {
+    backgroundColor: 'red',
+  },
+  proButton: {
+    backgroundColor: 'green',
   }
 });
 
@@ -52,6 +58,7 @@ class StageQuestVotingView extends React.Component {
 
   render() {
     const { store } = this.props.avaclone;
+    const { classes } = this.props;
     const currentUser = this.props.user;
     const quest = ac.get.currentQuest(store);
 
@@ -70,6 +77,11 @@ class StageQuestVotingView extends React.Component {
       );
     }
 
+    const swap = Math.sin(parseInt(currentUser._id.substring(0, 10), 16) / quest.number) > 0;
+    console.log(currentUser._id.substring(0, 10))
+    console.log(parseInt(currentUser._id.substring(0, 10), 16))
+    console.log(quest.number)
+
     return (
       <StageWrapper>
         <QuestDetails
@@ -79,9 +91,12 @@ class StageQuestVotingView extends React.Component {
           ]}
         />
         <VotingPanel
+          swapped={swap}
           disabled={isSquadMember === false || alreadyVoted}
-          conIcon={<ThumbDown />}
-          proIcon={<ThumbUp />}
+          conIcon={<Whatshot />}
+          conClass={classes.conButton}
+          proIcon={<Flag />}
+          proClass={classes.proButton}
           onVote={this.props.questVote}
         />
       </StageWrapper>

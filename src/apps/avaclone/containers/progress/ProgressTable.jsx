@@ -2,9 +2,10 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 import Grid from 'material-ui/Grid/Grid';
-
+import MANIFEST from '../../manifest';
 import QuestIcon from '../quest/QuestIcon';
 
+const { QUEST_STAGE } = MANIFEST.CONSTS;
 
 const styles = theme => ({
   root: {
@@ -24,9 +25,16 @@ const styles = theme => ({
     position: 'absolute',
     top: '10px',
     right: '10px'
-  }
+  },
+
 });
 
+const COLORS = {
+  [QUEST_STAGE.FAILURE]: 'red',
+  [QUEST_STAGE.NOT_TAKEN]: 'grey',
+  [QUEST_STAGE.SUCCESS]: 'green',
+  [QUEST_STAGE.ONGOING]: 'black',
+}
 
 class ProgressTable extends React.Component {
 
@@ -36,7 +44,10 @@ class ProgressTable extends React.Component {
       <Grid container spacing={0} justify="center">
         {Object.values(store.quests).map(quest =>
           <Grid item key={quest.number}>
-            <QuestIcon stage={quest.stage} />
+            <QuestIcon
+              style={{ color: COLORS[quest.stage] }}
+              stage={quest.stage}
+            />
           </Grid>
         )}
       </Grid>

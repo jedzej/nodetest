@@ -2,19 +2,15 @@ import React from 'react';
 import { connect } from "react-redux";
 import withStyles from 'material-ui/styles/withStyles';
 import Button from 'material-ui/Button/Button';
-import Paper from 'material-ui/Paper/Paper';
 import Grid from 'material-ui/Grid/Grid';
 import Home from 'material-ui-icons/Home';
 import DriveEta from 'material-ui-icons/DriveEta';
 import Send from 'material-ui-icons/Send';
-import Divider from 'material-ui/Divider';
 
-import ActionTip from './common/ActionTip';
-import ProgressTable from './progress/ProgressTable';
-import QuestInfo from './quest/QuestInfo';
 import QuestDetails from './quest/QuestDetails';
 
 import { squadConfirm, squadPropose } from '../actions';
+import StageWrapper from './StageWrapper';
 
 
 const ac = require('../acutils');
@@ -48,59 +44,49 @@ class StageSquadProposalView extends React.Component {
     const isCommander = ac.is.commander(store, currentUser._id);
 
     return (
-      <div>
-        <Paper className={classes.paper}>
-          <QuestInfo strong align="center" questNumber={quest.number} />
-        </Paper>
-        <Paper className={classes.paper}>
-          <ActionTip />
-          <Divider className={classes.divider} />
-          <QuestDetails
-            actions={[(memberId) =>
-              ac.is.squadMember(quest, memberId) ?
-                isCommander === false ? <DriveEta color="primary" /> :
-                  <Button
-                    raised
-                    color="primary"
-                    mini
-                    onClick={() => {
-                      this.props.squadPropose(
-                        quest.squad.filter(id => id !== memberId)
-                      );
-                    }}><DriveEta /></Button> :
-                isCommander === false ? <Home color="disabled" /> :
-                  <Button
-                    raised
-                    color="inherit"
-                    mini
-                    disabled={squadFull || isCommander === false}
-                    onClick={() => {
-                      this.props.squadPropose([
-                        ...quest.squad,
-                        memberId
-                      ]);
-                    }}><Home /></Button>
-            ]}
-          />
-          {isCommander &&
-            <Grid container spacing={0}>
-              <Grid item xs={12} className={classes.buttonContainer}>
+      <StageWrapper>
+        <QuestDetails
+          actions={[(memberId) =>
+            ac.is.squadMember(quest, memberId) ?
+              isCommander === false ? <DriveEta color="primary" /> :
                 <Button
                   raised
-                  color="accent"
-                  disabled={squadFull === false}
+                  color="primary"
+                  mini
                   onClick={() => {
-                    this.props.squadConfirm();
-                  }}
-                ><Send /></Button>
-              </Grid>
+                    this.props.squadPropose(
+                      quest.squad.filter(id => id !== memberId)
+                    );
+                  }}><DriveEta /></Button> :
+              isCommander === false ? <Home color="disabled" /> :
+                <Button
+                  raised
+                  color="inherit"
+                  mini
+                  disabled={squadFull || isCommander === false}
+                  onClick={() => {
+                    this.props.squadPropose([
+                      ...quest.squad,
+                      memberId
+                    ]);
+                  }}><Home /></Button>
+          ]}
+        />
+        {isCommander &&
+          <Grid container spacing={0}>
+            <Grid item xs={12} className={classes.buttonContainer}>
+              <Button
+                raised
+                color="accent"
+                disabled={squadFull === false}
+                onClick={() => {
+                  this.props.squadConfirm();
+                }}
+              ><Send /></Button>
             </Grid>
-          }
-        </Paper>
-        <Paper className={classes.paper}>
-          <ProgressTable />
-        </Paper>
-      </div>
+          </Grid>
+        }
+      </StageWrapper>
     );
   }
 }

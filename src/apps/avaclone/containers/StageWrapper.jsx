@@ -7,6 +7,7 @@ import Divider from 'material-ui/Divider';
 import ActionTip from './common/ActionTip';
 import ProgressTable from './progress/ProgressTable';
 import QuestInfo from './quest/QuestInfo';
+import CharactersPanel from './character/CharactersPanel';
 
 
 const ac = require('../acutils');
@@ -47,6 +48,9 @@ class StageWrapper extends React.Component {
           </Paper>
           <Paper className={classes.paper}>
             <ProgressTable />
+          </Paper>
+          <Paper className={classes.paper}>
+            <CharactersPanel />
           </Paper>
         </div>
       </div>

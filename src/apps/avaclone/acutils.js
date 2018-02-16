@@ -1,6 +1,6 @@
 const MANIFEST = require('./manifest');
 
-const { QUEST_STAGE, QUEST_MAP } = MANIFEST.CONSTS;
+const { QUEST_STAGE, QUEST_MAP, VISIBILITY_MAP } = MANIFEST.CONSTS;
 
 const countIf = (arr, cond) => arr.reduce((s, e) => cond(e) ? s + 1 : s, 0);
 
@@ -35,6 +35,8 @@ const ac = {
     default: () => MANIFEST.DEFAULT_STORE,
     currentQuest: store => vals(store.quests).find(
       quest => quest.stage === QUEST_STAGE.ONGOING),
+    members: (store, lobby) => store.playersOrder.map(
+      id => lobby.members.find(m => idsEqual(m._id, id))),
     squadVoters: quest => keys(quest.squadVotes || []),
     questVoters: quest => keys(quest.questVotes || []),
     playersCount: store => store.playersOrder.length,
@@ -47,7 +49,10 @@ const ac = {
       store.playersOrder[store.roundNumber % store.playersOrder.length],
     squadAttemptsCount: (quest) =>
       quest.votingHistory ? quest.votingHistory.length : 0,
-    squadAttemptsLimit: (store) => store.configuration.squadVotingLimit
+    squadAttemptsLimit: (store) => store.configuration.squadVotingLimit,
+    char: (store, userId) => store.charactersMap[userId],
+    charFor: (store, observerId, observedId) =>
+      VISIBILITY_MAP[ac.get.char(store, observerId)][ac.get.char(store, observedId)]
   },
 
   sum: {
@@ -103,10 +108,7 @@ const ac = {
       failure: (store, quest) =>
         (ac.is.questVoting.success(store, quest) === false),
     },
-  },
-  completeConditionFulfilled: store =>
-    (ac.sum.succeededQuests(store) >= 3 || ac.sum.failedQuests(store) >= 3),
-
+  }
 }
 
 module.exports = ac;
